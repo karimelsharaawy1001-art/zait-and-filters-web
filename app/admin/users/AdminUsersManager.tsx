@@ -44,9 +44,9 @@ export default function AdminUsersManager({
         <div
           style={{
             marginBottom: '16px', padding: '12px 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 700,
-            background: msg.ok ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${msg.ok ? '#bbf7d0' : '#fecaca'}`,
-            color: msg.ok ? '#15803d' : '#dc2626',
+            background: msg.ok ? '#f0fdf4' : '#f0fdf4',
+            border: `1px solid ${msg.ok ? '#bbf7d0' : '#dcfce7'}`,
+            color: msg.ok ? '#15803d' : '#16a34a',
           }}
         >
           {msg.ok ? `✅ ${msg.text}` : `⚠️ ${msg.text}`}
@@ -114,8 +114,8 @@ export default function AdminUsersManager({
                 onClick={() => { if (!busy) call({ action: 'remove', userId: a.id }); }}
                 disabled={busy}
                 style={{
-                  padding: '7px 14px', background: '#fef2f2', color: '#dc2626',
-                  border: '1px solid #fecaca', borderRadius: '9px', fontWeight: 700,
+                  padding: '7px 14px', background: '#f0fdf4', color: '#16a34a',
+                  border: '1px solid #dcfce7', borderRadius: '9px', fontWeight: 700,
                   fontSize: '0.78rem', cursor: busy ? 'not-allowed' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
                 }}
               >
@@ -125,7 +125,7 @@ export default function AdminUsersManager({
           </div>
         ))}
         {admins.length === 0 && (
-          <div style={{ color: '#888', fontSize: '0.85rem' }}>لا يوجد مشرفون.</div>
+          <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>لا يوجد مشرفون.</div>
         )}
       </div>
     </div>

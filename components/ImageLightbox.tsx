@@ -112,8 +112,8 @@ export default function ImageLightbox({ src, alt, onClose }: { src: string; alt?
   }
 
   const glassBtn: React.CSSProperties = {
-    width: 42, height: 42, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
-    background: 'rgba(255,255,255,0.1)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 42, height: 42, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer',
+    background: 'rgba(0,0,0,0.05)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transition: 'background 0.15s',
   };
 
@@ -151,14 +151,14 @@ export default function ImageLightbox({ src, alt, onClose }: { src: string; alt?
             transformOrigin: 'center center',
             transition: gesturing ? 'none' : 'transform 0.18s cubic-bezier(0.22,1,0.36,1)',
             cursor: scale > 1 ? 'grab' : 'zoom-in',
-            filter: 'drop-shadow(0 24px 60px rgba(0,0,0,0.5))',
+            filter: 'drop-shadow(0 24px 60px rgba(0,0,0,0.06))',
             willChange: 'transform',
           }}
         />
       </div>
 
       {/* Control pill */}
-      <div style={{ position: 'absolute', bottom: 22, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, padding: 6, borderRadius: 999, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', zIndex: 2 }}>
+      <div style={{ position: 'absolute', bottom: 22, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, padding: 6, borderRadius: 999, background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.08)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', zIndex: 2 }}>
         <button className="lb-glass" style={{ ...glassBtn, width: 40, height: 40, background: 'transparent', border: 'none' }} onClick={() => zoomBy(-0.5)} aria-label="تصغير"><Minus size={18} /></button>
         <span style={{ minWidth: 56, textAlign: 'center', color: '#fff', fontSize: '0.82rem', fontWeight: 800, fontFamily: "'Cairo', sans-serif", letterSpacing: '0.5px' }}>{Math.round(scale * 100)}%</span>
         <button className="lb-glass" style={{ ...glassBtn, width: 40, height: 40, background: 'transparent', border: 'none' }} onClick={() => zoomBy(0.5)} aria-label="تكبير"><Plus size={18} /></button>

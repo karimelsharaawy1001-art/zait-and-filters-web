@@ -383,7 +383,7 @@ export default function EditProduct() {
   const youtubeId = getYouTubeId(formData.video_url);
 
   return (
-    <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif', padding: 'clamp(12px, 4vw, 40px) clamp(12px, 4vw, 20px)', backgroundColor: '#050505', minHeight: '100vh' }}>
+    <div style={{ direction: 'rtl', color: '#1a1a1a', fontFamily: 'sans-serif', padding: 'clamp(12px, 4vw, 40px) clamp(12px, 4vw, 20px)', backgroundColor: '#ffffff', minHeight: '100vh' }}>
       <style>{`
         .ep-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .ep-car-row { display: grid; grid-template-columns: 1fr 1fr 1fr 36px; gap: 8px; align-items: center; }
@@ -403,7 +403,7 @@ export default function EditProduct() {
         </div>
 
         {saveError && (
-          <div style={{ background: '#2a0a0a', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', color: '#ff4d4d', fontSize: '0.9rem', fontWeight: '700' }}>
+          <div style={{ background: '#2a0a0a', border: '1px solid #22c55e', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', color: '#22c55e', fontSize: '0.9rem', fontWeight: '700' }}>
             ❌ {saveError}
           </div>
         )}
@@ -471,9 +471,9 @@ export default function EditProduct() {
               <h3 style={sectionTitle}><ImageIcon size={18} /> صورة المنتج</h3>
 
               {uploadError && (
-                <div style={{ background: '#2a0a0a', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', color: '#ff4d4d', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: '#2a0a0a', border: '1px solid #22c55e', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', color: '#22c55e', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   ❌ {uploadError}
-                  <button type="button" onClick={() => setUploadError(null)} style={{ marginRight: 'auto', background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>
+                  <button type="button" onClick={() => setUploadError(null)} style={{ marginRight: 'auto', background: 'none', border: 'none', color: '#22c55e', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '0 4px' }}>×</button>
                 </div>
               )}
 
@@ -486,8 +486,8 @@ export default function EditProduct() {
                 onClick={() => !uploading && fileInputRef.current?.click()}
                 style={{
                   ...dropZoneStyle,
-                  border: isDragging ? '2px dashed #2ecc71' : '2px dashed #333',
-                  backgroundColor: isDragging ? 'rgba(46,204,113,0.05)' : '#000',
+                  border: isDragging ? '2px dashed #2ecc71' : '2px dashed #d1d5db',
+                  backgroundColor: isDragging ? 'rgba(46,204,113,0.05)' : '#1a1a1a',
                   cursor: uploading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
                 }}
@@ -498,7 +498,7 @@ export default function EditProduct() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setFormData(prev => ({ ...prev, image_url: '' })); }}
-                      style={{ position: 'absolute', top: '-8px', left: '-8px', background: '#ff4d4d', border: 'none', borderRadius: '50%', width: '22px', height: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', lineHeight: 1 }}
+                      style={{ position: 'absolute', top: '-8px', left: '-8px', background: '#22c55e', border: 'none', borderRadius: '50%', width: '22px', height: '22px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', lineHeight: 1 }}
                     >×</button>
                   </div>
                 )}
@@ -509,7 +509,7 @@ export default function EditProduct() {
                       <span>جاري الرفع...</span>
                       <span>{uploadProgress}%</span>
                     </div>
-                    <div style={{ background: '#111', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
+                    <div style={{ background: '#e5e7eb', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
                       <div style={{ background: '#2ecc71', height: '100%', width: `${uploadProgress}%`, borderRadius: '99px', transition: 'width 0.2s ease' }} />
                     </div>
                   </div>
@@ -520,10 +520,10 @@ export default function EditProduct() {
                     <div style={{ color: isDragging ? '#2ecc71' : '#555', marginBottom: '8px' }}>
                       <Upload size={28} />
                     </div>
-                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: isDragging ? '#2ecc71' : '#aaa', marginBottom: '4px' }}>
+                    <div style={{ fontWeight: '700', fontSize: '0.9rem', color: isDragging ? '#2ecc71' : '#6b7280', marginBottom: '4px' }}>
                       {isDragging ? 'أفلت الصورة هنا ✨' : 'اسحب وأفلت صورة هنا'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#444' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
                       أو اضغط لاختيار ملف • JPG, PNG, WEBP, GIF حتى 10MB
                     </div>
                   </>
@@ -540,9 +540,9 @@ export default function EditProduct() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
-                <span style={{ color: '#333', fontSize: '0.75rem', fontWeight: '700' }}>أو</span>
-                <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+                <div style={{ flex: 1, height: '1px', background: '#ffffff' }} />
+                <span style={{ color: '#d1d5db', fontSize: '0.75rem', fontWeight: '700' }}>أو</span>
+                <div style={{ flex: 1, height: '1px', background: '#ffffff' }} />
               </div>
 
               <input
@@ -554,7 +554,7 @@ export default function EditProduct() {
               />
 
               {formData.image_url && !uploading && (
-                <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#444', wordBreak: 'break-all', direction: 'ltr' }}>
+                <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#6b7280', wordBreak: 'break-all', direction: 'ltr' }}>
                   🔗 {formData.image_url.length > 60 ? formData.image_url.slice(0, 60) + '...' : formData.image_url}
                 </div>
               )}
@@ -588,19 +588,19 @@ export default function EditProduct() {
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, video_url: '' }))}
-                        style={{ marginTop: '6px', background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', padding: 0 }}
+                        style={{ marginTop: '6px', background: 'none', border: 'none', color: '#22c55e', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', padding: 0 }}
                       >✕ حذف الفيديو</button>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ color: '#ff4d4d', fontSize: '0.8rem', fontWeight: '700', marginTop: '6px' }}>
+                  <div style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: '700', marginTop: '6px' }}>
                     ⚠️ الرابط غير صحيح — تأكد أنه رابط يوتيوب صحيح
                   </div>
                 )
               )}
 
               {!formData.video_url && (
-                <div style={{ color: '#333', fontSize: '0.78rem', marginTop: '8px' }}>
+                <div style={{ color: '#d1d5db', fontSize: '0.78rem', marginTop: '8px' }}>
                   يقبل روابط: youtube.com/watch · youtu.be · youtube.com/shorts
                 </div>
               )}
@@ -639,7 +639,7 @@ export default function EditProduct() {
                       {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
                     <input type="text" placeholder="مثال: 2010-2020" value={row.car_model_year} onChange={(e) => updateCarRow(index, 'car_model_year', e.target.value)} style={inputStyle} />
-                    <button type="button" onClick={() => removeCarRow(index)} style={{ background: '#1a0a0a', border: '1px solid #333', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button type="button" onClick={() => removeCarRow(index)} style={{ background: '#f0fdf4', border: '1px solid #d1d5db', borderRadius: '8px', color: '#22c55e', cursor: 'pointer', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <X size={14} />
                     </button>
                   </div>
@@ -648,7 +648,7 @@ export default function EditProduct() {
             </div>
 
             {carRows.length === 0 && (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#444', fontSize: '0.85rem', border: '1px dashed #222', borderRadius: '10px', marginBottom: '8px' }}>
+              <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem', border: '1px dashed #e5e7eb', borderRadius: '10px', marginBottom: '8px' }}>
                 لا توجد سيارات مضافة — اضغط الزر أدناه لإضافة أولى
               </div>
             )}
@@ -752,13 +752,13 @@ function generateSlug(product: {
 }
 
 const gridContainer = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px', marginBottom: '20px' };
-const formSection: any = { backgroundColor: '#0a0a0a', padding: 'clamp(14px, 3vw, 25px)', borderRadius: '16px', border: '1px solid #1a1a1a' };
+const formSection: any = { backgroundColor: '#ffffff', padding: 'clamp(14px, 3vw, 25px)', borderRadius: '16px', border: '1px solid #1a1a1a' };
 const sectionTitle: any = { fontSize: '1rem', fontWeight: 'bold', marginBottom: '20px', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '10px' };
 const inputGroup = { marginBottom: '18px' };
 const labelStyle: any = { display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '8px' };
-const inputStyle: any = { width: '100%', padding: '10px 12px', backgroundColor: '#000', border: '1px solid #222', borderRadius: '10px', color: '#fff', outline: 'none', fontSize: '0.85rem', boxSizing: 'border-box' };
+const inputStyle: any = { width: '100%', padding: '10px 12px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '10px', color: '#1a1a1a', outline: 'none', fontSize: '0.85rem', boxSizing: 'border-box' };
 const dropZoneStyle: any = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '28px 20px', borderRadius: '14px', minHeight: '160px', textAlign: 'center', userSelect: 'none' };
 const previewImage: any = { width: '110px', height: '110px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #2ecc71', display: 'block' };
-const saveBtnStyle: any = { width: '100%', padding: '18px', backgroundColor: '#2ecc71', color: '#000', border: 'none', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', fontSize: '1rem' };
-const backBtnStyle: any = { backgroundColor: '#111', border: '1px solid #222', borderRadius: '10px', padding: '10px', color: '#fff', cursor: 'pointer' };
-const fullPageCenter: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#050505' };
+const saveBtnStyle: any = { width: '100%', padding: '18px', backgroundColor: '#2ecc71', color: '#1a1a1a', border: 'none', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', fontSize: '1rem' };
+const backBtnStyle: any = { backgroundColor: '#e5e7eb', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '10px', color: '#374151', cursor: 'pointer' };
+const fullPageCenter: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#ffffff' };

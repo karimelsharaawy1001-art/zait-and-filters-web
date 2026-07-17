@@ -327,7 +327,7 @@ export default function CategoriesPage() {
         .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .thumb { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; border: 1px solid #e2e8f0; flex-shrink: 0; }
-        .thumb-placeholder { width: 32px; height: 32px; border-radius: 6px; background: #f1f5f9; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .thumb-placeholder { width: 32px; height: 32px; border-radius: 6px; background: #f1f5f9; border: 1px dashed #374151; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
         .export-btn { display: flex; align-items: center; gap: 7px; padding: 9px 18px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.82rem; font-family: 'Cairo', sans-serif; transition: opacity 0.15s; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
         .export-btn:hover { opacity: 0.88; }
@@ -338,7 +338,7 @@ export default function CategoriesPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <h1 style={{ fontSize: '1.2rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>إدارة الفئات والأقسام</h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.72rem', margin: '3px 0 0', fontWeight: '600' }}>التعديل هنا يؤثر فوراً على جميع المنتجات المرتبطة</p>
+          <p style={{ color: '#6b7280', fontSize: '0.72rem', margin: '3px 0 0', fontWeight: '600' }}>التعديل هنا يؤثر فوراً على جميع المنتجات المرتبطة</p>
         </div>
 
         {/* ── Export button ── */}
@@ -366,9 +366,9 @@ export default function CategoriesPage() {
 
       {/* Column headers */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', marginBottom: '4px' }}>
-        <span style={{ flex: 1, fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>الفئة / القسم</span>
-        <span style={{ width: '60px', fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', textAlign: 'center' }}>المنتجات</span>
-        <span style={{ width: '90px', fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', textAlign: 'center' }}>إجراءات</span>
+        <span style={{ flex: 1, fontSize: '0.65rem', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>الفئة / القسم</span>
+        <span style={{ width: '60px', fontSize: '0.65rem', fontWeight: '700', color: '#6b7280', textAlign: 'center' }}>المنتجات</span>
+        <span style={{ width: '90px', fontSize: '0.65rem', fontWeight: '700', color: '#6b7280', textAlign: 'center' }}>إجراءات</span>
       </div>
 
       {/* List */}
@@ -380,14 +380,14 @@ export default function CategoriesPage() {
 
               {/* ── Category row ── */}
               <div className="cat-row" onClick={() => cat.subcategories.length > 0 && toggleExpand(cat.name)}>
-                <span style={{ width: '14px', color: '#94a3b8', flexShrink: 0 }}>
+                <span style={{ width: '14px', color: '#6b7280', flexShrink: 0 }}>
                   {cat.subcategories.length > 0
                     ? (isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />)
                     : null}
                 </span>
                 {cat.imageUrl
                   ? <img src={cat.imageUrl} className="thumb" alt={cat.name} />
-                  : <div className="thumb-placeholder"><ImageIcon size={12} color="#cbd5e1" /></div>
+                  : <div className="thumb-placeholder"><ImageIcon size={12} color="#374151" /></div>
                 }
                 <span style={{ flex: 1, fontWeight: '800', fontSize: '0.88rem', color: '#0f172a' }}>{cat.name}</span>
                 {cat.subcategories.length > 0 && (
@@ -395,19 +395,19 @@ export default function CategoriesPage() {
                     {cat.subcategories.length} فرعي
                   </span>
                 )}
-                <span style={{ width: '60px', textAlign: 'center', fontSize: '0.78rem', fontWeight: '700', color: '#64748b' }}>{cat.productCount}</span>
+                <span style={{ width: '60px', textAlign: 'center', fontSize: '0.78rem', fontWeight: '700', color: '#6b7280' }}>{cat.productCount}</span>
                 <div style={{ width: '90px', display: 'flex', justifyContent: 'flex-end', gap: '2px' }} onClick={e => e.stopPropagation()}>
                   <button className="ib blue" title="تغيير الصورة" onClick={() => setModal({ type: 'image-cat', cat: cat.name, currentUrl: cat.imageUrl, imageId: cat.imageId })}>
                     <ImageIcon size={13} color="#0284c7" />
                   </button>
                   <button className="ib" title="تعديل الاسم" onClick={() => { setModal({ type: 'rename-cat', cat: cat.name }); setModalValue(cat.name); }}>
-                    <Pencil size={13} color="#64748b" />
+                    <Pencil size={13} color="#6b7280" />
                   </button>
                   <button className="ib green" title="دمج مع فئة أخرى" onClick={() => setModal({ type: 'merge-cat', cat: cat.name })}>
                     <GitMerge size={13} color="#16a34a" />
                   </button>
                   <button className="ib red" title="حذف" onClick={() => handleDeleteCat(cat)}>
-                    <Trash2 size={13} color="#ef4444" />
+                    <Trash2 size={13} color="#16a34a" />
                   </button>
                 </div>
               </div>
@@ -420,22 +420,22 @@ export default function CategoriesPage() {
                   <span style={{ width: '8px', flexShrink: 0 }} />
                   {sub.imageUrl
                     ? <img src={sub.imageUrl} className="thumb" alt={sub.name} />
-                    : <div className="thumb-placeholder"><ImageIcon size={11} color="#cbd5e1" /></div>
+                    : <div className="thumb-placeholder"><ImageIcon size={11} color="#374151" /></div>
                   }
                   <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: '600', color: '#334155' }}>{sub.name}</span>
-                  <span style={{ width: '60px', textAlign: 'center', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8' }}>{sub.productCount}</span>
+                  <span style={{ width: '60px', textAlign: 'center', fontSize: '0.75rem', fontWeight: '700', color: '#6b7280' }}>{sub.productCount}</span>
                   <div style={{ width: '90px', display: 'flex', justifyContent: 'flex-end', gap: '2px' }}>
                     <button className="ib blue" title="تغيير الصورة" onClick={() => setModal({ type: 'image-sub', cat: cat.name, sub: sub.name, currentUrl: sub.imageUrl, imageId: sub.imageId })}>
                       <ImageIcon size={12} color="#0284c7" />
                     </button>
                     <button className="ib" title="تعديل الاسم" onClick={() => { setModal({ type: 'rename-sub', cat: cat.name, sub: sub.name }); setModalValue(sub.name); }}>
-                      <Pencil size={12} color="#64748b" />
+                      <Pencil size={12} color="#6b7280" />
                     </button>
                     <button className="ib green" title="دمج مع قسم آخر" onClick={() => setModal({ type: 'merge-sub', cat: cat.name, sub: sub.name })}>
                       <GitMerge size={12} color="#16a34a" />
                     </button>
                     <button className="ib red" title="حذف" onClick={() => handleDeleteSub(cat.name, sub)}>
-                      <Trash2 size={12} color="#ef4444" />
+                      <Trash2 size={12} color="#16a34a" />
                     </button>
                   </div>
                 </div>
@@ -463,7 +463,7 @@ export default function CategoriesPage() {
                   onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') closeModal(); }}
                   autoFocus placeholder="الاسم الجديد" />
                 <div style={{ display: 'flex', gap: '8px', marginTop: '14px', justifyContent: 'flex-end' }}>
-                  <button className="modal-btn" style={{ background: '#f1f5f9', color: '#64748b' }} onClick={closeModal}>إلغاء</button>
+                  <button className="modal-btn" style={{ background: '#f1f5f9', color: '#6b7280' }} onClick={closeModal}>إلغاء</button>
                   <button className="modal-btn" style={{ background: '#16a34a', color: '#fff' }} onClick={handleRename} disabled={saving}>
                     {saving ? 'جاري الحفظ...' : 'حفظ'}
                   </button>
@@ -476,7 +476,7 @@ export default function CategoriesPage() {
                 <div className="modal-title">
                   {modal.type === 'merge-cat' ? `دمج فئة "${modal.cat}" مع:` : `دمج قسم "${modal.sub}" مع:`}
                 </div>
-                <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '12px', fontWeight: '600' }}>
+                <p style={{ fontSize: '0.78rem', color: '#6b7280', marginBottom: '12px', fontWeight: '600' }}>
                   جميع المنتجات ستنتقل إلى الفئة/القسم الذي تختاره.
                 </p>
                 <select className="modal-input" value={mergeTarget} onChange={e => setMergeTarget(e.target.value)} style={{ appearance: 'auto' }}>
@@ -493,7 +493,7 @@ export default function CategoriesPage() {
                   }
                 </select>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '14px', justifyContent: 'flex-end' }}>
-                  <button className="modal-btn" style={{ background: '#f1f5f9', color: '#64748b' }} onClick={closeModal}>إلغاء</button>
+                  <button className="modal-btn" style={{ background: '#f1f5f9', color: '#6b7280' }} onClick={closeModal}>إلغاء</button>
                   <button className="modal-btn" style={{ background: '#16a34a', color: '#fff' }} onClick={handleMerge} disabled={saving || !mergeTarget}>
                     {saving ? 'جاري الدمج...' : 'دمج'}
                   </button>
@@ -520,10 +520,10 @@ export default function CategoriesPage() {
                   {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                   {uploading ? 'جاري الرفع...' : 'رفع صورة من الجهاز'}
                 </button>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600', marginBottom: '5px' }}>أو أدخل رابط مباشر</div>
+                <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '600', marginBottom: '5px' }}>أو أدخل رابط مباشر</div>
                 <input className="modal-input" value={modalValue} onChange={e => setModalValue(e.target.value)} placeholder="https://..." style={{ marginBottom: '10px', direction: 'ltr' }} />
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <button className="modal-btn" style={{ background: '#f1f5f9', color: '#64748b' }} onClick={closeModal}>إلغاء</button>
+                  <button className="modal-btn" style={{ background: '#f1f5f9', color: '#6b7280' }} onClick={closeModal}>إلغاء</button>
                   <button className="modal-btn" style={{ background: '#16a34a', color: '#fff' }} onClick={handleUrlSave} disabled={saving || !modalValue.trim()}>
                     {saving ? 'جاري الحفظ...' : 'حفظ الرابط'}
                   </button>

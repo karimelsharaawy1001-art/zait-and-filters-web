@@ -79,7 +79,7 @@ function ModelCard({ model, makeKey, cardBg }: { model: ModelEntry; makeKey: str
                   width: i === active ? '14px' : '5px',
                   height: '5px',
                   borderRadius: '3px',
-                  background: i === active ? '#e50914' : 'rgba(255,255,255,0.35)',
+                  background: i === active ? '#22c55e' : 'rgba(0,0,0,0.15)',
                   transition: 'width 0.4s ease, background 0.4s ease',
                   display: 'inline-block',
                 }} />
@@ -96,7 +96,7 @@ const MAKE_GRADIENTS: Record<string, string> = {
   HYUNDAI:    'linear-gradient(145deg,#002c5f,#0a4a8a)',
   KIA:        'linear-gradient(145deg,#05141f,#0d2a40)',
   TOYOTA:     'linear-gradient(145deg,#bb0000,#7a0000)',
-  CHEVROLET:  'linear-gradient(145deg,#1a1a1a,#3a3a3a)',
+  CHEVROLET:  'linear-gradient(145deg,#e5e7eb,#d1d5db)',
   NISSAN:     'linear-gradient(145deg,#c3002f,#6e001a)',
   MITSUBISHI: 'linear-gradient(145deg,#cc0000,#880000)',
   RENAULT:    'linear-gradient(145deg,#efdf00,#b8a800)',
@@ -108,9 +108,9 @@ const MAKE_GRADIENTS: Record<string, string> = {
   HONDA:      'linear-gradient(145deg,#cc0000,#880000)',
   SUZUKI:     'linear-gradient(145deg,#1a3a6a,#0d2040)',
   MAZDA:      'linear-gradient(145deg,#910000,#5a0000)',
-  SEAT:       'linear-gradient(145deg,#222,#444)',
+  SEAT:       'linear-gradient(145deg,#e5e7eb,#6b7280)',
   BMW:        'linear-gradient(145deg,#1c69d4,#0d3f8f)',
-  MERCEDES:   'linear-gradient(145deg,#333,#555)',
+  MERCEDES:   'linear-gradient(145deg,#d1d5db,#555)',
   FORD:       'linear-gradient(145deg,#003178,#001e50)',
   JEEP:       'linear-gradient(145deg,#2d5016,#1a2e0a)',
 };
@@ -118,7 +118,7 @@ const MAKE_GRADIENTS: Record<string, string> = {
 export default function CarMakeClient({ makeKey, info, productCount, models, featuredProducts }: Props) {
   const cardBg = MAKE_GRADIENTS[makeKey] || 'linear-gradient(145deg,#1a1a2e,#0d1117)';
   return (
-    <div dir="rtl" style={{ fontFamily: 'inherit', background: '#161616', minHeight: '100vh' }}>
+    <div dir="rtl" style={{ fontFamily: 'inherit', background: '#f9fafb', minHeight: '100vh' }}>
 
       <style>{`
         .model-grid {
@@ -141,7 +141,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           justify-content: flex-end;
           aspect-ratio: 4/3;
           transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.05);
           cursor: pointer;
           position: relative;
           overflow: hidden;
@@ -159,7 +159,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           transform: translateY(-58%);
           object-fit: contain;
           object-position: center;
-          filter: drop-shadow(0 6px 18px rgba(0,0,0,0.55));
+          filter: drop-shadow(0 6px 18px rgba(0,0,0,0.08));
           transition: opacity 0.7s ease, transform 0.35s ease;
         }
         .model-card:hover .model-card-img {
@@ -195,11 +195,11 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
         .model-count {
           font-size: 0.68rem;
           font-weight: 700;
-          color: rgba(255,255,255,0.6);
+          color: rgba(0,0,0,0.05);
           transition: color 0.18s;
         }
         .model-card:hover .model-count {
-          color: #ef4444;
+          color: #16a34a;
         }
         @media (max-width: 768px) {
           .model-card { border-radius: 12px; }
@@ -209,33 +209,33 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
       `}</style>
 
       {/* ── Breadcrumb ── */}
-      <div style={{ background: '#1c1c1c', borderBottom: '1px solid #242424', padding: '12px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#64748b' }}>
-          <Link href="/" style={{ color: '#64748b', textDecoration: 'none' }}>الرئيسية</Link>
+      <div style={{ background: '#ffffff', borderBottom: '1px solid #f3f4f6', padding: '12px 20px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#6b7280' }}>
+          <Link href="/" style={{ color: '#6b7280', textDecoration: 'none' }}>الرئيسية</Link>
           <ChevronLeft size={14} />
-          <Link href="/cars" style={{ color: '#64748b', textDecoration: 'none' }}>قطع غيار حسب السيارة</Link>
+          <Link href="/cars" style={{ color: '#6b7280', textDecoration: 'none' }}>قطع غيار حسب السيارة</Link>
           <ChevronLeft size={14} />
-          <span style={{ color: '#f5f5f5', fontWeight: '700' }}>قطع غيار {info.arName}</span>
+          <span style={{ color: '#1a1a1a', fontWeight: '700' }}>قطع غيار {info.arName}</span>
         </div>
       </div>
 
       {/* ── Hero ── */}
-      <div style={{ background: 'linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 60%, #2a2a2a 100%)', padding: '48px 20px 40px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #6b7280 60%, #e5e7eb 100%)', padding: '48px 20px 40px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(34,197,94,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(59,130,246,0.06) 0%, transparent 50%)' }} />
         <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', textAlign: 'center' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '20px', padding: '6px 16px', marginBottom: '16px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e50914', display: 'inline-block' }} />
-            <span style={{ color: '#ef4444', fontSize: '0.82rem', fontWeight: '700' }}>{productCount.toLocaleString('ar-EG')} منتج متوفر</span>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            <span style={{ color: '#16a34a', fontSize: '0.82rem', fontWeight: '700' }}>{productCount.toLocaleString('ar-EG')} منتج متوفر</span>
           </div>
           <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', fontWeight: '900', color: '#fff', margin: '0 0 12px', lineHeight: 1.2 }}>
             قطع غيار {info.arName} الأصلية
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '600px', margin: '0 auto 28px', lineHeight: 1.7 }}>
+          <p style={{ color: '#6b7280', fontSize: '1rem', maxWidth: '600px', margin: '0 auto 28px', lineHeight: 1.7 }}>
             تسوق قطع غيار {info.arName} الأصلية بأفضل الأسعار في مصر. شحن سريع لباب البيت مع ضمان الجودة.
           </p>
           <Link
             href={`/store?make=${makeKey}`}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#e50914', color: '#fff', padding: '14px 32px', borderRadius: '14px', fontWeight: '900', fontSize: '1rem', textDecoration: 'none', boxShadow: '0 4px 20px rgba(34,197,94,0.35)' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#22c55e', color: '#fff', padding: '14px 32px', borderRadius: '14px', fontWeight: '900', fontSize: '1rem', textDecoration: 'none', boxShadow: '0 4px 20px rgba(34,197,94,0.35)' }}
           >
             <ShoppingBag size={20} />
             تصفح جميع قطع {info.arName}
@@ -248,11 +248,11 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
         {/* ── Trust badges ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '40px' }}>
           {[
-            { icon: <Shield size={20} color="#e50914" />, text: 'قطع أصلية 100%' },
-            { icon: <Truck size={20} color="#e50914" />, text: 'شحن لباب البيت' },
-            { icon: <Star size={20} color="#e50914" />, text: 'ضمان استبدال' },
+            { icon: <Shield size={20} color="#22c55e" />, text: 'قطع أصلية 100%' },
+            { icon: <Truck size={20} color="#22c55e" />, text: 'شحن لباب البيت' },
+            { icon: <Star size={20} color="#22c55e" />, text: 'ضمان استبدال' },
           ].map(({ icon, text }) => (
-            <div key={text} style={{ background: '#1c1c1c', border: '1px solid #242424', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', fontSize: '0.85rem', color: '#f5f5f5' }}>
+            <div key={text} style={{ background: '#ffffff', border: '1px solid #f3f4f6', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', fontSize: '0.85rem', color: '#1a1a1a' }}>
               {icon} {text}
             </div>
           ))}
@@ -263,14 +263,14 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
           <section style={{ marginBottom: '48px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 4px' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 4px' }}>
                   تسوق حسب موديل {info.arName}
                 </h2>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, fontWeight: '600' }}>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0, fontWeight: '600' }}>
                   اختر موديل سيارتك وتصفح جميع القطع المتوافقة
                 </p>
               </div>
-              <Link href={`/store?make=${makeKey}`} style={{ fontSize: '0.85rem', fontWeight: '800', color: '#e50914', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
+              <Link href={`/store?make=${makeKey}`} style={{ fontSize: '0.85rem', fontWeight: '800', color: '#22c55e', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
                 عرض جميع القطع ←
               </Link>
             </div>
@@ -286,10 +286,10 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
         {featuredProducts.length > 0 && (
           <section style={{ marginBottom: '40px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#f5f5f5', margin: 0 }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 }}>
                 أحدث قطع غيار {info.arName}
               </h2>
-              <Link href={`/store?make=${makeKey}`} style={{ fontSize: '0.85rem', fontWeight: '700', color: '#e50914', textDecoration: 'none' }}>
+              <Link href={`/store?make=${makeKey}`} style={{ fontSize: '0.85rem', fontWeight: '700', color: '#22c55e', textDecoration: 'none' }}>
                 عرض الكل
               </Link>
             </div>
@@ -301,25 +301,25 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
                   <Link
                     key={p.id}
                     href={`/products/${p.slug || p.id}`}
-                    style={{ background: '#1c1c1c', border: '1px solid #242424', borderRadius: '16px', textDecoration: 'none', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                    style={{ background: '#ffffff', border: '1px solid #f3f4f6', borderRadius: '16px', textDecoration: 'none', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                   >
-                    <div style={{ height: '140px', background: '#161616', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ height: '140px', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
                       {hasSale && (
-                        <div style={{ position: 'absolute', top: '8px', right: '8px', background: '#ef4444', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 8px', borderRadius: '6px' }}>
+                        <div style={{ position: 'absolute', top: '8px', right: '8px', background: '#16a34a', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 8px', borderRadius: '6px' }}>
                           خصم
                         </div>
                       )}
                       {p.image_url
                         ? <img src={optimizeImageUrl(p.image_url)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '8px' }} loading="lazy" />
-                        : <Package size={40} color="#cbd5e1" />
+                        : <Package size={40} color="#374151" />
                       }
                     </div>
                     <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' as const }}>{p.brand}</div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#f5f5f5', lineHeight: 1.3, flex: 1 }}>{p.name}</div>
-                      <div style={{ fontSize: '1rem', fontWeight: '900', color: '#f5f5f5', marginTop: '6px' }}>
+                      <div style={{ fontSize: '0.65rem', color: '#6b7280', fontWeight: '700', textTransform: 'uppercase' as const }}>{p.brand}</div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#1a1a1a', lineHeight: 1.3, flex: 1 }}>{p.name}</div>
+                      <div style={{ fontSize: '1rem', fontWeight: '900', color: '#1a1a1a', marginTop: '6px' }}>
                         {price} <span style={{ fontSize: '0.72rem' }}>ج.م</span>
-                        {hasSale && <span style={{ fontSize: '0.72rem', color: '#aaa', textDecoration: 'line-through', marginRight: '6px' }}>{p.regular_price}</span>}
+                        {hasSale && <span style={{ fontSize: '0.72rem', color: '#6b7280', textDecoration: 'line-through', marginRight: '6px' }}>{p.regular_price}</span>}
                       </div>
                     </div>
                   </Link>
@@ -330,11 +330,11 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
         )}
 
         {/* ── SEO text block ── */}
-        <section style={{ background: '#1c1c1c', border: '1px solid #242424', borderRadius: '20px', padding: '28px', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 14px' }}>
+        <section style={{ background: '#ffffff', border: '1px solid #f3f4f6', borderRadius: '20px', padding: '28px', marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 14px' }}>
             قطع غيار {info.arName} الأصلية في مصر — زيت أند فلترز
           </h2>
-          <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', lineHeight: 1.8, margin: 0 }}>
             {info.description}
             {' '}
             نوفر جميع قطع غيار {info.arName} من أشهر الماركات العالمية كـ BOSCH و MANN و JAPANPARTS وغيرها.
@@ -347,7 +347,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
 
         {/* ── Other makes ── */}
         <section>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 16px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 16px' }}>
             قطع غيار سيارات أخرى
           </h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -361,7 +361,7 @@ export default function CarMakeClient({ makeKey, info, productCount, models, fea
                 };
                 return (
                   <Link key={m} href={`/cars/${m.toLowerCase()}`}
-                    style={{ background: '#161616', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '8px 16px', fontSize: '0.82rem', fontWeight: '700', color: '#cbd5e1', textDecoration: 'none' }}>
+                    style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '8px 16px', fontSize: '0.82rem', fontWeight: '700', color: '#374151', textDecoration: 'none' }}>
                     قطع غيار {AR[m] || m}
                   </Link>
                 );

@@ -57,9 +57,9 @@ export default function BrandsCarousel() {
   );
 }
 
-const carouselWrapper: any = { padding: '60px 0', background: '#1c1c1c', textAlign: 'center', overflow: 'hidden' };
-const sectionTitle: any = { fontSize: '1.5rem', fontWeight: '900', marginBottom: '30px', color: '#f5f5f5' };
-const sliderContainer: any = { width: '100%', overflow: 'hidden', background: '#161616', borderTop: '1px solid #1c1c1c', borderBottom: '1px solid #1c1c1c' };
+const carouselWrapper: any = { padding: '60px 0', background: '#ffffff', textAlign: 'center', overflow: 'hidden' };
+const sectionTitle: any = { fontSize: '1.5rem', fontWeight: '900', marginBottom: '30px', color: '#1a1a1a' };
+const sliderContainer: any = { width: '100%', overflow: 'hidden', background: '#f9fafb', borderTop: '1px solid #ffffff', borderBottom: '1px solid #ffffff' };
 const slideTrack: any = { display: 'flex', width: `calc(150px * ${BRANDS.length * 2})` };
 const slideItem: any = { width: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '30px' };
 const brandLogo: any = { cursor: 'pointer' };

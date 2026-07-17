@@ -66,7 +66,7 @@ export default function BestSellers() {
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '50px' }}>
-      <Loader2 className="animate-spin" size={30} color="#e50914" />
+      <Loader2 className="animate-spin" size={30} color="#22c55e" />
     </div>
   );
 
@@ -76,7 +76,7 @@ export default function BestSellers() {
     <section style={sectionWrapper}>
       <div style={headerRow}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={fireIconBox}><Flame size={20} fill="#ff4d4d" color="#ff4d4d" /></div>
+          <div style={fireIconBox}><Flame size={20} fill="#22c55e" color="#22c55e" /></div>
           <h2 style={sectionTitle}>الأكثر مبيعاً الآن</h2>
         </div>
         <p style={subTitle}>القطع الأكثر طلباً من قبل عملائنا بناءً على إحصائيات حقيقية</p>
@@ -103,7 +103,7 @@ export default function BestSellers() {
                 {p.image_url ? (
                   <img src={optimizeImageUrl(p.image_url)} alt={p.name} width="153" height="153" loading="lazy" decoding="async" style={imgStyle} />
                 ) : (
-                  <Car size={40} color="#2a2a2a" />
+                  <Car size={40} color="#e5e7eb" />
                 )}
               </div>
               <div style={contentArea}>
@@ -125,17 +125,17 @@ export default function BestSellers() {
 // --- التنسيقات (نفس روح الكاروسيل بتاع العروض) ---
 const sectionWrapper: any = { padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', direction: 'rtl' };
 const headerRow: any = { marginBottom: '25px', textAlign: 'right' };
-const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#f5f5f5', margin: 0 };
-const subTitle: any = { color: '#777', fontSize: '0.9rem', marginTop: '5px' };
-const fireIconBox: any = { background: '#2a0f10', padding: '8px', borderRadius: '12px' };
+const sectionTitle: any = { fontSize: '1.6rem', fontWeight: '900', color: '#1a1a1a', margin: 0 };
+const subTitle: any = { color: '#6b7280', fontSize: '0.9rem', marginTop: '5px' };
+const fireIconBox: any = { background: '#f0fdf4', padding: '8px', borderRadius: '12px' };
 
-const productCard: any = { background: '#1a1a1a', borderRadius: '20px', border: '1px solid #2e2e2e', overflow: 'hidden', height: '100%', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' };
+const productCard: any = { background: '#ffffff', borderRadius: '20px', border: '1px solid #e5e7eb', overflow: 'hidden', height: '100%', boxShadow: '0 8px 24px rgba(0,0,0,0.06)' };
 const imgStyle: any = { maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' };
-const bestLabel: any = { position: 'absolute', top: '12px', right: '12px', background: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 'bold', zIndex: 5 };
+const bestLabel: any = { position: 'absolute', top: '12px', right: '12px', background: '#22c55e', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 'bold', zIndex: 5 };
 
 const contentArea: any = { padding: '15px', textAlign: 'right' };
-const brandText: any = { color: '#ffffff', fontSize: '0.75rem', fontWeight: 'bold' };
-const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#3a3a3a' };
+const brandText: any = { color: '#1a1a1a', fontSize: '0.75rem', fontWeight: 'bold' };
+const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#6b7280' };
 const priceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' };
-const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#f5f5f5' };
-const cartBtn: any = { background: '#1c1c1c', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };
+const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a' };
+const cartBtn: any = { background: '#22c55e', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };

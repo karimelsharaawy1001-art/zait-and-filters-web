@@ -111,8 +111,8 @@ export default function AdminBlog() {
             {posts.map(post => (
               <tr key={post.id} style={{ borderBottom: '1px solid #f9f9f9' }}>
                 <td style={td}><div style={{ fontWeight: '700', color: '#1a1a1a' }}>{post.title}</div></td>
-                <td style={td}><code style={{ fontSize: '0.8rem', color: '#888', background: '#f8f9fa', padding: '3px 8px', borderRadius: '6px' }}>{post.slug}</code></td>
-                <td style={td}><span style={{ fontSize: '0.82rem', color: '#888' }}>{new Date(post.created_at).toLocaleDateString('ar-EG')}</span></td>
+                <td style={td}><code style={{ fontSize: '0.8rem', color: '#9ca3af', background: '#f8f9fa', padding: '3px 8px', borderRadius: '6px' }}>{post.slug}</code></td>
+                <td style={td}><span style={{ fontSize: '0.82rem', color: '#9ca3af' }}>{new Date(post.created_at).toLocaleDateString('ar-EG')}</span></td>
                 <td style={td}>
                   <span style={{ background: post.published ? '#f0fdf4' : '#fff7ed', color: post.published ? '#15803d' : '#c2410c', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '700' }}>
                     {post.published ? 'منشور' : 'مخفي'}
@@ -181,8 +181,8 @@ export default function AdminBlog() {
 }
 
 
-const th: any = { padding: '16px 20px', fontSize: '0.82rem', color: '#888', fontWeight: 'bold' };
-const td: any = { padding: '16px 20px', fontSize: '0.92rem', color: '#333', verticalAlign: 'middle' };
+const th: any = { padding: '16px 20px', fontSize: '0.82rem', color: '#9ca3af', fontWeight: 'bold' };
+const td: any = { padding: '16px 20px', fontSize: '0.92rem', color: '#d1d5db', verticalAlign: 'middle' };
 const iconBtn: any = { background: '#f8f9fa', border: '1px solid #eee', color: '#555', padding: '8px', borderRadius: '10px', cursor: 'pointer' };
 const delBtn: any = { background: '#fff5f5', border: '1px solid #ffebeb', color: '#e74c3c', padding: '8px', borderRadius: '10px', cursor: 'pointer' };
 const greenBtn: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#15803d', color: '#fff', border: 'none', borderRadius: '12px', padding: '11px 22px', cursor: 'pointer', fontWeight: '800', fontSize: '0.95rem' };

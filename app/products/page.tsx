@@ -29,16 +29,16 @@ export default function Home() {
   }, []);
 
   if (loading) return (
-    <div style={{ backgroundColor: '#000', color: '#fff', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'sans-serif' }}>
+    <div style={{ backgroundColor: '#ffffff', color: '#1a1a1a', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'sans-serif' }}>
       <h2>جاري فحص المحرك وتحميل المنتجات...</h2>
     </div>
   );
 
   if (error) return (
-    <div style={{ backgroundColor: '#000', color: '#ff4d4d', padding: '50px', height: '100vh', direction: 'rtl', fontFamily: 'sans-serif' }}>
+    <div style={{ backgroundColor: '#ffffff', color: '#22c55e', padding: '50px', height: '100vh', direction: 'rtl', fontFamily: 'sans-serif' }}>
       <h1>عفواً، فشل الاتصال بقاعدة البيانات</h1>
-      <p style={{ color: '#ccc' }}>السبب: {error}</p>
-      <ul style={{ color: '#888', marginTop: '20px' }}>
+      <p style={{ color: '#9ca3af' }}>السبب: {error}</p>
+      <ul style={{ color: '#9ca3af', marginTop: '20px' }}>
         <li>تأكد من إغلاق أي AdBlocker أو VPN.</li>
         <li>تأكد أن اسم الجدول في سوبابيز هو "products".</li>
       </ul>
@@ -47,7 +47,7 @@ export default function Home() {
 
   return (
     <main style={{ backgroundColor: '#0f0f0f', color: '#fff', minHeight: '100vh', padding: '40px', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <header style={{ borderBottom: '1px solid #333', marginBottom: '30px', paddingBottom: '10px' }}>
+      <header style={{ borderBottom: '1px solid #d1d5db', marginBottom: '30px', paddingBottom: '10px' }}>
         <h1 style={{ color: '#3b82f6', fontSize: '2rem' }}>متجر زيت اند فلترز (Zait & Filters)</h1>
         <p style={{ color: '#9ca3af' }}>أهلاً بك في الجيل الجديد من متجرك الإلكتروني</p>
       </header>
@@ -59,10 +59,10 @@ export default function Home() {
             const currentImageUrl = item.image_url || item._image_url || item.Image_URL;
 
             return (
-              <div key={item.id} style={{ backgroundColor: '#1c1c1c', border: '1px solid #333', borderRadius: '15px', padding: '20px', transition: '0.3s', display: 'flex', flexDirection: 'column' }}>
+              <div key={item.id} style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '15px', padding: '20px', transition: '0.3s', display: 'flex', flexDirection: 'column' }}>
                 
                 {/* عرض صورة المنتج مع معالجة الأخطاء */}
-                <div style={{ backgroundColor: '#1c1c1c', height: '200px', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <div style={{ backgroundColor: '#ffffff', height: '200px', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {currentImageUrl ? (
                     <img 
                       src={optimizeImageUrl(currentImageUrl.trim())} 
@@ -74,7 +74,7 @@ export default function Home() {
                       }}
                     />
                   ) : (
-                    <div style={{ color: '#888', textAlign: 'center' }}>
+                    <div style={{ color: '#9ca3af', textAlign: 'center' }}>
                       <p style={{ fontSize: '0.8rem' }}>صورة المنتج</p>
                     </div>
                   )}
@@ -86,16 +86,16 @@ export default function Home() {
                     {item.brand || 'عام'}
                   </span>
                   {item.subcategory && (
-                    <span style={{ fontSize: '0.75rem', backgroundColor: '#333', color: '#bbb', padding: '2px 8px', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', backgroundColor: '#d1d5db', color: '#374151', padding: '2px 8px', borderRadius: '4px' }}>
                       {item.subcategory}
                     </span>
                   )}
                 </div>
 
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '10px', color: '#fff' }}>{item.name}</h2>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '10px', color: '#1a1a1a' }}>{item.name}</h2>
 
                 {/* الوصف التلقائي الذكي */}
-                <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '15px', lineHeight: '1.5', flexGrow: 1 }}>
+                <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '15px', lineHeight: '1.5', flexGrow: 1 }}>
                   {item.name} ماركة {item.brand || 'أصلي'} صناعة {item.country_of_origin || 'ممتازة'}.
                   <br />
                   <span style={{ color: '#9ca3af' }}>
@@ -104,12 +104,12 @@ export default function Home() {
                 </p>
 
                 {/* منطقة السعر والزرار */}
-                <div style={{ borderTop: '1px solid #222', paddingTop: '15px', marginTop: 'auto' }}>
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '15px', marginTop: 'auto' }}>
                   <div style={{ marginBottom: '10px' }}>
                     {item.sale_price ? (
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
                         <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#10b981' }}>{item.sale_price} ج.م</span>
-                        <span style={{ fontSize: '0.9rem', color: '#ef4444', textDecoration: 'line-through' }}>{item.regular_price} ج.م</span>
+                        <span style={{ fontSize: '0.9rem', color: '#16a34a', textDecoration: 'line-through' }}>{item.regular_price} ج.م</span>
                       </div>
                     ) : (
                       <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#10b981' }}>{item.regular_price || item.price} ج.م</span>

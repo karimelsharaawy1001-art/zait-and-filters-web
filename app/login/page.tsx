@@ -122,14 +122,14 @@ export default function LoginPage() {
   );
 }
 
-const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#161616', padding: '20px', direction: 'rtl' };
-const authCard: any = { background: '#1c1c1c', padding: '40px', borderRadius: '30px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', width: '100%', maxWidth: '450px', textAlign: 'center' };
-const title: any = { fontSize: '1.8rem', fontWeight: '900', color: '#f5f5f5', marginBottom: '10px' };
-const subTitle: any = { color: '#888', fontSize: '0.9rem', marginBottom: '30px' };
+const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', padding: '20px', direction: 'rtl' };
+const authCard: any = { background: '#ffffff', padding: '40px', borderRadius: '30px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)', width: '100%', maxWidth: '450px', textAlign: 'center' };
+const title: any = { fontSize: '1.8rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px' };
+const subTitle: any = { color: '#9ca3af', fontSize: '0.9rem', marginBottom: '30px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
 const inputGroup: any = { position: 'relative', display: 'flex', alignItems: 'center' };
-const icon: any = { position: 'absolute', right: '15px', color: '#ccc', zIndex: 10 };
-const inp: any = { width: '100%', padding: '15px 45px 15px 15px', borderRadius: '15px', border: '1px solid #2a2a2a', background: '#161616', outline: 'none', fontSize: '1rem', transition: '0.3s' };
-const btn: any = { padding: '15px', background: '#1c1c1c', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1.1rem', marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' };
-const toggleArea: any = { marginTop: '25px', borderTop: '1px solid #2a2a2a', paddingTop: '20px' };
-const toggleBtn: any = { background: 'none', border: 'none', color: '#e50914', cursor: 'pointer', fontWeight: 'bold' };
+const icon: any = { position: 'absolute', right: '15px', color: '#9ca3af', zIndex: 10 };
+const inp: any = { width: '100%', padding: '15px 45px 15px 15px', borderRadius: '15px', border: '1px solid #e5e7eb', background: '#f9fafb', outline: 'none', fontSize: '1rem', transition: '0.3s' };
+const btn: any = { padding: '15px', background: '#ffffff', color: '#1a1a1a', border: 'none', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1.1rem', marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' };
+const toggleArea: any = { marginTop: '25px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' };
+const toggleBtn: any = { background: 'none', border: 'none', color: '#22c55e', cursor: 'pointer', fontWeight: 'bold' };

@@ -204,7 +204,7 @@ export default function AddProduct() {
   };
 
   return (
-    <main style={{ backgroundColor: '#000', color: '#fff', minHeight: '100vh', padding: 'clamp(12px, 4vw, 40px)', direction: 'rtl', fontFamily: 'sans-serif' }}>
+    <main style={{ backgroundColor: '#ffffff', color: '#1a1a1a', minHeight: '100vh', padding: 'clamp(12px, 4vw, 40px)', direction: 'rtl', fontFamily: 'sans-serif' }}>
       <style>{`
         .ap-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .ap-span2 { grid-column: span 2; }
@@ -225,16 +225,16 @@ export default function AddProduct() {
             <span style={{ fontSize: '1.3rem' }}>✅</span>
             <div>
               <div style={{ color: '#2ecc71', fontWeight: '800', fontSize: '0.95rem' }}>تم حفظ «{lastSaved.name}» بنجاح لـ {lastSaved.count} سيارة</div>
-              <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '2px' }}>الفئة والسيارات محفوظة — أضف بيانات المنتج الجديد</div>
+              <div style={{ color: '#9ca3af', fontSize: '0.78rem', marginTop: '2px' }}>الفئة والسيارات محفوظة — أضف بيانات المنتج الجديد</div>
             </div>
           </div>
-          <button onClick={() => setLastSaved(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.1rem', flexShrink: 0 }}>✕</button>
+          <button onClick={() => setLastSaved(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '1.1rem', flexShrink: 0 }}>✕</button>
         </div>
       )}
 
-      {loadingOptions && <p style={{ color: '#888', marginBottom: '16px', fontSize: '0.9rem' }}>⏳ جاري تحميل بيانات المنتجات...</p>}
+      {loadingOptions && <p style={{ color: '#9ca3af', marginBottom: '16px', fontSize: '0.9rem' }}>⏳ جاري تحميل بيانات المنتجات...</p>}
 
-      <form onSubmit={handleSubmit} className="ap-form" style={{ backgroundColor: '#0a0a0a', padding: 'clamp(16px, 4vw, 30px)', borderRadius: '15px', border: '1px solid #222', maxWidth: '1000px', margin: '0 auto' }}>
+      <form onSubmit={handleSubmit} className="ap-form" style={{ backgroundColor: '#ffffff', padding: 'clamp(16px, 4vw, 30px)', borderRadius: '15px', border: '1px solid #e5e7eb', maxWidth: '1000px', margin: '0 auto' }}>
 
         {/* ── Image Upload — fixed drag/drop ── */}
         <div className="ap-span2" style={{}}>
@@ -242,7 +242,7 @@ export default function AddProduct() {
             <div style={{ textAlign: 'center', padding: '20px', border: '2px solid #2ecc71', borderRadius: '15px', backgroundColor: '#0f2d1a' }}>
               <img src={formData.image_url} alt="Preview" style={{ height: '150px', borderRadius: '10px' }} />
               <p style={{ color: '#2ecc71', marginTop: '10px' }}>✅ الصورة جاهزة</p>
-              <button type="button" onClick={() => setFormData({ ...formData, image_url: '' })} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>تغيير الصورة</button>
+              <button type="button" onClick={() => setFormData({ ...formData, image_url: '' })} style={{ color: '#22c55e', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>تغيير الصورة</button>
             </div>
           ) : (
             <div
@@ -254,7 +254,7 @@ export default function AddProduct() {
               style={{
                 border: `2px dashed ${dragActive ? '#2ecc71' : '#555'}`,
                 padding: '40px 20px', textAlign: 'center', borderRadius: '15px',
-                backgroundColor: dragActive ? '#0f2d1a' : '#050505',
+                backgroundColor: dragActive ? '#0f2d1a' : '#ffffff',
                 transition: 'all 0.2s ease', cursor: 'pointer',
               }}
             >
@@ -263,11 +263,11 @@ export default function AddProduct() {
                 <p style={{ color: '#2ecc71', fontWeight: '700' }}>⏳ جاري الرفع...</p>
               ) : (
                 <>
-                  <p style={{ color: dragActive ? '#2ecc71' : '#888', fontWeight: '700', fontSize: '0.95rem', margin: '0 0 8px' }}>
+                  <p style={{ color: dragActive ? '#2ecc71' : '#9ca3af', fontWeight: '700', fontSize: '0.95rem', margin: '0 0 8px' }}>
                     {dragActive ? 'افلت الصورة هنا 🎯' : 'اسحب صورة المنتج وأفلتها هنا'}
                   </p>
                   <p style={{ color: '#555', fontSize: '0.8rem', margin: '0 0 16px' }}>أو اضغط لاختيار صورة</p>
-                  <span style={{ background: '#111', border: '1px solid #333', color: '#aaa', padding: '8px 20px', borderRadius: '8px', fontSize: '0.85rem' }}>اختر ملف</span>
+                  <span style={{ background: '#e5e7eb', border: '1px solid #d1d5db', color: '#6b7280', padding: '8px 20px', borderRadius: '8px', fontSize: '0.85rem' }}>اختر ملف</span>
                 </>
               )}
               <input id="file-input-addproduct" type="file" accept="image/*" style={{ display: 'none' }}
@@ -369,10 +369,10 @@ export default function AddProduct() {
                 <img src={`https://img.youtube.com/vi/${match[1]}/default.jpg`} alt="thumbnail" style={{ width: '80px', height: '60px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} />
                 <div>
                   <div style={{ color: '#2ecc71', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم التعرف على الفيديو</div>
-                  <div style={{ color: '#888', fontSize: '0.75rem', marginTop: '2px', direction: 'ltr' }}>ID: {match[1]}</div>
+                  <div style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: '2px', direction: 'ltr' }}>ID: {match[1]}</div>
                 </div>
               </div>
-            ) : <div style={{ marginTop: '8px', color: '#ff4d4d', fontSize: '0.8rem', fontWeight: '700' }}>⚠️ الرابط غير صحيح — تأكد أنه رابط يوتيوب صحيح</div>;
+            ) : <div style={{ marginTop: '8px', color: '#22c55e', fontSize: '0.8rem', fontWeight: '700' }}>⚠️ الرابط غير صحيح — تأكد أنه رابط يوتيوب صحيح</div>;
           })()}
         </div>
 
@@ -381,7 +381,7 @@ export default function AddProduct() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <label style={{ ...labelStyle, fontSize: '1.1rem', color: '#2ecc71', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Car size={18} color="#2ecc71" /> السيارات المتوافقة *
-              <span style={{ fontSize: '0.72rem', color: '#888', fontWeight: '600', marginRight: '4px' }}>(محفوظة عند إضافة منتج جديد)</span>
+              <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: '600', marginRight: '4px' }}>(محفوظة عند إضافة منتج جديد)</span>
             </label>
             <button type="button" onClick={addCar} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0f2d1a', color: '#2ecc71', border: '1px solid #2ecc71', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem' }}>
               <Plus size={15} /> إضافة سيارة
@@ -389,11 +389,11 @@ export default function AddProduct() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {cars.map((car, index) => (
-              <div key={index} style={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px' }}>
+              <div key={index} style={{ backgroundColor: '#e5e7eb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ color: '#2ecc71', fontWeight: '700', fontSize: '0.85rem' }}>🚗 سيارة {index + 1}</span>
                   {cars.length > 1 && (
-                    <button type="button" onClick={() => removeCar(index)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#2d0f0f', color: '#ff4d4d', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                    <button type="button" onClick={() => removeCar(index)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#22c55e', border: '1px solid #22c55e', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem' }}>
                       <Trash2 size={13} /> حذف
                     </button>
                   )}
@@ -426,7 +426,7 @@ export default function AddProduct() {
             ))}
           </div>
           {cars.length > 1 && (
-            <p style={{ color: '#888', fontSize: '0.8rem', marginTop: '8px' }}>
+            <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '8px' }}>
               سيتم إنشاء <strong style={{ color: '#2ecc71' }}>{cars.filter(c => c.car_make && c.car_model).length}</strong> منتج في الداتابيز (منتج لكل سيارة)
             </p>
           )}
@@ -440,7 +440,7 @@ export default function AddProduct() {
             {loading ? 'جاري الحفظ...' : 'حفظ وإضافة منتج آخر'}
           </button>
           <button type="submit" disabled={loading || uploading}
-            style={{ flex: 1, padding: '18px', backgroundColor: loading || uploading ? '#1a6b3a' : '#2ecc71', color: '#000', fontWeight: '900', borderRadius: '10px', cursor: loading || uploading ? 'not-allowed' : 'pointer', fontSize: '1rem', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            style={{ flex: 1, padding: '18px', backgroundColor: loading || uploading ? '#1a6b3a' : '#2ecc71', color: '#1a1a1a', fontWeight: '900', borderRadius: '10px', cursor: loading || uploading ? 'not-allowed' : 'pointer', fontSize: '1rem', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             {loading ? 'جاري الحفظ...' : uploading ? 'جاري رفع الصورة...' : cars.filter(c => c.car_make && c.car_model).length > 1 ? `حفظ لـ ${cars.filter(c => c.car_make && c.car_model).length} سيارات والخروج` : 'حفظ والخروج للداشبورد'}
           </button>
         </div>
@@ -449,9 +449,9 @@ export default function AddProduct() {
   );
 }
 
-const labelStyle = { display: 'block', marginBottom: '8px', color: '#888', fontWeight: 'bold' } as const;
-const inputStyle = { width: '100%', padding: '12px', backgroundColor: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '8px', outline: 'none' } as const;
+const labelStyle = { display: 'block', marginBottom: '8px', color: '#9ca3af', fontWeight: 'bold' } as const;
+const inputStyle = { width: '100%', padding: '12px', backgroundColor: '#ffffff', border: '1px solid #d1d5db', color: '#1a1a1a', borderRadius: '8px', outline: 'none' } as const;
 const addNewBtnStyle: any = { marginTop: '8px', background: 'none', border: 'none', color: '#2ecc71', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', padding: '0', textDecoration: 'underline', display: 'block' };
-const confirmBtnStyle: any = { background: '#2ecc71', color: '#000', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', flexShrink: 0 };
-const cancelBtnStyle: any = { background: '#2d0f0f', color: '#ff4d4d', border: '1px solid #ff4d4d', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', flexShrink: 0 };
+const confirmBtnStyle: any = { background: '#2ecc71', color: '#1a1a1a', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', flexShrink: 0 };
+const cancelBtnStyle: any = { background: '#f0fdf4', color: '#22c55e', border: '1px solid #22c55e', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', flexShrink: 0 };
 const selectedBadge: any = { marginTop: '6px', display: 'inline-block', background: '#0f2d1a', border: '1px solid #2ecc71', color: '#2ecc71', borderRadius: '6px', padding: '3px 10px', fontSize: '0.78rem', fontWeight: '700' };

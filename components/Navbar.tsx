@@ -83,14 +83,14 @@ export default function ProfessionalNavbar() {
         <div
           style={{
             direction: 'rtl',
-            background: '#161616',
+            background: '#ffffff',
             padding: '14px 16px',
             borderRadius: '12px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
-            border: '1px solid #2a0f10',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+            border: '1px solid #e5e7eb',
             maxWidth: '280px',
             fontSize: '0.85rem',
-            color: '#f87171',
+            color: '#374151',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -108,7 +108,7 @@ export default function ProfessionalNavbar() {
               padding: '8px 10px',
               borderRadius: '10px',
               border: 'none',
-              background: '#b91c1c',
+              background: '#22c55e',
               color: '#fff',
               fontWeight: 700,
               cursor: 'pointer',
@@ -171,8 +171,8 @@ export default function ProfessionalNavbar() {
               style={sidebarStyle}
             >
               <div style={sidebarHeader}>
-                <span style={{ fontWeight: '900', fontSize: '1.2rem' }}>القائمة</span>
-                <button onClick={() => setIsSidebarOpen(false)} style={closeBtn}><X size={24}/></button>
+                <span style={{ fontWeight: '900', fontSize: '1.2rem', color: '#1a1a1a' }}>القائمة</span>
+                <button onClick={() => setIsSidebarOpen(false)} style={closeBtn}><X size={24} color="#6b7280"/></button>
               </div>
 
               <div style={sidebarContent}>
@@ -181,11 +181,11 @@ export default function ProfessionalNavbar() {
                   onClick={() => { toggleGarage(); }}
                   style={{
                     ...sidebarLink,
-                    backgroundColor: garageMode ? '#2a0f10' : 'transparent',
-                    color: garageMode ? '#e50914' : '#444',
+                    backgroundColor: garageMode ? '#f0fdf4' : 'transparent',
+                    color: garageMode ? '#22c55e' : '#374151',
                   }}
                 >
-                  <Car size={20} color={garageMode ? '#e50914' : '#444'}/> 
+                  <Car size={20} color={garageMode ? '#22c55e' : '#6b7280'}/> 
                   جراجي {garageMode ? '(مفعل)' : ''}
                 </button>
 
@@ -204,7 +204,7 @@ export default function ProfessionalNavbar() {
                   <BookOpen size={20}/> المدونة
                 </Link>
 
-                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#e50914' }}>
+                <Link href="/affiliate" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#22c55e', fontWeight: 'bold' }}>
                   <Handshake size={20}/> ابدأ الربح معنا
                 </Link>
 
@@ -229,7 +229,7 @@ export default function ProfessionalNavbar() {
                     </button>
                   </>
                 ) : (
-                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#e50914' }}>
+                  <Link href="/login" onClick={() => setIsSidebarOpen(false)} style={{ ...sidebarLink, color: '#22c55e', fontWeight: 'bold' }}>
                     <LogIn size={20}/> تسجيل الدخول
                   </Link>
                 )}
@@ -257,21 +257,21 @@ export default function ProfessionalNavbar() {
             <m.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileSearchOpen(false)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(3px)' }}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.05)', zIndex: 3000, backdropFilter: 'blur(3px)' }}
             />
             <m.div
               initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#161616', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', direction: 'rtl' }}
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 3001, background: '#ffffff', padding: '14px 16px', borderRadius: '0 0 20px 20px', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', direction: 'rtl' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#f5f5f5' }}>البحث الذكي</span>
-                <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#1c1c1c', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={16} color="#9ca3af" />
+                <span style={{ fontWeight: '900', fontSize: '0.95rem', color: '#1a1a1a' }}>البحث الذكي</span>
+                <button onClick={() => setMobileSearchOpen(false)} style={{ marginRight: 'auto', background: '#f3f4f6', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={16} color="#6b7280" />
                 </button>
               </div>
               <SmartSearchBar autoFocus onClose={() => setMobileSearchOpen(false)} compact={false} placeholder="مثال: تيل فرامل بوما — فلتر زيت كروز" />
-              <p style={{ marginTop: '10px', fontSize: '0.72rem', color: '#9ca3af', textAlign: 'center' }}>
+              <p style={{ marginTop: '10px', fontSize: '0.72rem', color: '#6b7280', textAlign: 'center' }}>
                 يفهم أسماء السيارات وأنواع القطع — جرّب: مساعدين النترا
               </p>
             </m.div>
@@ -327,7 +327,7 @@ export default function ProfessionalNavbar() {
             {/* Blog link in desktop nav */}
             <Link href="/blog" style={linkItem}>المدونة</Link>
 
-            <Link href="/affiliate" style={{ ...linkItem, color: '#e50914' }}>
+            <Link href="/affiliate" style={{ ...linkItem, color: '#22c55e', fontWeight: 'bold' }}>
               ابدأ الربح معنا
             </Link>
 
@@ -336,8 +336,8 @@ export default function ProfessionalNavbar() {
                 onClick={toggleGarage}
                 style={{
                   ...garageToggleBtn,
-                  backgroundColor: garageMode ? '#e50914' : 'rgba(0,0,0,0.05)',
-                  color: garageMode ? '#fff' : '#f5f5f5',
+                  backgroundColor: garageMode ? '#22c55e' : '#f0fdf4',
+                  color: garageMode ? '#fff' : '#374151',
                   marginLeft: '10px',
                 }}
                 title={
@@ -395,13 +395,11 @@ const navContainer: any = {
   top: 0,
   zIndex: 1000,
   width: '100%',
-  // Premium dark-glass: subtle vertical gradient + blur, a red brand accent
-  // hairline, depth shadow, and a faint top sheen.
-  background: 'linear-gradient(180deg, rgba(28,28,28,0.92) 0%, rgba(10,10,10,0.92) 100%)',
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(240,253,244,0.95) 100%)',
   backdropFilter: 'blur(22px) saturate(160%)',
   WebkitBackdropFilter: 'blur(22px) saturate(160%)',
-  borderBottom: '1px solid rgba(229,9,20,0.35)',
-  boxShadow: '0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+  borderBottom: '1px solid rgba(34,197,94,0.2)',
+  boxShadow: '0 8px 30px rgba(0,0,0,0.04), inset 0 1px 0 rgba(0,0,0,0.06)',
   padding: '15px 0',
   direction: 'rtl',
 };
@@ -419,7 +417,7 @@ const logoStyle: any = {
   fontWeight: '900',
   fontStyle: 'italic',
   textDecoration: 'none',
-  color: '#f5f5f5',
+  color: '#1a1a1a',
   letterSpacing: '-1.5px',
   flexShrink: 0,
   textTransform: 'uppercase',
@@ -427,7 +425,7 @@ const logoStyle: any = {
 const navLinks: any = { display: 'flex', alignItems: 'center', gap: '25px' };
 const linkItem: any = {
   textDecoration: 'none',
-  color: '#cbd5e1',
+  color: '#374151',
   fontSize: '0.95rem',
   fontWeight: 'bold',
   whiteSpace: 'nowrap',
@@ -436,13 +434,13 @@ const iconGroup: any = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  borderRight: '1px solid #2a2a2a',
+  borderRight: '1px solid #e5e7eb',
   paddingRight: '15px',
 };
 const iconBtn: any = {
   background: 'none',
   border: 'none',
-  color: '#f5f5f5',
+  color: '#374151',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
@@ -451,7 +449,7 @@ const loginLinkBtn: any = {
   display: 'flex',
   alignItems: 'center',
   gap: '5px',
-  background: '#e50914',
+  background: '#22c55e',
   color: '#fff',
   padding: '6px 15px',
   borderRadius: '10px',
@@ -459,12 +457,12 @@ const loginLinkBtn: any = {
   fontSize: '0.85rem',
   fontWeight: 'bold',
 };
-const logoutIconBtn: any = { ...iconBtn, color: '#ff4d4d' };
+const logoutIconBtn: any = { ...iconBtn, color: '#16a34a' };
 const cartBadge: any = {
   position: 'absolute',
   top: '-5px',
   right: '-8px',
-  backgroundColor: '#e50914',
+  backgroundColor: '#22c55e',
   color: '#fff',
   fontSize: '10px',
   fontWeight: 'bold',
@@ -478,7 +476,7 @@ const cartBadge: any = {
 const overlayStyle: any = {
   position: 'fixed',
   inset: 0,
-  background: 'rgba(0,0,0,0.5)',
+  background: 'rgba(0,0,0,0.05)',
   backdropFilter: 'blur(4px)',
   zIndex: 2000,
 };
@@ -488,16 +486,16 @@ const sidebarStyle: any = {
   right: 0,
   bottom: 0,
   width: '280px',
-  background: '#161616',
+  background: '#ffffff',
   zIndex: 2001,
   display: 'flex',
   flexDirection: 'column',
-  boxShadow: '-5px 0 25px rgba(0,0,0,0.1)',
+  boxShadow: '-5px 0 25px rgba(0,0,0,0.06)',
   direction: 'rtl',
 };
 const sidebarHeader: any = {
   padding: '20px',
-  borderBottom: '1px solid #2a2a2a',
+  borderBottom: '1px solid #e5e7eb',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -515,7 +513,7 @@ const sidebarLink: any = {
   gap: '12px',
   padding: '12px',
   textDecoration: 'none',
-  color: '#cbd5e1',
+  color: '#374151',
   fontWeight: 'bold',
   borderRadius: '10px',
   border: 'none',
@@ -528,14 +526,14 @@ const sidebarLogoutBtn: any = {
   ...sidebarLink,
   background: 'none',
   border: 'none',
-  color: '#ff4d4d',
+  color: '#16a34a',
   cursor: 'pointer',
   width: '100%',
   textAlign: 'right',
 };
 const sidebarDivider: any = {
   border: 'none',
-  borderTop: '1px solid #1c1c1c',
+  borderTop: '1px solid #e5e7eb',
   margin: '10px 0',
 };
 const sidebarFooter: any = {
@@ -547,7 +545,7 @@ const sidebarFooter: any = {
 const closeBtn: any = {
   background: 'none',
   border: 'none',
-  color: '#f5f5f5',
+  color: '#374151',
   cursor: 'pointer',
 };
 const garageToggleBtn: any = {

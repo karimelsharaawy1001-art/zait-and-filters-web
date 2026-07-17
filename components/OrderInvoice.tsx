@@ -162,7 +162,7 @@ export default function OrderInvoice({ order }: Props) {
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             padding: '11px 24px',
-            background: isGenerating ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+            background: isGenerating ? '#9ca3af' : 'linear-gradient(135deg, #22c55e, #16a34a)',
             color: '#fff', border: 'none', borderRadius: '12px',
             fontWeight: '800', fontSize: '0.9rem',
             cursor: isGenerating ? 'not-allowed' : 'pointer',
@@ -212,7 +212,7 @@ export default function OrderInvoice({ order }: Props) {
               <div style={{ fontSize: '2rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>
                 ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '2px' }}>
+              <div style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.8rem', fontWeight: '600', letterSpacing: '2px' }}>
                 AUTO PARTS · قطع غيار
               </div>
             </div>
@@ -225,7 +225,7 @@ export default function OrderInvoice({ order }: Props) {
               }}>
                 ORDER
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>
+              <div style={{ color: 'rgba(0,0,0,0.05)', fontSize: '0.85rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>
                 #{orderNumber}
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function OrderInvoice({ order }: Props) {
                  order.status === 'cancelled' ? 'ملغي' : 'تم تأكيد الطلب'}
               </span>
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginRight: '8px' }}>
+            <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.8rem', marginRight: '8px' }}>
               {orderDate}
             </div>
           </div>
@@ -268,7 +268,7 @@ export default function OrderInvoice({ order }: Props) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 {item.icon}
-                <span style={{ fontSize: '0.72rem', color: '#999', fontWeight: '700', letterSpacing: '0.5px' }}>{item.label}</span>
+                <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '700', letterSpacing: '0.5px' }}>{item.label}</span>
               </div>
               <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
             </div>
@@ -324,7 +324,7 @@ export default function OrderInvoice({ order }: Props) {
               </div>
               {order.payment_method && (
                 <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e5e5' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#999', fontWeight: '700' }}>طريقة الدفع: </span>
+                  <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '700' }}>طريقة الدفع: </span>
                   <span style={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: '800' }}>{order.payment_method}</span>
                 </div>
               )}
@@ -347,7 +347,7 @@ export default function OrderInvoice({ order }: Props) {
             }}>
               {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map((h, i) => (
                 <div key={i} style={{
-                  fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8',
+                  fontSize: '0.72rem', fontWeight: '800', color: '#6b7280',
                   letterSpacing: '0.5px',
                   textAlign: i === 0 ? 'right' : 'center',
                 }}>
@@ -412,7 +412,7 @@ export default function OrderInvoice({ order }: Props) {
                   </span>
                 </div>
                 {/* Unit price */}
-                <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '700', color: '#444' }}>
+                <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '700', color: '#6b7280' }}>
                   {item.price.toLocaleString('ar-EG')} ج.م
                 </div>
                 {/* Line total */}
@@ -456,7 +456,7 @@ export default function OrderInvoice({ order }: Props) {
               {discount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #e5e5e5' }}>
                   <span style={{ color: '#666', fontSize: '0.88rem', fontWeight: '700' }}>الخصم</span>
-                  <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: '800' }}>- {discount.toLocaleString('ar-EG')} ج.م</span>
+                  <span style={{ color: '#16a34a', fontSize: '0.9rem', fontWeight: '800' }}>- {discount.toLocaleString('ar-EG')} ج.م</span>
                 </div>
               )}
 
@@ -467,7 +467,7 @@ export default function OrderInvoice({ order }: Props) {
                 background: 'linear-gradient(135deg, #0f172a, #1e293b)',
                 borderRadius: '12px',
               }}>
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: '700' }}>الإجمالي الكلي</span>
+                <span style={{ color: 'rgba(0,0,0,0.06)', fontSize: '0.85rem', fontWeight: '700' }}>الإجمالي الكلي</span>
                 <span style={{ color: '#22c55e', fontSize: '1.4rem', fontWeight: '900' }}>
                   {total.toLocaleString('ar-EG')} ج.م
                 </span>
@@ -500,13 +500,13 @@ export default function OrderInvoice({ order }: Props) {
             <div style={{ fontSize: '1.1rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-0.5px' }}>
               ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', marginTop: '4px' }}>
+            <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.72rem', marginTop: '4px' }}>
               zaitandfilters.com
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', marginTop: '2px' }}>Thank you for your order</div>
+            <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.7rem', marginTop: '2px' }}>Thank you for your order</div>
           </div>
           <div style={{ textAlign: 'left' }}>
             <div style={{

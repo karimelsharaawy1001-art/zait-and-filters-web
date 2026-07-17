@@ -76,7 +76,7 @@ export default function AffiliateLoginPage() {
 
       <div style={loginCard}>
         <div style={iconContainer}>
-          <LogIn size={40} color="#e50914" />
+          <LogIn size={40} color="#22c55e" />
         </div>
 
         <h1 style={title}>Promoters Login</h1>
@@ -86,7 +86,7 @@ export default function AffiliateLoginPage() {
           <div style={inputGroup}>
             <label style={label}>البريد الإلكتروني</label>
             <div style={inputWrapper}>
-              <Mail size={20} color="#aaa" />
+              <Mail size={20} color="#6b7280" />
               <input
                 type="email"
                 value={email}
@@ -101,7 +101,7 @@ export default function AffiliateLoginPage() {
           <div style={inputGroup}>
             <label style={label}>كلمة المرور</label>
             <div style={inputWrapper}>
-              <Lock size={20} color="#aaa" />
+              <Lock size={20} color="#6b7280" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -118,8 +118,8 @@ export default function AffiliateLoginPage() {
                 tabIndex={-1}
               >
                 {showPassword
-                  ? <EyeOff size={18} color="#aaa" />
-                  : <Eye size={18} color="#aaa" />}
+                  ? <EyeOff size={18} color="#6b7280" />
+                  : <Eye size={18} color="#6b7280" />}
               </button>
             </div>
           </div>
@@ -155,6 +155,6 @@ const label: any = { color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' };
 const inputWrapper: any = { display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '12px', padding: '14px' };
 const input: any = { flex: 1, background: 'transparent', border: 'none', color: '#fff', fontSize: '1rem', outline: 'none' };
 const eyeBtn: any = { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0 2px', flexShrink: 0 };
-const submitButton: any = { width: '100%', padding: '16px', background: 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
+const submitButton: any = { width: '100%', padding: '16px', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
 const switchText: any = { textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)', marginTop: '25px' };
-const switchLink: any = { color: '#e50914', fontWeight: 'bold', textDecoration: 'none' };
+const switchLink: any = { color: '#22c55e', fontWeight: 'bold', textDecoration: 'none' };

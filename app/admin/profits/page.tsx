@@ -174,7 +174,7 @@ export default function AdminProfits() {
         </button>
         {(dateFrom || dateTo) && (
           <button onClick={() => { setDateFrom(''); setDateTo(''); setTimeout(fetchOrders, 0); }}
-            style={{ height: '42px', padding: '0 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            style={{ height: '42px', padding: '0 16px', background: '#fee2e2', color: '#16a34a', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <X size={14} /> إلغاء الفلتر
           </button>
         )}
@@ -184,7 +184,7 @@ export default function AdminProfits() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         {[
           { label: 'إجمالي الإيرادات', value: totalRevenue().toLocaleString(), color: '#15803d', icon: <TrendingUp size={20} />, bg: '#f0fdf4' },
-          { label: 'صافي الربح', value: totalNetProfit().toLocaleString(), color: totalNetProfit() >= 0 ? '#15803d' : '#dc2626', icon: <DollarSign size={20} />, bg: totalNetProfit() >= 0 ? '#f0fdf4' : '#fef2f2' },
+          { label: 'صافي الربح', value: totalNetProfit().toLocaleString(), color: totalNetProfit() >= 0 ? '#15803d' : '#16a34a', icon: <DollarSign size={20} />, bg: totalNetProfit() >= 0 ? '#f0fdf4' : '#f0fdf4' },
           { label: 'الطلبات المكتملة', value: completedOrders.length.toLocaleString(), color: '#1e40af', icon: <Package size={20} />, bg: '#eff6ff' },
           { label: 'إجمالي التكاليف الإضافية', value: totalExtraCosts().toLocaleString(), color: '#d97706', icon: <TrendingDown size={20} />, bg: '#fffbeb' },
           { label: 'إجمالي تكلفة الشحن', value: totalShippingCostPaid().toLocaleString(), color: '#3b82f6', icon: <TrendingDown size={20} />, bg: '#eff6ff' },
@@ -201,7 +201,7 @@ export default function AdminProfits() {
 
       {/* ── Orders ── */}
       {filteredOrders.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#aaa', fontSize: '1rem', background: '#fff', borderRadius: '16px', border: '1px solid #eee' }}>
+        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#6b7280', fontSize: '1rem', background: '#fff', borderRadius: '16px', border: '1px solid #eee' }}>
           <Package size={48} style={{ margin: '0 auto 16px', display: 'block', opacity: 0.3 }} />
           لا توجد طلبات في هذه الفترة
         </div>
@@ -240,13 +240,13 @@ export default function AdminProfits() {
                   return (
                     <>
                       <tr key={order.id} onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                        style={{ borderBottom: '1px solid #f5f5f5', cursor: 'pointer', background: isExpanded ? '#f0fdf4' : '#fff' }}>
+                        style={{ borderBottom: '1px solid #1a1a1a', cursor: 'pointer', background: isExpanded ? '#f0fdf4' : '#fff' }}>
                         <td style={{ ...tdStyle, width: '40px' }}>
-                          {isExpanded ? <ChevronUp size={18} color="#22c55e" /> : <ChevronDown size={18} color="#aaa" />}
+                          {isExpanded ? <ChevronUp size={18} color="#22c55e" /> : <ChevronDown size={18} color="#6b7280" />}
                         </td>
                         <td style={tdStyle}>
                           <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#888', fontFamily: 'monospace' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontFamily: 'monospace' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
                         </td>
                         <td style={{ ...tdStyle, fontSize: '0.82rem', color: '#555' }}>
                           {new Date(order.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' })}
@@ -262,13 +262,13 @@ export default function AdminProfits() {
                               onBlur={() => saveExtraCosts(order.id)}
                               style={{ width: '90px', height: '34px', border: '1px solid #e5e5e5', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', background: '#fff' }}
                             />
-                            <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                            <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                           </div>
                         </td>
-                        <td style={{ ...tdStyle, fontWeight: '800', color: grossProfit >= 0 ? '#15803d' : '#dc2626' }}>
+                        <td style={{ ...tdStyle, fontWeight: '800', color: grossProfit >= 0 ? '#15803d' : '#16a34a' }}>
                           {grossProfit.toLocaleString()} ج.م
                         </td>
-                        <td style={{ ...tdStyle, fontWeight: '900', fontSize: '1rem', color: netProfit >= 0 ? '#15803d' : '#dc2626' }}>
+                        <td style={{ ...tdStyle, fontWeight: '900', fontSize: '1rem', color: netProfit >= 0 ? '#15803d' : '#16a34a' }}>
                           {netProfit.toLocaleString()} ج.م
                         </td>
                       </tr>
@@ -288,14 +288,14 @@ export default function AdminProfits() {
                                         style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '8px', background: '#f9f9f9', flexShrink: 0 }} />
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontWeight: '700', fontSize: '0.85rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                                        <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                                        <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
                                           {item.brand && <span>{item.brand} • </span>}
                                           سعر البيع: {price.toLocaleString()} ج.م × {qty}
                                         </div>
                                       </div>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                                         <div style={{ textAlign: 'center' }}>
-                                          <div style={{ fontSize: '0.68rem', fontWeight: '700', color: '#888', marginBottom: '2px' }}>التكلفة</div>
+                                          <div style={{ fontSize: '0.68rem', fontWeight: '700', color: '#9ca3af', marginBottom: '2px' }}>التكلفة</div>
                                           <input type="number" min={0} step="0.01"
                                             value={costPrices[order.id]?.[idx] ?? ''}
                                             onChange={e => {
@@ -311,8 +311,8 @@ export default function AdminProfits() {
                                           />
                                         </div>
                                         <div style={{ textAlign: 'center', minWidth: '80px' }}>
-                                          <div style={{ fontSize: '0.68rem', fontWeight: '700', color: '#888', marginBottom: '2px' }}>الربح</div>
-                                          <div style={{ fontWeight: '900', fontSize: '0.88rem', color: itemProfit >= 0 ? '#15803d' : '#dc2626' }}>
+                                          <div style={{ fontSize: '0.68rem', fontWeight: '700', color: '#9ca3af', marginBottom: '2px' }}>الربح</div>
+                                          <div style={{ fontWeight: '900', fontSize: '0.88rem', color: itemProfit >= 0 ? '#15803d' : '#16a34a' }}>
                                             {itemProfit.toLocaleString()} ج.م
                                           </div>
                                         </div>
@@ -323,7 +323,7 @@ export default function AdminProfits() {
                               </div>
                               <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                                 <div style={{ flex: 1, background: '#fff', borderRadius: '12px', padding: '14px 16px', border: '1px solid #e8f5e9' }}>
-                                  <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#888', marginBottom: '8px' }}>ملخص التكاليف</div>
+                                  <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#9ca3af', marginBottom: '8px' }}>ملخص التكاليف</div>
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                       <span style={{ color: '#22c55e', fontWeight: '700' }}>ربح المنتجات</span>
@@ -341,13 +341,13 @@ export default function AdminProfits() {
                                           onChange={e => setShippingCostPaid(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
                                           onBlur={() => saveShippingCostPaid(order.id)}
                                           style={{ width: '80px', height: '30px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700', background: '#fff' }} />
-                                        <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                                        <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                                       </div>
                                     </div>
                                     {discount > 0 && (
                                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <span style={{ color: '#555', fontWeight: '700' }}>خصم (برومو كود)</span>
-                                        <span style={{ fontWeight: '800', color: '#f87171' }}>- {discount.toLocaleString()} ج.م</span>
+                                        <span style={{ fontWeight: '800', color: '#15803d' }}>- {discount.toLocaleString()} ج.م</span>
                                       </div>
                                     )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -358,14 +358,14 @@ export default function AdminProfits() {
                                           onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
                                           onBlur={() => saveExtraCosts(order.id)}
                                           style={{ width: '80px', height: '30px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700', background: '#fff' }} />
-                                        <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                                        <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                                 <div style={{ flex: '0 0 auto', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px', padding: '14px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minWidth: '140px' }}>
-                                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: '700', marginBottom: '4px' }}>صافي الربح</div>
-                                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#f87171' }}>
+                                  <div style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.72rem', fontWeight: '700', marginBottom: '4px' }}>صافي الربح</div>
+                                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#15803d' }}>
                                     {netProfit.toLocaleString()} ج.م
                                   </div>
                                 </div>
@@ -403,14 +403,14 @@ export default function AdminProfits() {
                   <div onClick={() => setExpandedOrderId(isExpanded ? null : order.id)} style={{ padding: '14px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#888' }}>#{order.id.slice(0, 8).toUpperCase()} • {new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>#{order.id.slice(0, 8).toUpperCase()} • {new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '0.68rem', color: '#888', fontWeight: '700' }}>صافي الربح</div>
-                        <div style={{ fontWeight: '900', color: netProfit >= 0 ? '#15803d' : '#dc2626' }}>{netProfit.toLocaleString()} ج.م</div>
+                        <div style={{ fontSize: '0.68rem', color: '#9ca3af', fontWeight: '700' }}>صافي الربح</div>
+                        <div style={{ fontWeight: '900', color: netProfit >= 0 ? '#15803d' : '#16a34a' }}>{netProfit.toLocaleString()} ج.م</div>
                       </div>
-                      {isExpanded ? <ChevronUp size={18} color="#22c55e" /> : <ChevronDown size={18} color="#aaa" />}
+                      {isExpanded ? <ChevronUp size={18} color="#22c55e" /> : <ChevronDown size={18} color="#6b7280" />}
                     </div>
                   </div>
                   {isExpanded && (
@@ -427,12 +427,12 @@ export default function AdminProfits() {
                                 <img src={item.image_url || '/placeholder.png'} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '6px', background: '#f9f9f9', flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontWeight: '700', fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                                  <div style={{ fontSize: '0.7rem', color: '#888' }}>{price.toLocaleString()} ج.م × {qty}</div>
+                                  <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{price.toLocaleString()} ج.م × {qty}</div>
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                                 <div style={{ flex: 1 }}>
-                                  <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#888', marginBottom: '2px' }}>التكلفة</div>
+                                  <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#9ca3af', marginBottom: '2px' }}>التكلفة</div>
                                   <input type="number" min={0} step="0.01"
                                     value={costPrices[order.id]?.[idx] ?? ''}
                                     onChange={e => {
@@ -443,8 +443,8 @@ export default function AdminProfits() {
                                     style={{ width: '100%', height: '34px', border: '1px solid #e5e5e5', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }} />
                                 </div>
                                 <div style={{ flex: 1, textAlign: 'center', paddingTop: '14px' }}>
-                                  <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#888', marginBottom: '2px' }}>الربح</div>
-                                  <div style={{ fontWeight: '900', color: itemProfit >= 0 ? '#15803d' : '#dc2626' }}>{itemProfit.toLocaleString()}</div>
+                                  <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#9ca3af', marginBottom: '2px' }}>الربح</div>
+                                  <div style={{ fontWeight: '900', color: itemProfit >= 0 ? '#15803d' : '#16a34a' }}>{itemProfit.toLocaleString()}</div>
                                 </div>
                               </div>
                             </div>
@@ -452,7 +452,7 @@ export default function AdminProfits() {
                         })}
                       </div>
                       <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e0f2e9' }}>
-                        <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#888', marginBottom: '8px' }}>ملخص التكاليف</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#9ca3af', marginBottom: '8px' }}>ملخص التكاليف</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#22c55e', fontWeight: '700' }}>ربح المنتجات</span>
@@ -470,13 +470,13 @@ export default function AdminProfits() {
                                 onChange={e => setShippingCostPaid(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
                                 onBlur={() => saveShippingCostPaid(order.id)}
                                 style={{ width: '80px', height: '32px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700' }} />
-                              <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                              <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                             </div>
                           </div>
                           {discount > 0 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                               <span style={{ color: '#555', fontWeight: '700' }}>خصم (برومو كود)</span>
-                              <span style={{ fontWeight: '800', color: '#f87171' }}>- {discount.toLocaleString()} ج.م</span>
+                              <span style={{ fontWeight: '800', color: '#15803d' }}>- {discount.toLocaleString()} ج.م</span>
                             </div>
                           )}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -487,14 +487,14 @@ export default function AdminProfits() {
                                 onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
                                 onBlur={() => saveExtraCosts(order.id)}
                                 style={{ width: '80px', height: '32px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700' }} />
-                              <span style={{ fontSize: '0.72rem', color: '#888' }}>ج.م</span>
+                              <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                             </div>
                           </div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', padding: '12px 14px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '10px' }}>
-                        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', fontWeight: '700' }}>صافي الربح</span>
-                        <span style={{ fontSize: '1.2rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#f87171' }}>{netProfit.toLocaleString()} ج.م</span>
+                        <span style={{ color: 'rgba(0,0,0,0.05)', fontSize: '0.85rem', fontWeight: '700' }}>صافي الربح</span>
+                        <span style={{ fontSize: '1.2rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#15803d' }}>{netProfit.toLocaleString()} ج.م</span>
                       </div>
                     </div>
                   )}
@@ -516,5 +516,5 @@ export default function AdminProfits() {
   );
 }
 
-const thStyle: any = { padding: '14px 16px', fontSize: '0.78rem', color: '#888', fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'right' };
-const tdStyle: any = { padding: '14px 16px', fontSize: '0.88rem', color: '#333', verticalAlign: 'middle' };
+const thStyle: any = { padding: '14px 16px', fontSize: '0.78rem', color: '#9ca3af', fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'right' };
+const tdStyle: any = { padding: '14px 16px', fontSize: '0.88rem', color: '#d1d5db', verticalAlign: 'middle' };

@@ -165,7 +165,7 @@ export default function AffiliateSignup() {
       <div style={card}>
         <div style={header}>
           <h1 style={title}>
-            <UserPlus size={32} color="#e50914" />
+            <UserPlus size={32} color="#22c55e" />
             انضم لشبكة المسوقين
           </h1>
           <p style={subtitle}>سجل الآن واحصل على عمولة من كل عملية بيع!</p>
@@ -206,7 +206,7 @@ export default function AffiliateSignup() {
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 style={eyeBtn} tabIndex={-1}>
-                {showPassword ? <EyeOff size={18} color="#94a3b8" /> : <Eye size={18} color="#94a3b8" />}
+                {showPassword ? <EyeOff size={18} color="#6b7280" /> : <Eye size={18} color="#6b7280" />}
               </button>
             </div>
             <span style={hint}>يُستخدم لتسجيل الدخول لاحقاً</span>
@@ -225,16 +225,16 @@ export default function AffiliateSignup() {
 
 
 // Styles
-const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #161616 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
-const card: any = { background: '#1c1c1c', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
+const container: any = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f9fafb 0%, #e9ecef 100%)', padding: '20px', direction: 'rtl' };
+const card: any = { background: '#ffffff', padding: '40px', borderRadius: '30px', maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' };
 const header: any = { textAlign: 'center', marginBottom: '35px' };
 const title: any = { fontSize: '2rem', fontWeight: '900', color: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: 0 };
-const subtitle: any = { color: '#64748b', fontSize: '0.95rem', marginTop: '10px' };
+const subtitle: any = { color: '#6b7280', fontSize: '0.95rem', marginTop: '10px' };
 const form: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
 const inputGroup: any = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const labelStyle: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' };
-const input: any = { padding: '14px 18px', border: '1px solid #2a2a2a', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s', width: '100%', boxSizing: 'border-box' };
+const labelStyle: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' };
+const input: any = { padding: '14px 18px', border: '1px solid #e5e7eb', borderRadius: '12px', fontSize: '1rem', outline: 'none', transition: '0.2s', width: '100%', boxSizing: 'border-box' };
 const passwordWrapper: any = { position: 'relative', display: 'flex', alignItems: 'center' };
 const eyeBtn: any = { position: 'absolute', left: '14px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' };
-const hint: any = { fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' };
-const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #e50914 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };
+const hint: any = { fontSize: '0.75rem', color: '#6b7280', marginTop: '2px' };
+const submitBtn: any = { padding: '16px', background: 'linear-gradient(135deg, #22c55e 0%, #229954 100%)', color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: '0.2s', marginTop: '10px' };

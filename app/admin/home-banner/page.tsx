@@ -211,7 +211,7 @@ export default function AdminHomeBanner() {
           <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontWeight: '800', color: '#1a1a1a', marginBottom: '2px' }}>حالة البانر</div>
-              <div style={{ fontSize: '0.8rem', color: '#888' }}>{banner.is_active ? 'يظهر على الصفحة الرئيسية' : 'مخفي — لن يظهر للزوار'}</div>
+              <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{banner.is_active ? 'يظهر على الصفحة الرئيسية' : 'مخفي — لن يظهر للزوار'}</div>
             </div>
             <button
               onClick={() => setBanner((b: any) => ({ ...b, is_active: !b.is_active }))}
@@ -219,8 +219,8 @@ export default function AdminHomeBanner() {
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '10px 18px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                 fontWeight: '800', fontSize: '0.9rem',
-                background: banner.is_active ? '#f0fdf4' : '#fef2f2',
-                color: banner.is_active ? '#15803d' : '#dc2626',
+                background: banner.is_active ? '#f0fdf4' : '#f0fdf4',
+                color: banner.is_active ? '#15803d' : '#16a34a',
               }}
             >
               {banner.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -235,7 +235,7 @@ export default function AdminHomeBanner() {
               disabled={saving}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                padding: '14px', background: saving ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                padding: '14px', background: saving ? '#9ca3af' : 'linear-gradient(135deg, #22c55e, #16a34a)',
                 color: '#fff', border: 'none', borderRadius: '14px', fontWeight: '900',
                 fontSize: '1rem', cursor: saving ? 'not-allowed' : 'pointer',
                 boxShadow: saving ? 'none' : '0 4px 15px rgba(34,197,94,0.35)',
@@ -249,8 +249,8 @@ export default function AdminHomeBanner() {
                 onClick={deleteBanner}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  padding: '14px 18px', background: '#fff5f5', color: '#dc2626',
-                  border: '1.5px solid #fecaca', borderRadius: '14px', fontWeight: '800',
+                  padding: '14px 18px', background: '#fff5f5', color: '#16a34a',
+                  border: '1.5px solid #dcfce7', borderRadius: '14px', fontWeight: '800',
                   fontSize: '0.9rem', cursor: 'pointer',
                 }}
               >
@@ -269,7 +269,7 @@ export default function AdminHomeBanner() {
 
             {/* Desktop preview */}
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: '700', marginBottom: '6px' }}>ديسكتوب</div>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '700', marginBottom: '6px' }}>ديسكتوب</div>
               <div style={{
                 position: 'relative', width: '100%', height: '100px',
                 borderRadius: '14px', overflow: 'hidden',
@@ -284,16 +284,16 @@ export default function AdminHomeBanner() {
                     onError={e => { (e.target as any).style.display = 'none'; }}
                   />
                 )}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to left, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 20px', direction: 'rtl' }}>
                   <div style={{ textAlign: 'right' }}>
                     {banner.title && (
-                      <div style={{ color: '#fff', fontWeight: '900', fontSize: '1rem', textShadow: '0 2px 8px rgba(0,0,0,0.5)', marginBottom: '3px' }}>
+                      <div style={{ color: '#fff', fontWeight: '900', fontSize: '1rem', textShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '3px' }}>
                         {banner.title}
                       </div>
                     )}
                     {banner.subtitle && (
-                      <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem', fontWeight: '600', textShadow: '0 1px 6px rgba(0,0,0,0.4)', marginBottom: '6px' }}>
+                      <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem', fontWeight: '600', textShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: '6px' }}>
                         {banner.subtitle}
                       </div>
                     )}
@@ -303,7 +303,7 @@ export default function AdminHomeBanner() {
                       </div>
                     )}
                     {!banner.title && !banner.subtitle && (
-                      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>لا يوجد نص</div>
+                      <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.8rem' }}>لا يوجد نص</div>
                     )}
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function AdminHomeBanner() {
 
             {/* Mobile preview */}
             <div>
-              <div style={{ fontSize: '0.75rem', color: '#aaa', fontWeight: '700', marginBottom: '6px' }}>موبايل</div>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '700', marginBottom: '6px' }}>موبايل</div>
               <div style={{
                 position: 'relative', width: '220px', height: '70px',
                 borderRadius: '10px', overflow: 'hidden', margin: '0 auto',
@@ -331,7 +331,7 @@ export default function AdminHomeBanner() {
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 10px 8px', direction: 'rtl' }}>
                   <div style={{ textAlign: 'center' }}>
                     {banner.title && (
-                      <div style={{ color: '#fff', fontWeight: '900', fontSize: '0.72rem', textShadow: '0 1px 4px rgba(0,0,0,0.5)', lineHeight: 1.3 }}>
+                      <div style={{ color: '#fff', fontWeight: '900', fontSize: '0.72rem', textShadow: '0 1px 4px rgba(0,0,0,0.06)', lineHeight: 1.3 }}>
                         {banner.title}
                       </div>
                     )}
@@ -346,7 +346,7 @@ export default function AdminHomeBanner() {
             </div>
 
             {!banner.is_active && (
-              <div style={{ marginTop: '14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '10px 14px', color: '#dc2626', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ marginTop: '14px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '10px', padding: '10px 14px', color: '#16a34a', fontSize: '0.82rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <EyeOff size={14} /> البانر مخفي حالياً ولن يظهر للزوار
               </div>
             )}
@@ -354,7 +354,7 @@ export default function AdminHomeBanner() {
 
           {/* SQL hint */}
           <div style={{ marginTop: '16px', background: '#f8f9fa', borderRadius: '14px', padding: '16px', border: '1px solid #eee' }}>
-            <div style={{ fontWeight: '800', color: '#444', fontSize: '0.82rem', marginBottom: '8px' }}>📋 إنشاء الجدول في Supabase</div>
+            <div style={{ fontWeight: '800', color: '#6b7280', fontSize: '0.82rem', marginBottom: '8px' }}>📋 إنشاء الجدول في Supabase</div>
             <pre style={{ fontSize: '0.72rem', color: '#555', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap', direction: 'ltr', textAlign: 'left', fontFamily: 'monospace' }}>{`create table home_banners (
   id uuid primary key default gen_random_uuid(),
   image_url text not null,
@@ -391,7 +391,7 @@ const labelStyle: any = {
   gap: '7px',
   fontWeight: '800',
   fontSize: '0.88rem',
-  color: '#333',
+  color: '#d1d5db',
   marginBottom: '10px',
 };
 
@@ -410,7 +410,7 @@ const inputStyle: any = {
 
 const hintStyle: any = {
   fontSize: '0.75rem',
-  color: '#aaa',
+  color: '#6b7280',
   marginTop: '6px',
   marginBottom: 0,
 };

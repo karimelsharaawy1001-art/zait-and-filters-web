@@ -39,12 +39,12 @@ const Select = dynamic(() => import('react-select'), {
     <div
       style={{
         height: '48px',
-        backgroundColor: '#161616',
+        backgroundColor: '#f9fafb',
         borderRadius: '10px',
         display: 'flex',
         alignItems: 'center',
         padding: '0 15px',
-        color: '#999',
+        color: '#6b7280',
       }}
     >
       جاري التحميل...
@@ -162,7 +162,7 @@ function FilterSection({
           {garageMakeConflict && (
             <div
               style={{
-                backgroundColor: '#1c1c1c',
+                backgroundColor: '#ffffff',
                 border: '1px solid #f97316',
                 padding: '12px',
                 borderRadius: '10px',
@@ -183,7 +183,7 @@ function FilterSection({
 
           <div style={{ opacity: garageMode ? 0.5 : 1, pointerEvents: garageMode ? 'none' : 'auto' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#9ca3af' }}>
-              الماركة <span style={{ color: '#e50914' }}>*</span>
+              الماركة <span style={{ color: '#22c55e' }}>*</span>
             </label>
             <Select
               instanceId="store-make-select"
@@ -200,7 +200,7 @@ function FilterSection({
 
           <div style={{ opacity: garageMode ? 0.5 : 1, pointerEvents: garageMode ? 'none' : 'auto' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#9ca3af' }}>
-              الموديل <span style={{ color: '#e50914' }}>*</span>
+              الموديل <span style={{ color: '#22c55e' }}>*</span>
             </label>
             <Select
               instanceId="store-model-select"
@@ -230,8 +230,8 @@ function FilterSection({
                 width: '100%',
                 height: '48px',
                 padding: '0 15px',
-                backgroundColor: '#1c1c1c',
-                border: '1px solid #2a2a2a',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
                 borderRadius: '10px',
                 fontSize: '0.9rem',
                 outline: 'none',
@@ -242,12 +242,12 @@ function FilterSection({
           <div
             style={{
               textAlign: 'center',
-              color: '#888',
+              color: '#9ca3af',
               fontSize: '0.85rem',
               fontWeight: '700',
               padding: '10px 0',
-              borderTop: '1px solid #2a2a2a',
-              borderBottom: '1px solid #2a2a2a',
+              borderTop: '1px solid #e5e7eb',
+              borderBottom: '1px solid #e5e7eb',
               margin: '5px 0',
             }}
           >
@@ -256,7 +256,7 @@ function FilterSection({
 
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#9ca3af' }}>
-              الفئة <span style={{ color: '#e50914' }}>*</span>
+              الفئة <span style={{ color: '#22c55e' }}>*</span>
             </label>
             <Select
               instanceId="store-category-select"
@@ -275,7 +275,7 @@ function FilterSection({
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8rem', fontWeight: '800', color: '#9ca3af' }}>
               القسم الفرعي
               {selectedSubcategories && selectedSubcategories.length > 0 && (
-                <span style={{ marginRight: '8px', backgroundColor: '#e50914', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900' }}>
+                <span style={{ marginRight: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900' }}>
                   {selectedSubcategories.length} مختار
                 </span>
               )}
@@ -291,7 +291,7 @@ function FilterSection({
                   height: 'auto',
                   minHeight: '48px',
                 }),
-                input: (base: any) => ({ ...base, color: '#f5f5f5' }),
+                input: (base: any) => ({ ...base, color: '#1a1a1a' }),
               }}
               placeholder="اختر قسم فرعي أو أكثر"
               isRtl={true}
@@ -343,20 +343,20 @@ function FilterSection({
                   width: '100%',
                   height: '48px',
                   padding: '0 45px 0 15px',
-                  backgroundColor: '#1c1c1c',
-                  border: '1px solid #2a2a2a',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e7eb',
                   borderRadius: '10px',
                   fontSize: '0.9rem',
                   outline: 'none',
                 }}
               />
-              <Search size={18} color="#999" style={{ position: 'absolute', right: '15px', top: '15px' }} />
+              <Search size={18} color="#6b7280" style={{ position: 'absolute', right: '15px', top: '15px' }} />
             </div>
           </div>
 
           <div
             style={{
-              backgroundColor: '#161616',
+              backgroundColor: '#f9fafb',
               padding: '12px',
               borderRadius: '10px',
               fontSize: '0.75rem',
@@ -377,7 +377,7 @@ function FilterSection({
         style={{
           width: '100%',
           padding: '14px',
-          backgroundColor: '#e50914',
+          backgroundColor: '#22c55e',
           color: '#fff',
           border: 'none',
           borderRadius: '12px',
@@ -402,7 +402,7 @@ function FilterSection({
             width: '100%',
             padding: '12px',
             backgroundColor: '#fee',
-            color: '#dc2626',
+            color: '#16a34a',
             border: 'none',
             borderRadius: '10px',
             fontWeight: '700',
@@ -458,9 +458,9 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 
   return (
     <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-      <p style={{ color: '#888', fontSize: '0.85rem', fontWeight: '600' }}>
-        عرض <span style={{ color: '#f5f5f5', fontWeight: '800' }}>{startItem}–{endItem}</span> من{' '}
-        <span style={{ color: '#e50914', fontWeight: '800' }}>{totalItems}</span> منتج
+      <p style={{ color: '#9ca3af', fontSize: '0.85rem', fontWeight: '600' }}>
+        عرض <span style={{ color: '#1a1a1a', fontWeight: '800' }}>{startItem}–{endItem}</span> من{' '}
+        <span style={{ color: '#22c55e', fontWeight: '800' }}>{totalItems}</span> منتج
       </p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -471,9 +471,9 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
             width: '42px',
             height: '42px',
             borderRadius: '12px',
-            border: '1.5px solid #2a2a2a',
-            backgroundColor: currentPage === 1 ? '#161616' : '#242424',
-            color: currentPage === 1 ? '#ccc' : '#f5f5f5',
+            border: '1.5px solid #e5e7eb',
+            backgroundColor: currentPage === 1 ? '#f9fafb' : '#f3f4f6',
+            color: currentPage === 1 ? '#9ca3af' : '#1a1a1a',
             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -489,7 +489,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
           page === 'ellipsis' ? (
             <span
               key={`ellipsis-${idx}`}
-              style={{ width: '42px', textAlign: 'center', color: '#aaa', fontWeight: '700', fontSize: '1rem' }}
+              style={{ width: '42px', textAlign: 'center', color: '#6b7280', fontWeight: '700', fontSize: '1rem' }}
             >
               …
             </span>
@@ -501,19 +501,19 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
                 width: '42px',
                 height: '42px',
                 borderRadius: '12px',
-                border: currentPage === page ? 'none' : '1.5px solid #2a2a2a',
+                border: currentPage === page ? 'none' : '1.5px solid #e5e7eb',
                 background:
                   currentPage === page
-                    ? 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)'
-                    : '#242424',
-                color: currentPage === page ? '#fff' : '#f5f5f5',
+                    ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                    : '#f3f4f6',
+                color: currentPage === page ? '#fff' : '#1a1a1a',
                 fontWeight: '900',
                 fontSize: '0.9rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 boxShadow:
                   currentPage === page
-                    ? '0 4px 14px rgba(229,9,20,0.45)'
+                    ? '0 4px 14px rgba(34,197,94,0.45)'
                     : '0 2px 8px rgba(0,0,0,0.06)',
                 transform: currentPage === page ? 'scale(1.1)' : 'scale(1)',
               }}
@@ -530,9 +530,9 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
             width: '42px',
             height: '42px',
             borderRadius: '12px',
-            border: '1.5px solid #2a2a2a',
-            backgroundColor: currentPage === totalPages ? '#161616' : '#242424',
-            color: currentPage === totalPages ? '#ccc' : '#f5f5f5',
+            border: '1.5px solid #e5e7eb',
+            backgroundColor: currentPage === totalPages ? '#f9fafb' : '#f3f4f6',
+            color: currentPage === totalPages ? '#9ca3af' : '#1a1a1a',
             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -547,7 +547,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
 
       {totalPages > 7 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
-          <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '600' }}>الانتقال إلى صفحة:</span>
+          <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '600' }}>الانتقال إلى صفحة:</span>
           <input
             type="number"
             min={1}
@@ -564,7 +564,7 @@ function Pagination({ currentPage, totalPages, totalItems, onPageChange }: Pagin
               width: '60px',
               height: '36px',
               textAlign: 'center',
-              border: '1.5px solid #2a2a2a',
+              border: '1.5px solid #e5e7eb',
               borderRadius: '10px',
               fontSize: '0.9rem',
               fontWeight: '700',
@@ -1264,8 +1264,8 @@ setBrandsOptions(brandsOpts);
       ...base,
       height: '48px',
       borderRadius: '10px',
-      border: '1px solid #2a2a2a',
-      backgroundColor: '#1c1c1c',
+      border: '1px solid #e5e7eb',
+      backgroundColor: '#ffffff',
       fontSize: '0.9rem',
       textAlign: 'right',
       display: 'flex',
@@ -1280,28 +1280,28 @@ setBrandsOptions(brandsOpts);
       gap: '8px',
       padding: '10px 15px',
       fontSize: '0.85rem',
-      backgroundColor: state.isFocused ? '#2a0f10' : '#161616',
-      color: '#f5f5f5',
+      backgroundColor: state.isFocused ? '#f0fdf4' : '#f9fafb',
+      color: '#1a1a1a',
       cursor: 'pointer',
     }),
     singleValue: (base: any) => ({
       ...base,
-      color: '#f5f5f5',
+      color: '#1a1a1a',
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
       flexDirection: 'row-reverse',
     }),
     placeholder: (base: any) => ({ ...base, color: '#9ca3af' }),
-    input: (base: any) => ({ ...base, color: '#f5f5f5' }),
+    input: (base: any) => ({ ...base, color: '#1a1a1a' }),
     valueContainer: (base: any) => ({
       ...base,
       padding: '0 12px',
       display: 'flex',
       flexDirection: 'row-reverse',
     }),
-    menu: (base: any) => ({ ...base, zIndex: 9999, backgroundColor: '#161616', border: '1px solid #2a2a2a' }),
-    menuList: (base: any) => ({ ...base, backgroundColor: '#161616' }),
+    menu: (base: any) => ({ ...base, zIndex: 9999, backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }),
+    menuList: (base: any) => ({ ...base, backgroundColor: '#f9fafb' }),
   };
 
   if (!isMounted) return null;
@@ -1350,7 +1350,7 @@ setBrandsOptions(brandsOpts);
   };
 
   return (
-    <div style={{ direction: 'rtl', backgroundColor: '#161616', minHeight: '100vh', paddingTop: '90px' }}>
+    <div style={{ direction: 'rtl', backgroundColor: '#f9fafb', minHeight: '100vh', paddingTop: '90px' }}>
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -1360,9 +1360,9 @@ setBrandsOptions(brandsOpts);
             100% { background-position: 200% center; }
           }
           .store-product-card {
-            background: #1c1c1c;
+            background: #ffffff;
             border-radius: 16px;
-            border: 1px solid #2e2e2e;
+            border: 1px solid #e5e7eb;
             transition: all 0.3s ease;
             overflow: hidden;
             display: flex;
@@ -1371,8 +1371,8 @@ setBrandsOptions(brandsOpts);
           }
           .store-product-card:hover {
             transform: translateY(-5px);
-            border-color: #e50914;
-            box-shadow: 0 16px 40px rgba(229,9,20,0.22);
+            border-color: #22c55e;
+            box-shadow: 0 16px 40px rgba(34,197,94,0.22);
           }
           .products-grid {
             display: grid;
@@ -1396,13 +1396,13 @@ setBrandsOptions(brandsOpts);
             .mobile-filter-btn { display: none !important; }
           }
           .page-btn:hover:not(:disabled) {
-            border-color: #e50914 !important;
-            color: #e50914 !important;
+            border-color: #22c55e !important;
+            color: #22c55e !important;
           }
           .buy-now-btn:hover {
-            background: #dc2626 !important;
+            background: #16a34a !important;
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(229,9,20,0.45) !important;
+            box-shadow: 0 6px 18px rgba(34,197,94,0.45) !important;
           }
           .original-badge {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
@@ -1414,7 +1414,7 @@ setBrandsOptions(brandsOpts);
             display: block;
             overflow: hidden;
             position: relative;
-            background-color: #242424;
+            background-color: #f3f4f6;
             height: 200px;
           }
           @media (max-width: 640px) {
@@ -1460,15 +1460,15 @@ setBrandsOptions(brandsOpts);
 
           /* ── List view ── */
           .products-list { display: flex; flex-direction: column; gap: 12px; }
-          .list-card { display: flex; background: #1a1a1a; border-radius: 16px; border: 1px solid #2e2e2e; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
-          .list-card:hover { box-shadow: 0 16px 36px rgba(229,9,20,0.22); transform: translateY(-2px); }
-          .list-card-img { width: 130px; min-width: 130px; height: 130px; object-fit: cover; background: #161616; flex-shrink: 0; }
+          .list-card { display: flex; background: #1a1a1a; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
+          .list-card:hover { box-shadow: 0 16px 36px rgba(34,197,94,0.22); transform: translateY(-2px); }
+          .list-card-img { width: 130px; min-width: 130px; height: 130px; object-fit: cover; background: #f9fafb; flex-shrink: 0; }
           .list-card-img img { width: 100%; height: 100%; object-fit: cover; }
           .list-card-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
           .list-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; flex-wrap: wrap; }
-          .view-toggle { display: flex; gap: 4px; background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 3px; }
-          .view-btn { width: 32px; height: 32px; border: none; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; color: #94a3b8; }
-          .view-btn.active { background: #1c1c1c; color: #e50914; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+          .view-toggle { display: flex; gap: 4px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 3px; }
+          .view-btn { width: 32px; height: 32px; border: none; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; color: #6b7280; }
+          .view-btn.active { background: #ffffff; color: #22c55e; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
           @media (max-width: 480px) {
             .list-card-img { width: 100px; min-width: 100px; height: 100px; }
             .list-card-body { padding: 10px 12px; }
@@ -1486,7 +1486,7 @@ setBrandsOptions(brandsOpts);
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(28,28,28,0.92)',
+              backgroundColor: 'rgba(255,255,255,0.92)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1494,8 +1494,8 @@ setBrandsOptions(brandsOpts);
             }}
           >
             <div style={{ textAlign: 'center' }}>
-              <Loader2 size={60} color="#e50914" style={{ animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#f5f5f5' }}>جاري تحميل المنتجات...</h3>
+              <Loader2 size={60} color="#22c55e" style={{ animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1a1a1a' }}>جاري تحميل المنتجات...</h3>
             </div>
           </m.div>
         )}
@@ -1512,26 +1512,26 @@ setBrandsOptions(brandsOpts);
             >
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #ff4d4d 0%, #ff6b35 50%, #f97316 100%)',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #ff6b35 50%, #f97316 100%)',
                   borderRadius: '30px',
                   padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 8px 32px rgba(255,77,77,0.3)',
+                  boxShadow: '0 8px 32px rgba(34,197,94,0.3)',
                 }}
               >
-                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(0,0,0,0.05) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
                 <div style={{ position: 'relative', zIndex: 2, textAlign: 'right' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', justifyContent: 'flex-start' }}>
                     <Tags size={24} color="#fff" />
-                    <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1rem', fontWeight: '700' }}>العروض والتخفيضات</span>
+                    <span style={{ color: 'rgba(0,0,0,0.06)', fontSize: '1rem', fontWeight: '700' }}>العروض والتخفيضات</span>
                   </div>
                   <h1 style={{ color: '#fff', fontSize: isDesktop ? '2.5rem' : '1.7rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2' }}>
                     🔥 أفضل العروض المتاحة الآن
                   </h1>
                   <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,0.2)', padding: '12px 24px', borderRadius: '15px', backdropFilter: 'blur(10px)' }}>
                     <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#fff', marginLeft: '10px' }}>{filteredProducts.length}</div>
-                    <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', fontWeight: '600' }}>منتج بتخفيض</div>
+                    <div style={{ fontSize: '0.9rem', color: 'rgba(0,0,0,0.06)', fontWeight: '600' }}>منتج بتخفيض</div>
                   </div>
                 </div>
               </div>
@@ -1547,38 +1547,38 @@ setBrandsOptions(brandsOpts);
             >
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #161616 0%, #0d0d0d 100%)',
-                  border: '1px solid #242424',
+                  background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+                  border: '1px solid #f3f4f6',
                   borderRadius: '30px',
                   padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
+                  boxShadow: '0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(0,0,0,0.04)',
                 }}
               >
-                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(229,9,20,0.14) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.14) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
                 <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>
-                      <CheckCircle2 size={20} color="#e50914" />
-                      <span style={{ color: '#cbd5e1', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
+                      <CheckCircle2 size={20} color="#22c55e" />
+                      <span style={{ color: '#374151', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
                     </div>
-                    <h1 style={{ color: '#f5f5f5', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
-                      قطع غيار <span style={{ color: '#e50914' }}>{heroMakeLabel}</span> الأصلية
+                    <h1 style={{ color: '#1a1a1a', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
+                      قطع غيار <span style={{ color: '#22c55e' }}>{heroMakeLabel}</span> الأصلية
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.5)' }}>
-                        <Car size={18} color="#e50914" />
-                        <span style={{ color: '#f5f5f5', fontSize: '1.1rem', fontWeight: '800' }}>{heroMakeLabel} {heroModelLabel}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.2)' }}>
+                        <Car size={18} color="#22c55e" />
+                        <span style={{ color: '#1a1a1a', fontSize: '1.1rem', fontWeight: '800' }}>{heroMakeLabel} {heroModelLabel}</span>
                       </div>
                       {heroYear && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.5)' }}>
-                          <Calendar size={18} color="#e50914" />
-                          <span style={{ color: '#f5f5f5', fontSize: '1.1rem', fontWeight: '700' }}>{heroYear}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.2)' }}>
+                          <Calendar size={18} color="#22c55e" />
+                          <span style={{ color: '#1a1a1a', fontSize: '1.1rem', fontWeight: '700' }}>{heroYear}</span>
                         </div>
                       )}
                     </div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', background: 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)', padding: '12px 24px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(34,197,94,0.2)' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', padding: '12px 24px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(34,197,94,0.2)' }}>
                       <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#fff', marginLeft: '10px' }}>{filteredProducts.length}</div>
                       <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: '600' }}>قطعة غيار متاحة</div>
                     </div>
@@ -1605,20 +1605,20 @@ setBrandsOptions(brandsOpts);
           <div className="mobile-filter-btn" style={{ display: 'none', maxWidth: '1400px', margin: '0 auto 20px', padding: '0 20px' }}>
             <button
               onClick={() => setFiltersOpen(!filtersOpen)}
-              style={{ width: '100%', padding: '15px', backgroundColor: '#1c1c1c', color: '#f5f5f5', border: '1px solid #2a2a2a', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
+              style={{ width: '100%', padding: '15px', backgroundColor: '#ffffff', color: '#1a1a1a', border: '1px solid #e5e7eb', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Filter size={20} color="#e50914" />
+                <Filter size={20} color="#22c55e" />
                 <span>التصنيفات</span>
-                {hasMin && <span style={{ backgroundColor: '#e50914', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>نشط</span>}
-                {saleMode && <span style={{ backgroundColor: '#ff4d4d', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>عروض</span>}
+                {hasMin && <span style={{ backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>نشط</span>}
+                {saleMode && <span style={{ backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '900' }}>عروض</span>}
               </div>
               {filtersOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
             <AnimatePresence>
               {filtersOpen && (
                 <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} style={{ overflow: 'hidden' }}>
-                  <div style={{ backgroundColor: '#1c1c1c', padding: '20px', borderRadius: '12px', marginTop: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                  <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', marginTop: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                     <FilterSection {...filterProps} />
                   </div>
                 </m.div>
@@ -1628,14 +1628,14 @@ setBrandsOptions(brandsOpts);
 
           <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px 80px', display: 'flex', gap: '25px', alignItems: 'flex-start' }}>
             <aside className="desktop-filters" style={{ display: 'none', width: '280px', flexShrink: 0, position: 'sticky', top: '100px' }}>
-              <div style={{ backgroundColor: '#1c1c1c', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+              <div style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
                 <h2 style={{ fontSize: '1.3rem', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Filter size={22} color="#e50914" />
+                  <Filter size={22} color="#22c55e" />
                   التصنيفات
                 </h2>
                 {saleMode && (
-                  <div style={{ backgroundColor: '#fff1f0', border: '1px solid #ff4d4d', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Tags size={16} color="#ff4d4d" />
+                  <div style={{ backgroundColor: '#fff1f0', border: '1px solid #22c55e', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Tags size={16} color="#22c55e" />
                     <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#cc0000' }}>عرض كل العروض والتخفيضات</span>
                   </div>
                 )}
@@ -1647,7 +1647,7 @@ setBrandsOptions(brandsOpts);
               <AnimatePresence>
                 {effectiveGarageConflict && !loading && (
                   <m.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}
-                    style={{ backgroundColor: '#1c1c1c', border: '2px solid #f97316', borderRadius: '16px', padding: '28px 24px', textAlign: 'center', marginBottom: '20px' }}
+                    style={{ backgroundColor: '#ffffff', border: '2px solid #f97316', borderRadius: '16px', padding: '28px 24px', textAlign: 'center', marginBottom: '20px' }}
                   >
                     <AlertTriangle size={48} color="#f97316" style={{ margin: '0 auto 16px' }} />
                     <h3 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#9a3412', marginBottom: '10px' }}>وضع الجراج مفعّل</h3>
@@ -1684,7 +1684,7 @@ setBrandsOptions(brandsOpts);
                       </button>
                       <button
                         onClick={clearFilters}
-                        style={{ padding: '12px 24px', backgroundColor: '#1c1c1c', color: '#9a3412', border: '1px solid #f97316', borderRadius: '10px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' }}
+                        style={{ padding: '12px 24px', backgroundColor: '#ffffff', color: '#9a3412', border: '1px solid #f97316', borderRadius: '10px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' }}
                       >
                         مسح التصنيفات والبقاء في وضع الجراج
                       </button>
@@ -1708,18 +1708,18 @@ setBrandsOptions(brandsOpts);
               )}
 
               {showEmptyState ? (
-                <div style={{ textAlign: 'center', padding: '100px 20px', backgroundColor: '#1c1c1c', borderRadius: '20px' }}>
-                  <Filter size={80} color="#e50914" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
-                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#f5f5f5' }}>ابدأ بتحديد التصنيفات</h3>
+                <div style={{ textAlign: 'center', padding: '100px 20px', backgroundColor: '#ffffff', borderRadius: '20px' }}>
+                  <Filter size={80} color="#22c55e" style={{ margin: '0 auto 20px', opacity: 0.5 }} />
+                  <h3 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '15px', color: '#1a1a1a' }}>ابدأ بتحديد التصنيفات</h3>
                   <p style={{ color: '#9ca3af', fontSize: '1.1rem', marginBottom: '10px' }}>اختر الماركة والموديل أو الفئة للبحث عن المنتجات</p>
-                  <div style={{ backgroundColor: '#161616', padding: '15px', borderRadius: '12px', maxWidth: '500px', margin: '20px auto', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
+                  <div style={{ backgroundColor: '#f9fafb', padding: '15px', borderRadius: '12px', maxWidth: '500px', margin: '20px auto', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
                     <AlertCircle size={20} color="#0369a1" />
                     <span style={{ color: '#0369a1', fontSize: '0.9rem', fontWeight: '700' }}>هذا يساعد في تحسين سرعة التصفح</span>
                   </div>
                 </div>
               ) : showNoResults ? (
-                <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: '#1c1c1c', borderRadius: '20px' }}>
-                  <Car size={70} color="#ccc" style={{ margin: '0 auto 15px' }} />
+                <div style={{ textAlign: 'center', padding: '80px 20px', backgroundColor: '#ffffff', borderRadius: '20px' }}>
+                  <Car size={70} color="#9ca3af" style={{ margin: '0 auto 15px' }} />
                   <h3 style={{ fontSize: '1.6rem', fontWeight: '900', marginBottom: '8px' }}>لا توجد منتجات</h3>
                   <p style={{ color: '#9ca3af', fontSize: '1rem' }}>جرب تغيير التصنيفات للعثور على المنتجات</p>
                 </div>
@@ -1751,14 +1751,14 @@ setBrandsOptions(brandsOpts);
                           {(() => {
                             const inCartQty = cartItems.find((i: any) => i.id === product.id)?.quantity ?? 0;
                             return inCartQty > 0 ? (
-                              <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#e50914', color: '#fff', borderRadius: '20px', padding: '3px 10px', fontSize: '0.7rem', fontWeight: '900', zIndex: 11, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 8px rgba(229,9,20,0.45)' }}>
+                              <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#22c55e', color: '#fff', borderRadius: '20px', padding: '3px 10px', fontSize: '0.7rem', fontWeight: '900', zIndex: 11, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 8px rgba(34,197,94,0.45)' }}>
                                 ✓ في السلة ({inCartQty})
                               </div>
                             ) : null;
                           })()}
                           {/* Sale badge */}
                           {product.sale_price > 0 && product.regular_price > product.sale_price && (
-                            <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#ff4d4d', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
+                            <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#22c55e', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10 }}>
                               -{Math.round(((product.regular_price - product.sale_price) / product.regular_price) * 100)}%
                             </div>
                           )}
@@ -1793,10 +1793,10 @@ setBrandsOptions(brandsOpts);
 
                           <div style={{ padding: '18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                              <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
+                              <span style={{ color: '#1a1a1a', fontWeight: '800', fontSize: '0.8rem' }}>{product.brand}</span>
                               {origin && !isOriginal && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#9ca3af', fontWeight: '700', fontSize: '0.75rem' }}>
-                                  <Globe size={13} color="#e50914" />
+                                  <Globe size={13} color="#22c55e" />
                                   <span>{origin}</span>
                                 </div>
                               )}
@@ -1804,9 +1804,9 @@ setBrandsOptions(brandsOpts);
                             <h3 style={{ fontSize: '0.95rem', fontWeight: '900', marginBottom: '10px', height: '45px', overflow: 'hidden', lineHeight: '1.4' }}>
                               {product.name}
                             </h3>
-                            <div style={{ background: '#1c1c1c', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
-                              <div style={{ fontSize: '0.75rem', color: '#f5f5f5', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-                                <Settings2 size={12} color="#e50914" style={{ flexShrink: 0 }} />
+                            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '10px', marginBottom: '12px' }}>
+                              <div style={{ fontSize: '0.75rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                                <Settings2 size={12} color="#22c55e" style={{ flexShrink: 0 }} />
                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {(() => {
                                     const univ = ['universal','عام','all','الكل',''];
@@ -1819,10 +1819,10 @@ setBrandsOptions(brandsOpts);
                                 </span>
                               </div>
                               <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                                <Calendar size={12} color="#e50914" style={{ flexShrink: 0 }} />
+                                <Calendar size={12} color="#22c55e" style={{ flexShrink: 0 }} />
                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.car_model_year || 'الكل'}</span>
                               </div>
-                              <div style={{ fontSize: '0.75rem', color: '#e50914', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <LayoutGrid size={12} style={{ flexShrink: 0 }} />
                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.category}</span>
                               </div>
@@ -1830,7 +1830,7 @@ setBrandsOptions(brandsOpts);
                             <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                               {product.sale_price > 0 && product.regular_price > product.sale_price ? (
                                 <div>
-                                  <span style={{ display: 'block', color: '#bbb', textDecoration: 'line-through', fontSize: '0.75rem' }}>{product.regular_price} ج.م</span>
+                                  <span style={{ display: 'block', color: '#374151', textDecoration: 'line-through', fontSize: '0.75rem' }}>{product.regular_price} ج.م</span>
                                   <span style={{ fontSize: '1.2rem', fontWeight: '900' }}>{product.sale_price} ج.م</span>
                                 </div>
                               ) : (
@@ -1846,7 +1846,7 @@ setBrandsOptions(brandsOpts);
                                     <button disabled style={{ width: '100%', padding: '11px', backgroundColor: '#9ca3af', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'not-allowed', fontSize: '0.9rem' }}>
                                       <ShoppingCart size={16} /> نفذت الكمية
                                     </button>
-                                    <div style={{ width: '100%', padding: '11px', backgroundColor: '#2a2a2a', color: '#9ca3af', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'not-allowed' }}>
+                                    <div style={{ width: '100%', padding: '11px', backgroundColor: '#e5e7eb', color: '#9ca3af', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'not-allowed' }}>
                                       <Zap size={16} /> غير متاح
                                     </div>
                                   </>
@@ -1855,7 +1855,7 @@ setBrandsOptions(brandsOpts);
                                   <>
                                     <button
                                       onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }}
-                                      style={{ width: '100%', padding: '11px', backgroundColor: '#1c1c1c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
                                     >
                                       <ShoppingCart size={16} /> أضف إلى السلة
                                     </button>
@@ -1863,7 +1863,7 @@ setBrandsOptions(brandsOpts);
                                       href={`/products/${product.slug || product.id}`}
                                       onClick={() => addToCart({ ...product, price }, 1)}
                                       className="buy-now-btn"
-                                      style={{ width: '100%', padding: '11px', backgroundColor: '#e50914', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
                                     >
                                       <Zap size={16} fill="#fff" /> اشتري الآن
                                     </Link>
@@ -1872,20 +1872,20 @@ setBrandsOptions(brandsOpts);
                                 return (
                                   <>
                                     {/* Quantity stepper — shown when item is in cart */}
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a0d0d', border: '2px solid #e50914', borderRadius: '12px', padding: '6px 10px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px', padding: '6px 10px' }}>
                                       <button
                                         onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, -1); }}
-                                        style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#e50914', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                                        style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
                                       >
                                         −
                                       </button>
                                       <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#dc2626', lineHeight: 1 }}>{qty}</div>
-                                        <div style={{ fontSize: '0.65rem', color: '#dc2626', fontWeight: '700' }}>في السلة</div>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#16a34a', lineHeight: 1 }}>{qty}</div>
+                                        <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>في السلة</div>
                                       </div>
                                       <button
                                         onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); }}
-                                        style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#e50914', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                                        style={{ width: '34px', height: '34px', borderRadius: '8px', border: 'none', background: '#22c55e', color: '#fff', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
                                       >
                                         +
                                       </button>
@@ -1893,7 +1893,7 @@ setBrandsOptions(brandsOpts);
                                     <Link
                                       href={`/products/${product.slug || product.id}`}
                                       className="buy-now-btn"
-                                      style={{ width: '100%', padding: '11px', backgroundColor: '#e50914', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(34,197,94,0.3)' }}
                                     >
                                       <Zap size={16} fill="#fff" /> اشتري الآن
                                     </Link>
@@ -1931,38 +1931,38 @@ setBrandsOptions(brandsOpts);
                           <Link href={`/products/${product.slug || product.id}`} className="list-card-img" style={{ display: 'block', textDecoration: 'none', position: 'relative' }}>
                             <img src={optimizeImageUrl(imgSrc)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                             {hasSale && (
-                              <div style={{ position: 'absolute', top: '6px', right: '6px', background: '#ef4444', color: '#fff', fontSize: '0.62rem', fontWeight: '900', padding: '2px 6px', borderRadius: '6px' }}>-{discPct}%</div>
+                              <div style={{ position: 'absolute', top: '6px', right: '6px', background: '#16a34a', color: '#fff', fontSize: '0.62rem', fontWeight: '900', padding: '2px 6px', borderRadius: '6px' }}>-{discPct}%</div>
                             )}
                             {inCartQty > 0 && (
-                              <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: '#e50914', color: '#fff', fontSize: '0.6rem', fontWeight: '900', padding: '2px 7px', borderRadius: '8px' }}>✓ {inCartQty}</div>
+                              <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: '#22c55e', color: '#fff', fontSize: '0.6rem', fontWeight: '900', padding: '2px 7px', borderRadius: '8px' }}>✓ {inCartQty}</div>
                             )}
                           </Link>
 
                           {/* Body */}
                           <div className="list-card-body" dir="rtl">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' as const }}>
-                              <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
-                              {product.category && <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>{product.category}</span>}
+                              <span style={{ color: '#1a1a1a', fontWeight: '800', fontSize: '0.72rem', textTransform: 'uppercase' as const, letterSpacing: '0.4px' }}>{product.brand}</span>
+                              {product.category && <span style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: '600' }}>{product.category}</span>}
                               {origin && (() => { const flag = originFlag(origin); return (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#f87171', fontWeight: '800', background: '#2a0f10', border: '1px solid #ef4444', borderRadius: '9px', padding: '3px 10px' }}>
-                                  {flag ? <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{flag}</span> : <Globe size={13} color="#dc2626" />} {origin}
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', color: '#15803d', fontWeight: '800', background: '#f0fdf4', border: '1px solid #16a34a', borderRadius: '9px', padding: '3px 10px' }}>
+                                  {flag ? <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{flag}</span> : <Globe size={13} color="#16a34a" />} {origin}
                                 </span>
                               ); })()}
                             </div>
 
                             <Link href={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
-                              <h3 style={{ fontSize: '0.9rem', fontWeight: '900', color: '#f5f5f5', lineHeight: '1.4', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
+                              <h3 style={{ fontSize: '0.9rem', fontWeight: '900', color: '#1a1a1a', lineHeight: '1.4', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
                                 {product.name}
                               </h3>
                             </Link>
 
                             {/* Compat + year */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#f87171', fontWeight: '700', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '10px', padding: '2px 8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #166534', borderRadius: '10px', padding: '2px 8px' }}>
                                 <Car size={10} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#9ca3af', fontWeight: '700', background: '#161616', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '2px 8px' }}>
-                                <Calendar size={10} color="#e50914" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{year || 'الكل'}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#9ca3af', fontWeight: '700', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '2px 8px' }}>
+                                <Calendar size={10} color="#22c55e" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{year || 'الكل'}</span>
                               </div>
                             </div>
 
@@ -1971,14 +1971,14 @@ setBrandsOptions(brandsOpts);
                               <div>
                                 {hasSale ? (
                                   <>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#f5f5f5' }}>{product.sale_price}</span>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5', marginRight: '3px' }}>ج.م</span>
-                                    <span style={{ fontSize: '0.75rem', color: '#aaa', textDecoration: 'line-through', marginRight: '6px' }}>{product.regular_price} ج.م</span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#1a1a1a' }}>{product.sale_price}</span>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1a1a1a', marginRight: '3px' }}>ج.م</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#6b7280', textDecoration: 'line-through', marginRight: '6px' }}>{product.regular_price} ج.م</span>
                                   </>
                                 ) : (
                                   <>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#f5f5f5' }}>{price}</span>
-                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#f5f5f5', marginRight: '3px' }}>ج.م</span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#1a1a1a' }}>{price}</span>
+                                    <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#1a1a1a', marginRight: '3px' }}>ج.م</span>
                                   </>
                                 )}
                               </div>
@@ -1986,15 +1986,15 @@ setBrandsOptions(brandsOpts);
                               {isOutOfStock ? (
                                 <button disabled style={{ padding: '8px 16px', background: '#9ca3af', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.8rem', cursor: 'not-allowed' }}>نفذت الكمية</button>
                               ) : inCartQty > 0 ? (
-                                <div style={{ display: 'flex', alignItems: 'center', background: '#1a0d0d', border: '1.5px solid #e50914', borderRadius: '10px', overflow: 'hidden' }}>
-                                  <button onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); }} style={{ width: '34px', height: '34px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: '900', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                                  <span style={{ width: '28px', textAlign: 'center', fontWeight: '900', fontSize: '0.9rem', color: '#dc2626' }}>{inCartQty}</span>
-                                  <button onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, -1); }} style={{ width: '34px', height: '34px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: '900', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                <div style={{ display: 'flex', alignItems: 'center', background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '10px', overflow: 'hidden' }}>
+                                  <button onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); }} style={{ width: '34px', height: '34px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: '900', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                  <span style={{ width: '28px', textAlign: 'center', fontWeight: '900', fontSize: '0.9rem', color: '#16a34a' }}>{inCartQty}</span>
+                                  <button onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, -1); }} style={{ width: '34px', height: '34px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: '900', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                                 </div>
                               ) : (
                                 <button
                                   onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: '#1c1c1c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer' }}>
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer' }}>
                                   <ShoppingCart size={14} /> أضف للسلة
                                 </button>
                               )}
@@ -2031,7 +2031,7 @@ setBrandsOptions(brandsOpts);
                 <div style={{ fontSize: '0.9rem', fontWeight: '900', color: '#fff', lineHeight: '1.2' }}>
                   وضع جراجي مفعل: {userCar.make} {userCar.model} {userCar.year}
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)', fontWeight: '700' }}>
+                <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.06)', fontWeight: '700' }}>
                   نعرض المنتجات المتوافقة والعامة فقط
                 </div>
               </div>
@@ -2077,7 +2077,7 @@ export default function StorePage() {
     <Suspense
       fallback={
         <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Loader2 size={60} color="#e50914" style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={60} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       }
     >

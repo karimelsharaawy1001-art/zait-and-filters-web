@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ── Black Friday dark theme palette ─────────────────────────────── */
-  --background: #0a0a0a;   /* page background */
-  --surface:    #161616;   /* subtle raised surfaces */
-  --card:       #1c1c1c;   /* cards / panels */
-  --border:     #2a2a2a;   /* dividers / outlines */
-  --foreground: #f5f5f5;   /* primary text */
-  --text-muted: #9ca3af;   /* secondary text */
-  --accent:     #e50914;   /* red accent (was green) */
-  --accent-2:   #8b0000;   /* deep red for gradients */
-  --accent-soft:#2a0f10;   /* dark red-tinted surface */
+  /* ── White & Green theme palette ─────────────────────────────── */
+  --background: #ffffff;   /* page background */
+  --surface:    #f0fdf4;   /* subtle raised surfaces */
+  --card:       #ffffff;   /* cards / panels */
+  --border:     #e5e7eb;   /* dividers / outlines */
+  --foreground: #1a1a1a;   /* primary text */
+  --text-muted: #6b7280;   /* secondary text */
+  --accent:     #22c55e;   /* primary green */
+  --accent-2:   #15803d;   /* deep green for gradients */
+  --accent-soft:#f0fdf4;   /* light green-tinted surface */
   /* Legacy name kept so existing var() refs recolor automatically */
-  --primary-green: #e50914;
+  --primary-green: #22c55e;
 }
 
 @theme inline {
@@ -31,23 +31,16 @@ html {
   scroll-behavior: smooth;
 }
 
-/* إلغاء تفعيل الـ Dark Mode القسري لضمان مظهر الـ Premium Light */
+/* Light theme body */
 body {
   color: var(--foreground) !important;
-  /* Premium ambient background: subtle red glows + soft vignette on near-black,
-     fixed so it reads as depth behind the content instead of flat black. */
   background-color: var(--background) !important;
-  /* Behind-content background: red ambient glows + a carbon-fibre weave +
-     soft vignette. Content cards are opaque, so the weave only shows in the
-     open background areas — not over the cards/text. */
   background-image:
-    radial-gradient(1100px 620px at 78% -8%, rgba(229,9,20,0.10), transparent 60%),
-    radial-gradient(900px 600px at 0% 8%, rgba(229,9,20,0.05), transparent 55%),
-    radial-gradient(1200px 900px at 50% 120%, rgba(139,0,0,0.10), transparent 60%),
-    repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 6px),
-    repeating-linear-gradient(-45deg, rgba(0,0,0,0.55) 0 1px, transparent 1px 6px),
-    linear-gradient(180deg, #121212 0%, #0a0a0a 45%, #070707 100%) !important;
-  background-size: auto, auto, auto, 7px 7px, 7px 7px, auto !important;
+    radial-gradient(1100px 620px at 78% -8%, rgba(34,197,94,0.06), transparent 60%),
+    radial-gradient(900px 600px at 0% 8%, rgba(34,197,94,0.03), transparent 55%),
+    radial-gradient(1200px 900px at 50% 120%, rgba(21,128,61,0.04), transparent 60%),
+    linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%) !important;
+  background-size: auto, auto, auto, auto !important;
   background-attachment: fixed !important;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -55,10 +48,6 @@ body {
   padding: 0;
   width: 100%;
   max-width: 100vw;
-  /* DO NOT add overflow-x: hidden here — on iOS Safari / some Android browsers
-     it makes <body> the containing block for position:fixed elements, causing
-     the mobile bottom nav to be positioned relative to the body scroll offset
-     instead of the viewport. overflow-x: hidden on <html> is sufficient. */
 }
 
 /* ── Storefront main ─────────────────────────────────────────────────────── */
@@ -79,18 +68,13 @@ body {
 /* ── Hero section: explicit height prevents 0→height shift on load ─────── */
 .hero-section {
   position: relative;
-  /* z-index: 0 creates a proper stacking context so GPU-composited children
-     (hero-bg-layer uses hardware acceleration) stay below position:fixed
-     elements like the mobile bottom nav (z-index:1001). */
   z-index: 0;
   width: 100%;
-  background: #000;
+  background: #f0fdf4;
   overflow: hidden;
-  /* Mobile: no fixed height — in-flow content-layer drives height naturally */
   min-height: 480px;
 }
 @media (min-width: 769px) {
-  /* Desktop: hero fills viewport minus navbar height */
   .hero-section { height: calc(100svh - 80px); min-height: 540px; max-height: 750px; }
 }
 
@@ -111,7 +95,7 @@ body {
   position: relative;
   overflow: hidden;
   aspect-ratio: 3 / 4;
-  background: #111;
+  background: #f0fdf4;
 }
 .cat-card img {
   width: 100%;
@@ -144,7 +128,7 @@ body {
 /* ── BestSellers image area: stable height before JS hydration ──────────── */
 .zf-bs-image-area {
   height: 180px;
-  background: #161616;
+  background: #f0fdf4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,41 +141,41 @@ body {
   contain: strict;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #f5f5f5;
+    --background: #ffffff;
+    --foreground: #1a1a1a;
   }
 }
 
-/* تحسينات عامة */
+/* General improvements */
 * {
   box-sizing: border-box;
 }
 
-/* تنسيق روابط التنقل لتتناسق مع الخط الجديد */
+/* Link styling */
 a {
   text-decoration: none;
   color: inherit;
 }
 
-/* تحسين شكل السكرول بار ليليق بمتجر قطع غيار */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #161616;
+  background: #f0fdf4;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--accent);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8b0000;
+  background: #16a34a;
 }
 
 /* =============================================
-   تنسيقات الصفحات القانونية (Legal Pages Styling)
+   Legal Pages Styling
    ============================================= */
 .legal-container {
   max-width: 900px;
@@ -199,11 +183,11 @@ a {
   padding: 40px;
   direction: rtl;
   line-height: 2;
-  color: #d1d5db;
+  color: #374151;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.06);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -218,7 +202,7 @@ a {
 }
 
 .legal-container h3 {
-  color: #f87171;
+  color: #15803d;
   margin-top: 35px;
   border-right: 4px solid var(--accent);
   padding-right: 15px;
@@ -239,10 +223,10 @@ a {
 }
 
 .legal-container b {
-  color: #f87171;
+  color: #15803d;
 }
 
-/* تحسين التجاوب للهواتف في الصفحات القانونية */
+/* Responsive legal pages */
 @media (max-width: 768px) {
   .legal-container {
     margin: 20px;

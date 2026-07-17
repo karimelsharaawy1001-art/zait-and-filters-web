@@ -169,7 +169,7 @@ export default function AdminPromoPopup() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px', color: '#64748b', fontSize: '0.9rem' }}>
+      <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280', fontSize: '0.9rem' }}>
         جاري التحميل...
       </div>
     );
@@ -180,7 +180,7 @@ export default function AdminPromoPopup() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#1a1a1a', margin: 0 }}>🎯 الإعلان المنبثق</h1>
-          <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '4px 0 0' }}>
+          <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '4px 0 0' }}>
             يظهر عند فتح الموقع للزوار مرة واحدة فقط
           </p>
         </div>
@@ -190,7 +190,7 @@ export default function AdminPromoPopup() {
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             padding: '10px 24px',
-            background: saving ? '#94a3b8' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+            background: saving ? '#6b7280' : 'linear-gradient(135deg, #22c55e, #16a34a)',
             color: '#fff', border: 'none', borderRadius: '10px',
             fontWeight: '800', fontSize: '0.88rem', cursor: saving ? 'not-allowed' : 'pointer',
             boxShadow: saving ? 'none' : '0 4px 12px rgba(34,197,94,0.3)',
@@ -204,7 +204,7 @@ export default function AdminPromoPopup() {
       {/* ── Desktop Image ── */}
       <div style={{ marginBottom: '24px' }}>
         <div style={labelStyle}>الصورة الأفقية (للديسكتوب)</div>
-        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '8px' }}>
           المقاس الأمثل: 1200×600 بكسل (نسبة 2:1) — لا يقل عن 800×400
         </div>
         <input
@@ -233,9 +233,9 @@ export default function AdminPromoPopup() {
               <button
                 onClick={() => setPopup((prev: any) => ({ ...prev, desktop_image_url: '' }))}
                 style={{
-                  padding: '6px 16px', background: '#fef2f2', border: '1px solid #fecaca',
+                  padding: '6px 16px', background: '#f0fdf4', border: '1px solid #dcfce7',
                   borderRadius: '8px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '700',
-                  color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px',
+                  color: '#16a34a', display: 'flex', alignItems: 'center', gap: '6px',
                 }}
               >
                 حذف
@@ -250,11 +250,11 @@ export default function AdminPromoPopup() {
             onDragLeave={(e) => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#d1d5db'; }}
             onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) { const dt = new DataTransfer(); dt.items.add(file); if (desktopInputRef.current) desktopInputRef.current.files = dt.files; handleFileSelect({ target: { files: dt.files } } as any, 'desktop'); } }}
           >
-            <ImageIcon size={32} color="#94a3b8" />
-            <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748b' }}>
+            <ImageIcon size={32} color="#6b7280" />
+            <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#6b7280' }}>
               {uploadingDesktop ? 'جاري الرفع...' : 'انقر أو اسحب الصورة الأفقية هنا'}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>PNG, JPG, WEBP — حد أقصى 10MB</div>
+            <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>PNG, JPG, WEBP — حد أقصى 10MB</div>
           </div>
         )}
       </div>
@@ -262,7 +262,7 @@ export default function AdminPromoPopup() {
       {/* ── Mobile Image ── */}
       <div style={{ marginBottom: '24px' }}>
         <div style={labelStyle}>الصورة الرأسية (للموبايل)</div>
-        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '8px' }}>
           المقاس الأمثل: 600×800 بكسل (نسبة 3:4) — لا يقل عن 400×533
         </div>
         <input
@@ -291,9 +291,9 @@ export default function AdminPromoPopup() {
               <button
                 onClick={() => setPopup((prev: any) => ({ ...prev, mobile_image_url: '' }))}
                 style={{
-                  padding: '6px 16px', background: '#fef2f2', border: '1px solid #fecaca',
+                  padding: '6px 16px', background: '#f0fdf4', border: '1px solid #dcfce7',
                   borderRadius: '8px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '700',
-                  color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px',
+                  color: '#16a34a', display: 'flex', alignItems: 'center', gap: '6px',
                 }}
               >
                 حذف
@@ -308,11 +308,11 @@ export default function AdminPromoPopup() {
             onDragLeave={(e) => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#d1d5db'; }}
             onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) { const dt = new DataTransfer(); dt.items.add(file); if (mobileInputRef.current) mobileInputRef.current.files = dt.files; handleFileSelect({ target: { files: dt.files } } as any, 'mobile'); } }}
           >
-            <ImageIcon size={32} color="#94a3b8" />
-            <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748b' }}>
+            <ImageIcon size={32} color="#6b7280" />
+            <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#6b7280' }}>
               {uploadingMobile ? 'جاري الرفع...' : 'انقر أو اسحب الصورة الرأسية هنا'}
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>PNG, JPG, WEBP — حد أقصى 10MB</div>
+            <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>PNG, JPG, WEBP — حد أقصى 10MB</div>
           </div>
         )}
       </div>
@@ -320,7 +320,7 @@ export default function AdminPromoPopup() {
       {/* ── Promo Code ── */}
       <div style={{ marginBottom: '24px' }}>
         <div style={labelStyle}>كود الخصم (اختياري)</div>
-        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '8px' }}>
           سيظهر في أسفل الصورة مع زر نسخ ليتمكن الزائر من نسخه
         </div>
         <input
@@ -345,7 +345,7 @@ export default function AdminPromoPopup() {
             onClick={() => setPopup((prev: any) => ({ ...prev, is_active: !prev.is_active }))}
             style={{
               width: '44px', height: '24px', borderRadius: '12px',
-              background: popup.is_active ? '#22c55e' : '#cbd5e1',
+              background: popup.is_active ? '#22c55e' : '#374151',
               position: 'relative', transition: 'background 0.2s',
               flexShrink: 0, cursor: 'pointer',
             }}
@@ -364,7 +364,7 @@ export default function AdminPromoPopup() {
             <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#1a1a1a' }}>
               {popup.is_active ? 'الإعلان المنبثق نشط 🟢' : 'الإعلان المنبثق متوقف 🔴'}
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+            <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>
               {popup.is_active ? 'سيظهر للزوار عند فتح الموقع' : 'غير مرئي للزوار'}
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function AdminPromoPopup() {
                 <span
                   onClick={() => { navigator.clipboard.writeText(popup.promo_code); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                   style={{
-                    background: 'rgba(255,255,255,0.15)', padding: '6px 14px', borderRadius: '8px',
+                    background: 'rgba(0,0,0,0.08)', padding: '6px 14px', borderRadius: '8px',
                     color: '#22c55e', fontWeight: '900', fontSize: '0.85rem', cursor: 'pointer',
                     direction: 'ltr', display: 'inline-flex', alignItems: 'center', gap: '6px',
                   }}

@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#1e293b' }}>تحليلات الزوار</h1>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8' }}>أكثر الصفحات والمنتجات مشاهدة</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>أكثر الصفحات والمنتجات مشاهدة</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
               style={{
                 padding: '4px 14px', borderRadius: 16, border: '1px solid #e2e8f0',
                 background: days === r.value ? '#dcfce7' : '#fff',
-                color: days === r.value ? '#15803d' : '#64748b',
+                color: days === r.value ? '#15803d' : '#6b7280',
                 fontWeight: days === r.value ? 700 : 600, fontSize: 12,
                 cursor: 'pointer', fontFamily: "'Cairo', sans-serif",
                 transition: 'all 0.12s',
@@ -84,13 +84,13 @@ export default function AnalyticsPage() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
           <div style={{ fontSize: 14 }}>جاري التحميل...</div>
         </div>
       )}
 
       {!loading && !data && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
           <BarChart3 size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>لا توجد بيانات</div>
           <div style={{ fontSize: 13 }}>لم يتم تسجيل أي مشاهدات بعد</div>
@@ -226,7 +226,7 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
       {icon}
       <div>
         <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#1e293b' }}>{title}</h2>
-        {subtitle && <p style={{ margin: 0, fontSize: 11, color: '#94a3b8' }}>{subtitle}</p>}
+        {subtitle && <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>{subtitle}</p>}
       </div>
     </div>
   );
@@ -234,7 +234,7 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
 
 function EmptySection() {
   return (
-    <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: 12, background: '#f8fafc', borderRadius: 10 }}>
+    <div style={{ padding: '16px', textAlign: 'center', color: '#6b7280', fontSize: 12, background: '#f8fafc', borderRadius: 10 }}>
       لا توجد بيانات كافية
     </div>
   );
@@ -261,7 +261,7 @@ function BarRow({ rank, name, count, maxCount, slug, link }: { rank: number; nam
       <div style={{
         width: 24, height: 24, borderRadius: 6,
         background: rank <= 3 ? '#15803d' : '#e2e8f0',
-        color: rank <= 3 ? '#fff' : '#94a3b8',
+        color: rank <= 3 ? '#fff' : '#6b7280',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 11, fontWeight: 800, flexShrink: 0, position: 'relative',
       }}>

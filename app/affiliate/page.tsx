@@ -14,15 +14,15 @@ export default function AffiliateLanding() {
     <div style={container}>
       {/* تأثيرات CSS متقدمة للتفاعل */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .hero-gradient { background: radial-gradient(circle at center, #7f1d1d 0%, #050505 100%); }
+        .hero-gradient { background: radial-gradient(circle at center, #166534 0%, #ffffff 100%); }
         .btn-glow:hover { box-shadow: 0 0 25px rgba(39, 174, 96, 0.6); transform: translateY(-3px); background: #2ecc71 !important; }
         .feature-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .feature-card:hover { border-color: #e50914 !important; background: rgba(39, 174, 96, 0.05) !important; transform: scale(1.02); }
-        .step-card:hover { border-color: #e50914 !important; transform: translateY(-10px); }
+        .feature-card:hover { border-color: #22c55e !important; background: rgba(39, 174, 96, 0.05) !important; transform: scale(1.02); }
+        .step-card:hover { border-color: #22c55e !important; transform: translateY(-10px); }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
         .float-anim { animation: float 4s ease-in-out infinite; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .auth-btn-login:hover { background: rgba(255, 255, 255, 0.15) !important; border-color: #e50914 !important; }
+        .auth-btn-login:hover { background: rgba(255, 255, 255, 0.15) !important; border-color: #22c55e !important; }
         .auth-btn-signup:hover { background: #2ecc71 !important; box-shadow: 0 0 20px rgba(39, 174, 96, 0.5) !important; }
       `}} />
 
@@ -46,7 +46,7 @@ export default function AffiliateLanding() {
           className="float-anim" 
           style={badge}
         >
-          <Star size={14} fill="#e50914" /> برنامج النخبة for Promoters 2026
+          <Star size={14} fill="#22c55e" /> برنامج النخبة for Promoters 2026
         </m.div>
         
         <m.h1 
@@ -87,11 +87,11 @@ export default function AffiliateLanding() {
 
         <div style={statsBanner} className="glass-panel">
           {/* تم تعديل عدد المسوقين هنا ليكون +500 */}
-          <div style={statItem}><Users size={22} color="#e50914"/> <span>+500 active Promoter</span></div>
+          <div style={statItem}><Users size={22} color="#22c55e"/> <span>+500 active Promoter</span></div>
           <div style={{...dividerV, display: 'block'}} />
-          <div style={statItem}><BarChart3 size={22} color="#e50914"/> <span>نظام تتبع لحظي</span></div>
+          <div style={statItem}><BarChart3 size={22} color="#22c55e"/> <span>نظام تتبع لحظي</span></div>
           <div style={{...dividerV, display: 'block'}} />
-          <div style={statItem}><ShieldCheck size={22} color="#e50914"/> <span>سحب أرباح أسبوعي</span></div>
+          <div style={statItem}><ShieldCheck size={22} color="#22c55e"/> <span>سحب أرباح أسبوعي</span></div>
         </div>
       </section>
 
@@ -106,21 +106,21 @@ export default function AffiliateLanding() {
         <div style={stepsGrid}>
           <div style={stepCard} className="step-card">
             <div style={stepNumber}>01</div>
-            <div style={iconBox}><Users size={32} color="#e50914" /></div>
+            <div style={iconBox}><Users size={32} color="#22c55e" /></div>
             <h3 style={cardHeader}>سجل حسابك</h3>
             <p style={cardText}>عملية تسجيل بسيطة تمنحك وصولاً فورياً للوحة التحكم الخاصة بك وبدء العمل.</p>
           </div>
           
           <div style={stepCard} className="step-card">
             <div style={stepNumber}>02</div>
-            <div style={iconBox}><Share2 size={32} color="#e50914" /></div>
+            <div style={iconBox}><Share2 size={32} color="#22c55e" /></div>
             <h3 style={cardHeader}>انشر الكود</h3>
             <p style={cardText}>شارك رابط الإحالة أو كود الخصم الحصري (باسمك) مع جمهورك وعملائك.</p>
           </div>
           
           <div style={stepCard} className="step-card">
             <div style={stepNumber}>03</div>
-            <div style={iconBox}><Wallet size={32} color="#e50914" /></div>
+            <div style={iconBox}><Wallet size={32} color="#22c55e" /></div>
             <h3 style={cardHeader}>استلم عمولتك</h3>
             <p style={cardText}>عند كل عملية شراء ناجحة، نرسل لك 10% من قيمة الأوردر مباشرة إلى محفظتك.</p>
           </div>
@@ -129,7 +129,7 @@ export default function AffiliateLanding() {
 
 
       {/* --- القسم الثالث: المميزات (Why Us) --- */}
-      <section style={{ ...sectionPadding, backgroundColor: '#080808', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ ...sectionPadding, backgroundColor: '#f9fafb', position: 'relative', overflow: 'hidden' }}>
         <div style={bgGlow} />
         <h2 style={sectionTitle}>لماذا يختارنا المحترفون؟</h2>
         <div style={featuresGrid}>
@@ -173,17 +173,17 @@ export default function AffiliateLanding() {
 
 // --- البيانات ---
 const features = [
-  { title: "Escalating Commissions", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#e50914" /> },
-  { title: "لوحة تحكم احترافية", desc: "تتبع النقرات، التحويلات، والأرباح بالتفصيل الممل في شاشة واحدة ذكية.", icon: <BarChart3 size={24} color="#e50914" /> },
-  { title: "أكواد خصم خاصة", desc: "امنح عملاءك خصم 5% بكود يحمل اسمك لزيادة مبيعاتك وبناء براندك الشخصي.", icon: <Ticket size={24} color="#e50914" /> },
-  { title: "أدوات تسويقية جاهزة", desc: "نوفر لك صوراً وفيديوهات احترافية للمنتجات لتنشرها فوراً على حساباتك.", icon: <Rocket size={24} color="#e50914" /> },
-  { title: "دفعات سريعة", desc: "نظام دفع مرن يضمن وصول أرباحك إليك في أسرع وقت ممكن وبكل شفافية.", icon: <DollarSign size={24} color="#e50914" /> },
-  { title: "دعم فني 24/7", desc: "مدير حساب مخصص للرد على استفساراتك ومساعدتك في تطوير خطتك التسويقية.", icon: <CheckCircle2 size={24} color="#e50914" /> },
+  { title: "Escalating Commissions", desc: "ابدأ بـ 5% وتدرج حتى تصل إلى 10% بناءً على نشاطك الشهري مبيعاتك.", icon: <Percent size={24} color="#22c55e" /> },
+  { title: "لوحة تحكم احترافية", desc: "تتبع النقرات، التحويلات، والأرباح بالتفصيل الممل في شاشة واحدة ذكية.", icon: <BarChart3 size={24} color="#22c55e" /> },
+  { title: "أكواد خصم خاصة", desc: "امنح عملاءك خصم 5% بكود يحمل اسمك لزيادة مبيعاتك وبناء براندك الشخصي.", icon: <Ticket size={24} color="#22c55e" /> },
+  { title: "أدوات تسويقية جاهزة", desc: "نوفر لك صوراً وفيديوهات احترافية للمنتجات لتنشرها فوراً على حساباتك.", icon: <Rocket size={24} color="#22c55e" /> },
+  { title: "دفعات سريعة", desc: "نظام دفع مرن يضمن وصول أرباحك إليك في أسرع وقت ممكن وبكل شفافية.", icon: <DollarSign size={24} color="#22c55e" /> },
+  { title: "دعم فني 24/7", desc: "مدير حساب مخصص للرد على استفساراتك ومساعدتك في تطوير خطتك التسويقية.", icon: <CheckCircle2 size={24} color="#22c55e" /> },
 ];
 
 
 // --- التنسيقات ---
-const container: any = { backgroundColor: '#050505', color: '#fff', direction: 'rtl', minHeight: '100vh', fontFamily: 'inherit', position: 'relative' };
+const container: any = { backgroundColor: '#ffffff', color: '#1a1a1a', direction: 'rtl', minHeight: '100vh', fontFamily: 'inherit', position: 'relative' };
 
 // Auth Buttons Styles
 const authButtonsContainer: any = {
@@ -201,10 +201,10 @@ const authLoginButton: any = {
   alignItems: 'center',
   gap: '8px',
   padding: '12px 20px',
-  background: 'rgba(255, 255, 255, 0.08)',
-  border: '1px solid rgba(255, 255, 255, 0.15)',
+  background: '#f0fdf4',
+  border: '1px solid #bbf7d0',
   borderRadius: '14px',
-  color: '#fff',
+  color: '#15803d',
   textDecoration: 'none',
   fontSize: '0.85rem',
   fontWeight: 'bold',
@@ -219,7 +219,7 @@ const authSignupButton: any = {
   alignItems: 'center',
   gap: '8px',
   padding: '12px 20px',
-  background: 'linear-gradient(135deg, #e50914 0%, #229954 100%)',
+  background: 'linear-gradient(135deg, #22c55e 0%, #229954 100%)',
   border: 'none',
   borderRadius: '14px',
   color: '#fff',
@@ -232,28 +232,28 @@ const authSignupButton: any = {
   whiteSpace: 'nowrap'
 };
 
-const heroSection: any = { padding: '120px 20px', textAlign: 'center', borderBottom: '1px solid #111', position: 'relative' };
-const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#e50914', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
+const heroSection: any = { padding: '120px 20px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', position: 'relative' };
+const badge: any = { background: 'rgba(39, 174, 96, 0.1)', color: '#22c55e', padding: '10px 25px', borderRadius: '50px', fontSize: '0.95rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '30px', border: '1px solid rgba(39, 174, 96, 0.3)' };
 
 
 // تم زيادة الـ lineHeight لـ 1.6 لضمان وجود مسافة كافية بين العنوان الأبيض والأخضر
 const mainTitle: any = { fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', fontWeight: '950', marginBottom: '25px', lineHeight: '1.6', letterSpacing: '-1px' };
 
 
-const highlightText: any = { color: '#e50914', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
-const heroDesc: any = { fontSize: '1.25rem', color: '#999', maxWidth: '850px', margin: '0 auto 50px', lineHeight: '1.8' };
+const highlightText: any = { color: '#22c55e', textShadow: '0 0 40px rgba(39, 174, 96, 0.4)' };
+const heroDesc: any = { fontSize: '1.25rem', color: '#6b7280', maxWidth: '850px', margin: '0 auto 50px', lineHeight: '1.8' };
 const actions: any = { display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' };
-const primaryBtn: any = { background: '#e50914', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '12px' };
-const secondaryBtn: any = { background: 'transparent', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', border: '1px solid #333', transition: '0.3s' };
+const primaryBtn: any = { background: '#22c55e', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', transition: '0.3s', display: 'flex', alignItems: 'center', gap: '12px' };
+const secondaryBtn: any = { background: 'transparent', color: '#fff', padding: '20px 45px', borderRadius: '18px', textDecoration: 'none', fontWeight: '900', fontSize: '1.2rem', border: '1px solid #d1d5db', transition: '0.3s' };
 const statsBanner: any = { display: 'inline-flex', justifyContent: 'center', gap: '30px', marginTop: '80px', padding: '20px 40px', borderRadius: '25px', flexWrap: 'wrap' };
 const statItem: any = { display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1rem', fontWeight: '600' };
-const dividerV: any = { width: '1px', height: '25px', background: 'rgba(255,255,255,0.1)' };
+const dividerV: any = { width: '1px', height: '25px', background: 'rgba(0,0,0,0.05)' };
 
 
 const sectionPadding: any = { padding: '100px 20px', maxWidth: '1200px', margin: '0 auto' };
 const sectionTitle: any = { textAlign: 'center', fontSize: '2.8rem', fontWeight: '900', marginBottom: '20px', letterSpacing: '-1px' };
 const stepsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '50px' };
-const stepCard: any = { position: 'relative', padding: '50px 30px', textAlign: 'center', background: '#0a0a0a', borderRadius: '35px', border: '1px solid #151515', transition: '0.4s' };
+const stepCard: any = { position: 'relative', padding: '50px 30px', textAlign: 'center', background: '#ffffff', borderRadius: '35px', border: '1px solid #151515', transition: '0.4s' };
 const stepNumber: any = { position: 'absolute', top: '25px', left: '25px', color: 'rgba(39, 174, 96, 0.2)', fontWeight: '900', fontSize: '3rem', lineHeight: '1' };
 const iconBox: any = { width: '80px', height: '80px', background: 'rgba(39, 174, 96, 0.05)', borderRadius: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 25px', border: '1px solid rgba(39, 174, 96, 0.1)' };
 
@@ -261,11 +261,11 @@ const iconBox: any = { width: '80px', height: '80px', background: 'rgba(39, 174,
 const featuresGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '25px', marginTop: '20px' };
 const featureCard: any = { padding: '40px', borderRadius: '35px', transition: '0.3s', textAlign: 'right', position: 'relative', zIndex: 1 };
 const iconCircle: any = { width: '60px', height: '60px', background: 'rgba(39, 174, 96, 0.1)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px', border: '1px solid rgba(39, 174, 96, 0.2)' };
-const cardHeader: any = { fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px', color: '#fff' };
-const cardText: any = { color: '#888', lineHeight: '1.7', fontSize: '1.05rem', margin: 0 };
+const cardHeader: any = { fontSize: '1.5rem', fontWeight: '800', marginBottom: '15px', color: '#1a1a1a' };
+const cardText: any = { color: '#9ca3af', lineHeight: '1.7', fontSize: '1.05rem', margin: 0 };
 
 
 const ctaSection: any = { padding: '100px 20px', textAlign: 'center' };
-const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #7f1d1d 0%, #e50914 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' };
-const ctaBtn: any = { background: '#1c1c1c', color: '#f87171', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
+const ctaBox: any = { maxWidth: '1000px', margin: '0 auto', background: 'linear-gradient(145deg, #166534 0%, #22c55e 100%)', padding: '80px 40px', borderRadius: '50px', position: 'relative', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.06)' };
+const ctaBtn: any = { background: '#ffffff', color: '#15803d', padding: '22px 60px', borderRadius: '20px', textDecoration: 'none', fontWeight: '950', fontSize: '1.3rem', display: 'inline-block', transition: '0.3s' };
 const bgGlow: any = { position: 'absolute', top: '50%', left: '50%', width: '500px', height: '500px', background: 'rgba(39, 174, 96, 0.1)', filter: 'blur(150px)', borderRadius: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' };

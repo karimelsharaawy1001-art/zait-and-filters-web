@@ -128,7 +128,7 @@ export default function AdminBrands() {
               {brand.logo_url ? (
                 <img src={brand.logo_url} alt="" style={logoImg} key={brand.logo_url} />
               ) : (
-                <ImageIcon size={40} color="#333" />
+                <ImageIcon size={40} color="#d1d5db" />
               )}
             </div>
             <h3 style={brandName}>{brand.name}</h3>
@@ -178,15 +178,15 @@ export default function AdminBrands() {
       {renderBrandGrid(brands, 'car_brands', setBrands)}
 
       <h2 style={{ ...sectionTitle, marginTop: '40px' }}>🛠️ ماركات قطع الغيار (شريط الماركات المتحرك)</h2>
-      <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 16px' }}>
+      <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: '0 0 16px' }}>
         أضف فقط الماركات التي تريد ظهورها في الشريط المتحرك بالصفحة الرئيسية، واحذف غير المرغوب فيها.
       </p>
 
       {/* Add a brand to the ribbon */}
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', background: '#0a0a0a', border: '1px solid #2a2a2a', borderRadius: '14px', padding: '14px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '14px', padding: '14px', marginBottom: '20px' }}>
         {newPart.logo_url
-          ? <img src={newPart.logo_url} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain', background: '#111', borderRadius: '10px', border: '1px solid #222', padding: '4px' }} />
-          : <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', borderRadius: '10px', border: '1px solid #222' }}><ImageIcon size={20} color="#444" /></div>}
+          ? <img src={newPart.logo_url} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain', background: '#e5e7eb', borderRadius: '10px', border: '1px solid #e5e7eb', padding: '4px' }} />
+          : <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e5e7eb', borderRadius: '10px', border: '1px solid #e5e7eb' }}><ImageIcon size={20} color="#6b7280" /></div>}
         <input type="text" placeholder="اسم الماركة (مثال: Bosch)" value={newPart.name}
           onChange={e => setNewPart(p => ({ ...p, name: e.target.value }))}
           style={{ ...miniInput, flex: '1 1 160px', padding: '10px' }} />
@@ -198,13 +198,13 @@ export default function AdminBrands() {
           <input type="file" hidden onChange={uploadNewPartLogo} />
         </label>
         <button onClick={addPartBrand} disabled={addingPart}
-          style={{ background: 'linear-gradient(135deg, #e50914, #b91c1c)', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: '10px', fontWeight: 800, cursor: addingPart ? 'not-allowed' : 'pointer', flex: '0 0 auto' }}>
+          style={{ background: 'linear-gradient(135deg, #22c55e, #15803d)', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: '10px', fontWeight: 800, cursor: addingPart ? 'not-allowed' : 'pointer', flex: '0 0 auto' }}>
           {addingPart ? '...جارٍ' : '➕ إضافة'}
         </button>
       </div>
 
       {partBrands.length === 0
-        ? <div style={{ color: '#888', fontSize: '0.85rem' }}>لا توجد ماركات في الشريط بعد — أضف الماركات التي تريدها من الأعلى.</div>
+        ? <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>لا توجد ماركات في الشريط بعد — أضف الماركات التي تريدها من الأعلى.</div>
         : renderBrandGrid(partBrands, 'part_brands', setPartBrands)}
     </div>
   );
@@ -214,17 +214,17 @@ export default function AdminBrands() {
 // Styles (Dark Mode)
 const container: any = { padding: 'clamp(14px, 4vw, 40px)', direction: 'rtl', maxWidth: '1200px', margin: '0 auto' };
 const header: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' };
-const title: any = { fontWeight: '900', color: '#fff', margin: 0 };
-const sectionTitle: any = { fontWeight: '900', color: '#f5f5f5', fontSize: '1.25rem', margin: '0 0 16px' };
-const syncBtn: any = { background: '#111', color: '#2ecc71', border: '1px solid #222', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' };
+const title: any = { fontWeight: '900', color: '#1a1a1a', margin: 0 };
+const sectionTitle: any = { fontWeight: '900', color: '#1a1a1a', fontSize: '1.25rem', margin: '0 0 16px' };
+const syncBtn: any = { background: '#e5e7eb', color: '#2ecc71', border: '1px solid #e5e7eb', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' };
 const grid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' };
-const brandCard: any = { background: '#0a0a0a', padding: '20px', borderRadius: '20px', border: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const logoWrapper: any = { width: '80px', height: '80px', background: '#111', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', overflow: 'hidden', border: '1px solid #222' };
+const brandCard: any = { background: '#ffffff', padding: '20px', borderRadius: '20px', border: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
+const logoWrapper: any = { width: '80px', height: '80px', background: '#e5e7eb', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', overflow: 'hidden', border: '1px solid #e5e7eb' };
 const logoImg: any = { width: '100%', height: '100%', objectFit: 'contain', padding: '10px' };
-const brandName: any = { fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '15px', color: '#fff' };
+const brandName: any = { fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '15px', color: '#1a1a1a' };
 const actionsColumn: any = { display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' };
 const linkInputWrapper: any = { display: 'flex', gap: '5px', width: '100%' };
-const miniInput: any = { flex: 1, padding: '8px', fontSize: '0.75rem', borderRadius: '8px', border: '1px solid #333', background: '#000', color: '#fff', outline: 'none' };
+const miniInput: any = { flex: 1, padding: '8px', fontSize: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', background: '#ffffff', color: '#1a1a1a', outline: 'none' };
 const saveBtn: any = { background: '#27ae60', color: '#fff', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
-const uploadBtn: any = { flex: 1, background: '#111', color: '#888', padding: '8px', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', border: '1px solid #222' };
-const delBtn: any = { background: '#1a0a0a', color: '#e74c3c', border: '1px solid #331111', padding: '8px', borderRadius: '8px', cursor: 'pointer' };
+const uploadBtn: any = { flex: 1, background: '#e5e7eb', color: '#9ca3af', padding: '8px', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', border: '1px solid #e5e7eb' };
+const delBtn: any = { background: '#f0fdf4', color: '#e74c3c', border: '1px solid #331111', padding: '8px', borderRadius: '8px', cursor: 'pointer' };

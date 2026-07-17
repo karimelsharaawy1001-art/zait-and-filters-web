@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 const returnStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
   pending:  { label: 'قيد المراجعة', color: '#c2410c', bg: '#fff7ed' },
   approved: { label: 'تمت الموافقة', color: '#15803d', bg: '#f0fdf4' },
-  rejected: { label: 'مرفوض',        color: '#dc2626', bg: '#fef2f2' },
+  rejected: { label: 'مرفوض',        color: '#16a34a', bg: '#f0fdf4' },
   refunded: { label: 'تم الاسترجاع', color: '#6d28d9', bg: '#f5f3ff' },
 };
 
@@ -177,7 +177,7 @@ export default function AdminReturns() {
         <div onClick={e => e.stopPropagation()} style={{
           background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '640px',
           maxHeight: '90vh', overflowY: 'auto', padding: '28px',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.25)', direction: 'rtl',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.05)', direction: 'rtl',
         }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
@@ -185,12 +185,12 @@ export default function AdminReturns() {
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <RotateCcw size={20} color="#f59e0b" /> تفاصيل طلب الاسترجاع
               </h3>
-              <div style={{ fontSize: '0.78rem', color: '#888', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#9ca3af', marginTop: '4px' }}>
                 #{req.id?.slice(0, 8).toUpperCase()} — {formatDate(req.created_at)}
               </div>
             </div>
             <button onClick={onClose} style={{
-              background: '#f5f5f5', border: 'none', borderRadius: '50%',
+              background: '#ffffff', border: 'none', borderRadius: '50%',
               width: '34px', height: '34px', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
@@ -209,7 +209,7 @@ export default function AdminReturns() {
             background: '#f9fafb', borderRadius: '14px', padding: '14px 16px',
             marginBottom: '16px', border: '1px solid #f0f0f0',
           }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#888', marginBottom: '8px', letterSpacing: '0.5px' }}>بيانات العميل</div>
+            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#9ca3af', marginBottom: '8px', letterSpacing: '0.5px' }}>بيانات العميل</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <User size={14} color="#22c55e" />
               <span style={{ fontWeight: '800', color: '#1a1a1a' }}>{req.customer_name}</span>
@@ -308,7 +308,7 @@ export default function AdminReturns() {
                 disabled={submitting}
                 style={{
                   flex: 1, padding: '13px', border: 'none', borderRadius: '12px',
-                  background: submitting ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                  background: submitting ? '#9ca3af' : 'linear-gradient(135deg, #22c55e, #16a34a)',
                   color: '#fff', fontWeight: '900', fontSize: '0.9rem',
                   cursor: submitting ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
@@ -322,8 +322,8 @@ export default function AdminReturns() {
                 disabled={submitting}
                 style={{
                   flex: 1, padding: '13px', border: 'none', borderRadius: '12px',
-                  background: submitting ? '#ccc' : '#fee2e2',
-                  color: '#dc2626', fontWeight: '900', fontSize: '0.9rem',
+                  background: submitting ? '#9ca3af' : '#fee2e2',
+                  color: '#16a34a', fontWeight: '900', fontSize: '0.9rem',
                   cursor: submitting ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 }}
@@ -340,7 +340,7 @@ export default function AdminReturns() {
               disabled={submitting}
               style={{
                 width: '100%', padding: '13px', border: 'none', borderRadius: '12px',
-                background: submitting ? '#ccc' : 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                background: submitting ? '#9ca3af' : 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
                 color: '#fff', fontWeight: '900', fontSize: '0.9rem',
                 cursor: submitting ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
@@ -363,9 +363,9 @@ export default function AdminReturns() {
 
           {req.status === 'rejected' && (
             <div style={{
-              textAlign: 'center', padding: '16px', background: '#fef2f2',
-              borderRadius: '12px', border: '1px solid #fecaca',
-              color: '#dc2626', fontWeight: '800', fontSize: '0.9rem',
+              textAlign: 'center', padding: '16px', background: '#f0fdf4',
+              borderRadius: '12px', border: '1px solid #dcfce7',
+              color: '#16a34a', fontWeight: '800', fontSize: '0.9rem',
             }}>
               ❌ تم رفض طلب الاسترجاع
             </div>
@@ -376,7 +376,7 @@ export default function AdminReturns() {
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '12px', color: '#64748b' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '12px', color: '#6b7280' }}>
       <Loader2 size={28} className="animate-spin" />
       جاري تحميل طلبات الاسترجاع...
     </div>
@@ -400,14 +400,14 @@ export default function AdminReturns() {
             <h1 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
               <RotateCcw size={24} color="#f59e0b" /> طلبات الاسترجاع
               <span style={{
-                background: pendingCount > 0 ? '#dc2626' : '#e2e8f0',
-                color: pendingCount > 0 ? '#fff' : '#94a3b8',
+                background: pendingCount > 0 ? '#16a34a' : '#e2e8f0',
+                color: pendingCount > 0 ? '#fff' : '#6b7280',
                 borderRadius: '8px', padding: '2px 10px', fontSize: '0.8rem',
               }}>
                 {returns.length}
               </span>
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '4px 0 0', fontWeight: '600' }}>
+            <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: '4px 0 0', fontWeight: '600' }}>
               إدارة طلبات استرجاع المنتجات من العملاء
             </p>
           </div>
@@ -433,7 +433,7 @@ export default function AdminReturns() {
           borderRadius: '12px', padding: '10px 14px', minWidth: '200px',
           transition: 'all 0.15s', boxShadow: searchQuery ? '0 0 0 3px rgba(245,158,11,0.1)' : 'none',
         }}>
-          <Search size={18} color={searchQuery ? '#f59e0b' : '#94a3b8'} />
+          <Search size={18} color={searchQuery ? '#f59e0b' : '#6b7280'} />
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -445,7 +445,7 @@ export default function AdminReturns() {
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-              <X size={16} color="#94a3b8" />
+              <X size={16} color="#6b7280" />
             </button>
           )}
         </div>
@@ -472,7 +472,7 @@ export default function AdminReturns() {
           { key: 'all', label: 'الكل', color: '#1a1a1a' },
           { key: 'pending', label: '⏳ قيد المراجعة', color: '#c2410c' },
           { key: 'approved', label: '✅ تمت الموافقة', color: '#15803d' },
-          { key: 'rejected', label: '❌ مرفوض', color: '#dc2626' },
+          { key: 'rejected', label: '❌ مرفوض', color: '#16a34a' },
           { key: 'refunded', label: '💰 تم الاسترجاع', color: '#6d28d9' },
         ].map(tab => {
           const count = tab.key === 'all' ? returns.length : returns.filter(r => r.status === tab.key).length;
@@ -506,7 +506,7 @@ export default function AdminReturns() {
 
       {/* ── Returns List ── */}
       {filteredReturns.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', background: '#fff', borderRadius: '16px' }}>
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280', background: '#fff', borderRadius: '16px' }}>
           <RotateCcw size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
           <p style={{ fontSize: '0.95rem', fontWeight: '700' }}>لا توجد طلبات استرجاع</p>
         </div>
@@ -536,12 +536,12 @@ export default function AdminReturns() {
                       <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#1a1a1a' }}>
                         {req.customer_name}
                       </span>
-                      <span style={{ fontSize: '0.72rem', color: '#888', fontFamily: 'monospace' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontFamily: 'monospace' }}>
                         #{req.id?.slice(0, 8).toUpperCase()}
                       </span>
                       <StatusBadge status={req.status} />
                     </div>
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.78rem', color: '#64748b' }}>
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.78rem', color: '#6b7280' }}>
                       <span>{req.customer_phone}</span>
                       <span>🛍️ {totalQty} قطعة من {items.length} منتج</span>
                       <span>📋 #{req.order_id?.slice(0, 8).toUpperCase()}</span>
@@ -592,7 +592,7 @@ export default function AdminReturns() {
                       </div>
                     ))}
                     {items.length > 4 && (
-                      <span style={{ fontSize: '0.72rem', color: '#888', fontWeight: '700', padding: '4px 0' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: '700', padding: '4px 0' }}>
                         +{items.length - 4} أخرى
                       </span>
                     )}

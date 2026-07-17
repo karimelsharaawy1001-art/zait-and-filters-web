@@ -87,7 +87,7 @@ export default function PromoPopup() {
           style={{
             position: 'absolute', top: '12px', left: '12px', zIndex: 10,
             width: '32px', height: '32px', borderRadius: '50%',
-            background: 'rgba(0,0,0,0.4)', border: 'none',
+            background: 'rgba(0,0,0,0.06)', border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: '#fff',
           }}
@@ -111,12 +111,12 @@ export default function PromoPopup() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
               padding: '14px 16px',
-              background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)',
+              background: 'linear-gradient(135deg, #e5e7eb, #6b7280)',
               borderBottomLeftRadius: '16px',
               borderBottomRightRadius: '16px',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem', fontWeight: '700' }}>
+            <span style={{ color: 'rgba(0,0,0,0.06)', fontSize: '0.82rem', fontWeight: '700' }}>
               كود الخصم:
             </span>
             <button
@@ -124,10 +124,10 @@ export default function PromoPopup() {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 padding: '6px 16px',
-                background: 'rgba(255,255,255,0.1)',
+                background: 'rgba(0,0,0,0.05)',
                 border: '1px solid rgba(255,255,255,0.2)',
                 borderRadius: '8px',
-                color: '#e50914', fontWeight: '900', fontSize: '0.88rem',
+                color: '#22c55e', fontWeight: '900', fontSize: '0.88rem',
                 cursor: 'pointer', direction: 'ltr',
                 fontFamily: 'monospace',
               }}

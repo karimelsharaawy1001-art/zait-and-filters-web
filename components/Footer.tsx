@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 
-// --- قسم التعديل السريع لروابط السوشيال ميديا ---
+// --- Social media links ---
 const SOCIAL_LINKS = {
   facebook: "https://facebook.com/zaitandfilters",
   instagram: "https://instagram.com/zaitandfilters",
@@ -20,9 +20,9 @@ export default function ProfessionalFooter() {
   return (
     <footer style={footerContainer}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .footer-cta:hover { background-color: #7f1d1d !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important; }
-        .footer-link-item:hover { color: #e50914 !important; padding-right: 5px; }
-        .footer-social-icon:hover { background-color: #e50914 !important; color: #fff !important; transform: scale(1.1); }
+        .footer-cta:hover { background-color: #16a34a !important; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,0.3) !important; }
+        .footer-link-item:hover { color: #22c55e !important; padding-right: 5px; }
+        .footer-social-icon:hover { background-color: #22c55e !important; color: #fff !important; transform: scale(1.1); }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .footer-column { animation: fadeInUp 0.6s ease-out; }
         @media (max-width: 768px) {
@@ -33,10 +33,10 @@ export default function ProfessionalFooter() {
 
       <div className="footer-grid" style={footerContent}>
         
-        {/* العمود الأول: عن البراند */}
+        {/* Column 1: Brand */}
         <div className="footer-column" style={footerColumn}>
           <Link href="/" style={logoStyle}>
-            ZAIT <span style={{ color: '#e50914' }}>& FILTERS</span>
+            ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
           </Link>
           <p style={brandDesc}>
             وجهتك الأولى والموثوقة لجميع أنواع زيوت المحركات وفلاتر السيارات الأصلية. نضمن لك الجودة والأداء العالي لسيارتك.
@@ -56,18 +56,15 @@ export default function ProfessionalFooter() {
           </div>
         </div>
 
-        {/* العمود الثاني: روابط سريعة وصفحات قانونية */}
+        {/* Column 2: Quick Links */}
         <div className="footer-column" style={footerColumn}>
           <h4 style={columnTitle}>روابط هامة</h4>
           <ul style={linkList}>
             <li><Link href="/store" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> المتجر</Link></li>
             <li><Link href="/profile" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> حسابي الشخصي</Link></li>
-            {/* --- رابط برنامج المسوقين --- */}
-            <li><Link href="/affiliate" className="footer-link-item" style={{...footerLink, color: '#e50914', fontWeight: 'bold'}}><Users size={14} /> انضم لبرنامج المسوقين</Link></li>
-            {/* --------------------------- */}
+            <li><Link href="/affiliate" className="footer-link-item" style={{...footerLink, color: '#22c55e', fontWeight: 'bold'}}><Users size={14} /> انضم لبرنامج المسوقين</Link></li>
             <li><Link href="/about" className="footer-link-item" style={footerLink}><ChevronLeft size={14} /> من نحن</Link></li>
             <hr style={divider} />
-            {/* الصفحات القانونية المرتبطة بالأكواد الجديدة */}
             <li><Link href="/privacy" className="footer-link-item" style={footerLink}><ShieldAlert size={14} /> سياسة الخصوصية</Link></li>
             <li><Link href="/terms" className="footer-link-item" style={footerLink}><FileText size={14} /> الشروط والأحكام</Link></li>
             <li><Link href="/refund" className="footer-link-item" style={footerLink}><RefreshCcw size={14} /> سياسة الاستبدال والاسترجاع</Link></li>
@@ -75,7 +72,7 @@ export default function ProfessionalFooter() {
           </ul>
         </div>
 
-        {/* العمود الثالث: التواصل */}
+        {/* Column 3: Contact */}
         <div className="footer-column" style={footerColumn}>
           <h4 style={columnTitle}>تواصل معنا</h4>
           <div style={{ marginBottom: '15px' }}>
@@ -85,14 +82,14 @@ export default function ProfessionalFooter() {
             </Link>
           </div>
           <div style={contactItem}>
-            <MapPin size={18} color="#e50914" />
+            <MapPin size={18} color="#22c55e" />
             <div style={{ textAlign: 'right' }}>
               <span style={contactLabel}>المقر الرئيسي:</span>
               <span style={contactValue}>القاهرة، مصر</span>
             </div>
           </div>
           <div style={contactItem}>
-            <Clock size={18} color="#e50914" />
+            <Clock size={18} color="#22c55e" />
             <div style={{ textAlign: 'right' }}>
               <span style={contactLabel}>مواعيد العمل:</span>
               <span style={contactValue}>يومياً من 10 ص حتى 6 م</span>
@@ -100,16 +97,16 @@ export default function ProfessionalFooter() {
           </div>
         </div>
 
-        {/* العمود الرابع: الثقة والدفع */}
+        {/* Column 4: Trust & Payment */}
         <div className="footer-column" style={footerColumn}>
           <h4 style={columnTitle}>تسوق بأمان</h4> 
           <div style={trustBadge}>
-            <ShieldCheck size={18} color="#e50914" />
+            <ShieldCheck size={18} color="#22c55e" />
             <span>منتجات أصلية 100%</span>
           </div>
           <p style={paymentText}>نقبل الدفع عبر:</p>
           
-          {/* طرق الدفع الرئيسية */}
+          {/* Payment methods */}
           <div style={paymentSection}>
             <h5 style={paymentCategory}>البطاقات البنكية:</h5>
             <div style={paymentLogos}>
@@ -120,7 +117,7 @@ export default function ProfessionalFooter() {
             </div>
           </div>
 
-          {/* التقسيط والدفع الإلكتروني */}
+          {/* Installments */}
           <div style={paymentSection}>
             <h5 style={paymentCategory}>التقسيط والدفع:</h5>
             <div style={paymentLogos}>
@@ -139,7 +136,7 @@ export default function ProfessionalFooter() {
             </div>
           </div>
 
-          {/* شبكات المحمول */}
+          {/* Mobile wallets */}
           <div style={paymentSection}>
             <h5 style={paymentCategory}>محافظ المحمول:</h5>
             <div style={paymentLogos}>
@@ -159,26 +156,26 @@ export default function ProfessionalFooter() {
   );
 }
 
-// --- التنسيقات ---
-const footerContainer: any = { backgroundColor: '#050505', borderTop: '1px solid #111', padding: '60px 20px 20px', direction: 'rtl' };
+// --- Styles ---
+const footerContainer: any = { backgroundColor: '#f0fdf4', borderTop: '1px solid #e5e7eb', padding: '60px 20px 20px', direction: 'rtl' };
 const footerContent: any = { maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', marginBottom: '40px', width: '100%', boxSizing: 'border-box' as const };
 const footerColumn: any = { display: 'flex', flexDirection: 'column', gap: '15px' };
-const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', textDecoration: 'none', letterSpacing: '-1px' };
-const brandDesc: any = { color: '#999', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
+const logoStyle: any = { fontSize: '1.8rem', fontWeight: '900', fontStyle: 'italic', color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-1px' };
+const brandDesc: any = { color: '#6b7280', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 };
 const socialLinks: any = { display: 'flex', gap: '12px', marginTop: '10px' };
-const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', transition: '0.3s', cursor: 'pointer' };
-const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#fff', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
+const socialIcon: any = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', transition: '0.3s', cursor: 'pointer' };
+const columnTitle: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px', position: 'relative', paddingBottom: '10px' };
 const linkList: any = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' };
-const footerLink: any = { textDecoration: 'none', color: '#bbb', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.3s ease' };
-const divider: any = { border: 'none', borderTop: '1px solid #111', margin: '5px 0' };
+const footerLink: any = { textDecoration: 'none', color: '#374151', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.3s ease' };
+const divider: any = { border: 'none', borderTop: '1px solid #e5e7eb', margin: '5px 0' };
 const contactItem: any = { display: 'flex', gap: '12px', alignItems: 'center' };
 const contactLabel: any = { display: 'block', fontSize: '0.75rem', color: '#9ca3af', marginBottom: '4px' };
-const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#fff', textDecoration: 'none' };
-const contactBtn: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: '#e50914', color: '#fff', padding: '12px 20px', borderRadius: '14px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '5px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(39, 174, 96, 0.2)', width: 'fit-content' };
-const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#111', color: '#e50914', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #222' };
-const paymentText: any = { fontSize: '0.9rem', color: '#aaa', margin: '15px 0 10px', fontWeight: '700' };
+const contactValue: any = { fontSize: '0.9rem', fontWeight: 'bold', color: '#1a1a1a', textDecoration: 'none' };
+const contactBtn: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: '#22c55e', color: '#fff', padding: '12px 20px', borderRadius: '14px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '5px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)', width: 'fit-content' };
+const trustBadge: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', padding: '10px 15px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid #dcfce7' };
+const paymentText: any = { fontSize: '0.9rem', color: '#6b7280', margin: '15px 0 10px', fontWeight: '700' };
 const paymentSection: any = { marginBottom: '15px' };
 const paymentCategory: any = { fontSize: '0.75rem', color: '#9ca3af', marginBottom: '8px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const paymentLogos: any = { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' };
-const payImg: any = { height: '24px', width: '40px', borderRadius: '4px', objectFit: 'contain', filter: 'brightness(0.9)', transition: 'filter 0.3s', cursor: 'pointer' };
-const bottomBar: any = { borderTop: '1px solid #111', paddingTop: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem' };
+const payImg: any = { height: '24px', width: '40px', borderRadius: '4px', objectFit: 'contain', filter: 'brightness(1.0)', transition: 'filter 0.3s', cursor: 'pointer' };
+const bottomBar: any = { borderTop: '1px solid #e5e7eb', paddingTop: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem' };

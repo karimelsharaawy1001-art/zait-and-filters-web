@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     icon: [{ url: '/favicon.ico', sizes: 'any' }, { url: '/icons/icon-192.png', type: 'image/png', sizes: '192x192' }, { url: '/icons/icon-512.png', type: 'image/png', sizes: '512x512' }],
     apple: [{ url: '/icons/icon-192.png', sizes: '192x192' }, { url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
-  other: { 'apple-mobile-web-app-title': 'زيت اند فلترز', 'apple-mobile-web-app-capable': 'yes', 'mobile-web-app-capable': 'yes', 'msapplication-TileColor': '#0f172a', 'msapplication-TileImage': '/icons/icon-192.png' },
+  other: { 'apple-mobile-web-app-title': 'زيت اند فلترز', 'apple-mobile-web-app-capable': 'yes', 'mobile-web-app-capable': 'yes', 'msapplication-TileColor': '#22c55e', 'msapplication-TileImage': '/icons/icon-192.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -103,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#e50914" />
+        <meta name="theme-color" content="#22c55e" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="زيت اند فلترز" />
@@ -193,7 +193,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <Toaster
           position="bottom-right"
-          toastOptions={{ style: { fontFamily: 'inherit', borderRadius: '12px', background: '#333', color: '#fff' } }}
+          toastOptions={{ style: { fontFamily: 'inherit', borderRadius: '12px', background: '#f0fdf4', color: '#1a1a1a', border: '1px solid #e5e7eb' } }}
         />
 
         {/*

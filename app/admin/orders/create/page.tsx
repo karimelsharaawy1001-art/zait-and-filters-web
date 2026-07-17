@@ -69,12 +69,12 @@ function Dropdown({ label, options, value, onChange, disabled, placeholder }: {
           ...inputStyle,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           cursor: disabled ? 'not-allowed' : 'pointer',
-          backgroundColor: disabled ? '#f5f5f5' : '#fff',
-          color: value ? '#1a1a1a' : '#999',
+          backgroundColor: disabled ? '#1a1a1a' : '#fff',
+          color: value ? '#1a1a1a' : '#6b7280',
         }}
       >
         <span>{value || placeholder || `اختر ${label}`}</span>
-        <ChevronDown size={16} color="#999" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+        <ChevronDown size={16} color="#6b7280" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
       </button>
       {open && options.length > 0 && (
         <div style={{
@@ -86,7 +86,7 @@ function Dropdown({ label, options, value, onChange, disabled, placeholder }: {
             onClick={() => { onChange(''); setOpen(false); }}
             style={dropdownItemStyle}
           >
-            <span style={{ color: '#999' }}>— بدون تحديد —</span>
+            <span style={{ color: '#6b7280' }}>— بدون تحديد —</span>
           </div>
           {options.map(opt => (
             <div
@@ -317,13 +317,13 @@ export default function AdminCreateOrder() {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <div style={{ direction: 'rtl', minHeight: '100vh', backgroundColor: '#f5f5f5', padding: '30px 20px', fontFamily: 'inherit' }}>
+    <div style={{ direction: 'rtl', minHeight: '100vh', backgroundColor: '#ffffff', padding: '30px 20px', fontFamily: 'inherit' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#1a1a1a', margin: 0 }}>إنشاء طلب يدوي</h1>
-          <p style={{ color: '#888', marginTop: '6px', fontSize: '0.9rem' }}>ابحث عن منتجات وأضفها لطلب جديد لأي عميل</p>
+          <p style={{ color: '#9ca3af', marginTop: '6px', fontSize: '0.9rem' }}>ابحث عن منتجات وأضفها لطلب جديد لأي عميل</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'flex-start' }}>
@@ -352,7 +352,7 @@ export default function AdminCreateOrder() {
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <button
                     onClick={() => { setFilterMake(''); setFilterModel(''); setFilterYear(''); setFilterCategory(''); setFilterSubcategory(''); }}
-                    style={{ ...btnStyle, backgroundColor: '#fee', color: '#dc2626', width: '100%' }}
+                    style={{ ...btnStyle, backgroundColor: '#fee', color: '#16a34a', width: '100%' }}
                   >
                     <X size={14} /> مسح الفلاتر
                   </button>
@@ -362,7 +362,7 @@ export default function AdminCreateOrder() {
               {/* Search Input */}
               <div ref={searchRef} style={{ position: 'relative' }}>
                 <div style={{ position: 'relative' }}>
-                  <Search size={18} color="#999" style={{ position: 'absolute', right: '14px', top: '14px' }} />
+                  <Search size={18} color="#6b7280" style={{ position: 'absolute', right: '14px', top: '14px' }} />
                   {searching && <Loader2 size={16} color="#22c55e" style={{ position: 'absolute', left: '14px', top: '14px', animation: 'spin 1s linear infinite' }} />}
                   <input
                     type="text"
@@ -385,14 +385,14 @@ export default function AdminCreateOrder() {
                       <div
                         key={p.id}
                         onClick={() => addProduct(p)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', transition: '0.15s' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #1a1a1a', transition: '0.15s' }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f0fdf4')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#fff')}
                       >
                         <img src={p.image_url || '/placeholder.png'} alt={p.name} style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '8px', background: '#f9f9f9', flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: '800', fontSize: '0.9rem', color: '#1a1a1a', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#888', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             <span style={{ color: '#22c55e', fontWeight: '700' }}>{p.brand}</span>
                             {p.car_make && <span>{p.car_make} {p.car_model}</span>}
                             {p.category && <span style={{ color: '#666' }}>{p.category}</span>}
@@ -402,7 +402,7 @@ export default function AdminCreateOrder() {
                           <div style={{ fontWeight: '900', fontSize: '1rem', color: '#1a1a1a' }}>
                             {(p.sale_price > 0 ? p.sale_price : p.regular_price).toLocaleString()} ج.م
                           </div>
-                          {p.sale_price > 0 && <div style={{ fontSize: '0.72rem', color: '#bbb', textDecoration: 'line-through' }}>{p.regular_price.toLocaleString()}</div>}
+                          {p.sale_price > 0 && <div style={{ fontSize: '0.72rem', color: '#374151', textDecoration: 'line-through' }}>{p.regular_price.toLocaleString()}</div>}
                         </div>
                         <div style={{ backgroundColor: '#22c55e', color: '#fff', borderRadius: '8px', padding: '6px 10px', fontSize: '0.8rem', fontWeight: '800', flexShrink: 0 }}>
                           + إضافة
@@ -413,7 +413,7 @@ export default function AdminCreateOrder() {
                 )}
 
                 {showResults && searchResults.length === 0 && productSearch.length >= 1 && !searching && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '24px', textAlign: 'center', marginTop: '6px', color: '#888', fontSize: '0.9rem' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '24px', textAlign: 'center', marginTop: '6px', color: '#9ca3af', fontSize: '0.9rem' }}>
                     لا توجد نتائج
                   </div>
                 )}
@@ -440,7 +440,7 @@ export default function AdminCreateOrder() {
                       <div style={{ fontWeight: '900', minWidth: '90px', textAlign: 'left' }}>
                         {(item.price * item.quantity).toLocaleString()} ج.م
                       </div>
-                      <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px' }}>
+                      <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', padding: '4px' }}>
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -457,7 +457,7 @@ export default function AdminCreateOrder() {
               <div ref={customerRef} style={{ position: 'relative', marginBottom: '16px' }}>
                 <label style={labelStyle}>ابحث عن عميل موجود (بالاسم أو رقم الهاتف)</label>
                 <div style={{ position: 'relative' }}>
-                  <Search size={16} color="#999" style={{ position: 'absolute', right: '12px', top: '14px' }} />
+                  <Search size={16} color="#6b7280" style={{ position: 'absolute', right: '12px', top: '14px' }} />
                   <input
                     type="text"
                     placeholder="اكتب اسم العميل أو رقم هاتفه..."
@@ -467,7 +467,7 @@ export default function AdminCreateOrder() {
                   />
                   {selectedUser && (
                     <button onClick={() => { setSelectedUser(null); setCustomerSearch(''); }} style={{ position: 'absolute', left: '10px', top: '12px', background: 'none', border: 'none', cursor: 'pointer' }}>
-                      <X size={16} color="#999" />
+                      <X size={16} color="#6b7280" />
                     </button>
                   )}
                 </div>
@@ -478,7 +478,7 @@ export default function AdminCreateOrder() {
                       <div
                         key={u.id}
                         onClick={() => { setSelectedUser(u); setManualName(u.full_name); setManualPhone(u.phone_number); setShowCustomerResults(false); }}
-                        style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: '10px' }}
+                        style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f0fdf4')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#fff')}
                       >
@@ -487,7 +487,7 @@ export default function AdminCreateOrder() {
                         </div>
                         <div>
                           <div style={{ fontWeight: '800', fontSize: '0.9rem' }}>{u.full_name}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#888' }}>{u.phone_number}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{u.phone_number}</div>
                         </div>
                         <CheckCircle size={16} color="#22c55e" style={{ marginRight: 'auto' }} />
                       </div>
@@ -547,7 +547,7 @@ export default function AdminCreateOrder() {
               <h2 style={cardTitleStyle}><Tag size={20} color="#22c55e" /> ملخص الطلب</h2>
 
               {orderItems.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#bbb' }}>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#374151' }}>
                   <ShoppingCart size={48} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4 }} />
                   <p style={{ fontSize: '0.9rem' }}>لم تُضف منتجات بعد</p>
                 </div>
@@ -593,7 +593,7 @@ export default function AdminCreateOrder() {
                 disabled={submitting || orderItems.length === 0}
                 style={{
                   width: '100%', marginTop: '20px', padding: '14px',
-                  backgroundColor: orderItems.length === 0 ? '#ccc' : '#22c55e',
+                  backgroundColor: orderItems.length === 0 ? '#9ca3af' : '#22c55e',
                   color: '#fff', border: 'none', borderRadius: '12px',
                   fontWeight: '900', fontSize: '1rem', cursor: orderItems.length === 0 ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',

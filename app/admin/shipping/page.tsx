@@ -135,7 +135,7 @@ export default function ShippingAdmin() {
                   </div>
                 </td>
               </tr>
-            )) : <tr><td colSpan={3} style={{textAlign:'center', padding:'30px', color:'#444'}}>لا توجد بيانات (جرب ضغط زر التحديث)</td></tr>}
+            )) : <tr><td colSpan={3} style={{textAlign:'center', padding:'30px', color:'#6b7280'}}>لا توجد بيانات (جرب ضغط زر التحديث)</td></tr>}
           </tbody>
         </table>
       </div>
@@ -148,22 +148,22 @@ export default function ShippingAdmin() {
 // التنسيقات (مضبوطة تماماً مع الـ Sidebar الأسود)
 const container: any = { padding: 'clamp(12px, 3vw, 20px)', direction: 'rtl' };
 const headerRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' };
-const refreshBtn: any = { background: '#111', color: '#888', border: '1px solid #222', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 };
+const refreshBtn: any = { background: '#e5e7eb', color: '#9ca3af', border: '1px solid #e5e7eb', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 };
 const title: any = { display: 'flex', alignItems: 'center', gap: '12px', color: '#1e293b', fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', margin: 0 };
 const headerGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' };
-const card: any = { background: '#0a0a0a', padding: '15px', borderRadius: '15px', border: '1px solid #111' };
-const label: any = { fontSize: '0.75rem', color: '#444', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' };
+const card: any = { background: '#ffffff', padding: '15px', borderRadius: '15px', border: '1px solid #e5e7eb' };
+const label: any = { fontSize: '0.75rem', color: '#6b7280', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' };
 const row: any = { display: 'flex', gap: '10px', flexWrap: 'wrap' };
-const inp: any = { flex: '2 1 100px', minWidth: '80px', background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
-const priceInp: any = { flex: '1 1 70px', minWidth: '60px', background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
-const searchInp: any = { width: '100%', background: '#000', border: '1px solid #1a1a1a', padding: '10px', color: '#fff', borderRadius: '8px' };
+const inp: any = { flex: '2 1 100px', minWidth: '80px', background: '#ffffff', border: '1px solid #d1d5db', padding: '10px', color: '#1a1a1a', borderRadius: '8px' };
+const priceInp: any = { flex: '1 1 70px', minWidth: '60px', background: '#ffffff', border: '1px solid #d1d5db', padding: '10px', color: '#1a1a1a', borderRadius: '8px' };
+const searchInp: any = { width: '100%', background: '#ffffff', border: '1px solid #d1d5db', padding: '10px', color: '#1a1a1a', borderRadius: '8px' };
 const addBtn: any = { background: '#2ecc71', border: 'none', padding: '0 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 };
-const tableWrap: any = { background: '#080808', borderRadius: '15px', border: '1px solid #111', overflowX: 'auto', WebkitOverflowScrolling: 'touch' };
+const tableWrap: any = { background: '#f9fafb', borderRadius: '15px', border: '1px solid #e5e7eb', overflowX: 'auto', WebkitOverflowScrolling: 'touch' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '320px' };
-const thRow: any = { background: '#0a0a0a' };
-const th: any = { padding: '12px 14px', fontSize: '0.8rem', color: '#444', borderBottom: '1px solid #111', whiteSpace: 'nowrap' };
-const tr: any = { borderBottom: '1px solid #0a0a0a' };
-const td: any = { padding: '10px 14px', color: '#ccc' };
-const editInp: any = { width: '70px', background: '#000', border: '1px solid #2ecc71', color: '#fff', padding: '4px', borderRadius: '5px' };
-const actBtn: any = { background: '#111', color: '#2ecc71', border: '1px solid #1a1a1a', padding: '6px', borderRadius: '6px', cursor: 'pointer' };
-const delBtn: any = { background: '#111', color: '#ff4d4d', border: '1px solid #1a1a1a', padding: '6px', borderRadius: '6px', cursor: 'pointer' };
+const thRow: any = { background: '#ffffff' };
+const th: any = { padding: '12px 14px', fontSize: '0.8rem', color: '#6b7280', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' };
+const tr: any = { borderBottom: '1px solid #ffffff' };
+const td: any = { padding: '10px 14px', color: '#9ca3af' };
+const editInp: any = { width: '70px', background: '#ffffff', border: '1px solid #2ecc71', color: '#1a1a1a', padding: '4px', borderRadius: '5px' };
+const actBtn: any = { background: '#e5e7eb', color: '#2ecc71', border: '1px solid #1a1a1a', padding: '6px', borderRadius: '6px', cursor: 'pointer' };
+const delBtn: any = { background: '#e5e7eb', color: '#22c55e', border: '1px solid #1a1a1a', padding: '6px', borderRadius: '6px', cursor: 'pointer' };

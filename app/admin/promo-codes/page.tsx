@@ -208,7 +208,7 @@ export default function PromoCodesAdmin() {
                 <UserCheck size={16} />
                 استخدام مرة واحدة لكل عميل
               </label>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginRight: '26px' }}>
+              <div style={{ fontSize: '0.72rem', color: '#6b7280', marginRight: '26px' }}>
                 كل عميل يستخدم هذا الكود مرة واحدة فقط
               </div>
             </div>
@@ -247,7 +247,7 @@ export default function PromoCodesAdmin() {
                           style={iconBtn}
                           title={coupon.is_pinned ? 'إلغاء التثبيت' : 'تثبيت في الأعلى'}
                         >
-                          {coupon.is_pinned ? <Pin size={16} color="#d97706" /> : <PinOff size={16} color="#94a3b8" />}
+                          {coupon.is_pinned ? <Pin size={16} color="#d97706" /> : <PinOff size={16} color="#6b7280" />}
                         </button>
                       </td>
                       <td style={{ ...td, fontWeight: '900', color: '#1a1a1a' }}>{coupon.code}</td>
@@ -303,7 +303,7 @@ export default function PromoCodesAdmin() {
 const container: any = { padding: 'clamp(14px, 4vw, 40px)', direction: 'rtl', minHeight: '100vh', background: '#f8fafc' };
 const header: any = { marginBottom: '20px' };
 const title: any = { fontSize: 'clamp(1.1rem, 5vw, 2rem)', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px' };
-const subtitle: any = { color: '#64748b', fontSize: '0.9rem', marginTop: '5px' };
+const subtitle: any = { color: '#6b7280', fontSize: '0.9rem', marginTop: '5px' };
 const layoutGrid: any = { display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' };
 const card: any = { background: '#fff', padding: 'clamp(16px, 3vw, 25px)', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', flex: 1, minWidth: 'min(100%, 280px)', border: '1px solid #e2e8f0' };
 const cardTitle: any = { fontSize: '1.2rem', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' };
@@ -316,17 +316,17 @@ const submitBtn: any = { background: '#15803d', color: '#fff', padding: '15px', 
 const tableWrap: any = { overflowX: 'auto' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const theadRow: any = { borderBottom: '2px solid #f1f5f9' };
-const th: any = { padding: '15px 10px', color: '#64748b', fontSize: '0.85rem', fontWeight: '700' };
+const th: any = { padding: '15px 10px', color: '#6b7280', fontSize: '0.85rem', fontWeight: '700' };
 const tr: any = { borderBottom: '1px solid #f1f5f9' };
 const td: any = { padding: '15px 10px', fontSize: '0.9rem' };
 const badgePercent: any = { background: '#f0fdf4', color: '#15803d', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
 const badgeFixed: any = { background: '#eff6ff', color: '#1d4ed8', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content' };
 const badgeFree: any = { background: '#fff7ed', color: '#c2410c', padding: '5px 10px', borderRadius: '8px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px', width: 'fit-content', border: '1px solid #ffedd5' };
 const badgeOnceActive: any = { background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '0.82rem' };
-const badgeOnceInactive: any = { background: '#f8fafc', color: '#94a3b8', border: '1px solid #e2e8f0', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '0.82rem' };
+const badgeOnceInactive: any = { background: '#f8fafc', color: '#6b7280', border: '1px solid #e2e8f0', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '0.82rem' };
 const statusActive: any = { background: '#dcfce7', color: '#15803d', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
-const statusInactive: any = { background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
+const statusInactive: any = { background: '#fee2e2', color: '#15803d', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700' };
 const iconBtn: any = { background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' };
-const deleteBtn: any = { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', transition: '0.3s' };
+const deleteBtn: any = { background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', transition: '0.3s' };
 const loaderWrap: any = { padding: '50px', textAlign: 'center', color: '#15803d', fontWeight: 'bold' };
-const emptyText: any = { textAlign: 'center', padding: '40px', color: '#94a3b8' };
+const emptyText: any = { textAlign: 'center', padding: '40px', color: '#6b7280' };

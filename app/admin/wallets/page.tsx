@@ -31,7 +31,7 @@ interface Transaction {
 const TX_TYPE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   cashback:   { label: 'كاش باك',    color: '#16a34a', bg: '#f0fdf4' },
   adjustment: { label: 'تعديل يدوي', color: '#0284c7', bg: '#eff6ff' },
-  deduction:  { label: 'خصم',        color: '#dc2626', bg: '#fef2f2' },
+  deduction:  { label: 'خصم',        color: '#16a34a', bg: '#f0fdf4' },
   redemption: { label: 'استخدام',    color: '#7c3aed', bg: '#f5f3ff' },
   refund:     { label: 'استرجاع',    color: '#d97706', bg: '#fffbeb' },
 };
@@ -53,7 +53,7 @@ function StatementModal({ wallet, onClose }: { wallet: WalletRow; onClose: () =>
   const total_debit  = transactions.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
       <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '680px', maxHeight: '88vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', direction: 'rtl' }}>
 
         {/* Header */}
@@ -74,7 +74,7 @@ function StatementModal({ wallet, onClose }: { wallet: WalletRow; onClose: () =>
                 )}
               </div>
             </div>
-            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', flexShrink: 0 }}>
+            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', flexShrink: 0 }}>
               <X size={16} />
             </button>
           </div>
@@ -84,10 +84,10 @@ function StatementModal({ wallet, onClose }: { wallet: WalletRow; onClose: () =>
             {[
               { label: 'الرصيد الحالي', value: `${wallet.balance.toFixed(2)} ج.م`, color: '#0f172a', bg: '#f8fafc', border: '#e2e8f0' },
               { label: 'إجمالي الإضافات', value: `+${total_credit.toFixed(2)} ج.م`, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-              { label: 'إجمالي الخصومات', value: `-${total_debit.toFixed(2)} ج.م`, color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+              { label: 'إجمالي الخصومات', value: `-${total_debit.toFixed(2)} ج.م`, color: '#16a34a', bg: '#f0fdf4', border: '#dcfce7' },
             ].map(s => (
               <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '12px', padding: '10px 14px' }}>
-                <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '700', marginBottom: '4px' }}>{s.label}</div>
+                <div style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: '700', marginBottom: '4px' }}>{s.label}</div>
                 <div style={{ fontSize: '1rem', fontWeight: '900', color: s.color }}>{s.value}</div>
               </div>
             ))}
@@ -97,12 +97,12 @@ function StatementModal({ wallet, onClose }: { wallet: WalletRow; onClose: () =>
         {/* Transactions list */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 26px' }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
               <RefreshCw size={28} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 10px' }} />
               جاري التحميل...
             </div>
           ) : transactions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#cbd5e1' }}>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#374151' }}>
               <Wallet size={36} strokeWidth={1} style={{ display: 'block', margin: '0 auto 10px' }} />
               <p style={{ fontWeight: '700' }}>لا توجد حركات في المحفظة</p>
             </div>
@@ -123,25 +123,25 @@ function StatementModal({ wallet, onClose }: { wallet: WalletRow; onClose: () =>
                     <div>
                       <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a' }}>{tx.description}</div>
                       {tx.admin_note && (
-                        <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px', fontWeight: '600' }}>
+                        <div style={{ fontSize: '0.74rem', color: '#6b7280', marginTop: '2px', fontWeight: '600' }}>
                           ملاحظة: {tx.admin_note}
                         </div>
                       )}
                       <div style={{ display: 'flex', gap: '8px', marginTop: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.68rem', fontWeight: '800', padding: '2px 8px', borderRadius: '6px', background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
-                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                        <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>
                           {new Date(tx.created_at).toLocaleDateString('ar-EG', { day: '2-digit', month: 'short', year: 'numeric' })}
                           {' · '}
                           {new Date(tx.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true })}
                         </span>
                         {tx.balance_after !== null && (
-                          <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>
+                          <span style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: '600' }}>
                             الرصيد بعدها: {tx.balance_after.toFixed(2)} ج.م
                           </span>
                         )}
                       </div>
                     </div>
-                    <div style={{ fontSize: '1rem', fontWeight: '900', color: isCredit ? '#16a34a' : '#dc2626', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    <div style={{ fontSize: '1rem', fontWeight: '900', color: isCredit ? '#16a34a' : '#16a34a', whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {isCredit ? '+' : ''}{tx.amount.toFixed(2)} ج.م
                     </div>
                   </div>
@@ -211,7 +211,7 @@ function EditBalanceModal({ wallet, onClose, onSuccess }: { wallet: WalletRow; o
   const newBalance = Math.max(0, wallet.balance + (parseFloat(amount) || 0) * (mode === 'deduct' ? -1 : 1));
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
       <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '480px', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', direction: 'rtl', overflow: 'hidden' }}>
 
         {/* Header */}
@@ -219,9 +219,9 @@ function EditBalanceModal({ wallet, onClose, onSuccess }: { wallet: WalletRow; o
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '900', color: '#0f172a' }}>تعديل رصيد المحفظة</h2>
-              <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{wallet.full_name}</p>
+              <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>{wallet.full_name}</p>
             </div>
-            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
               <X size={16} />
             </button>
           </div>
@@ -236,10 +236,10 @@ function EditBalanceModal({ wallet, onClose, onSuccess }: { wallet: WalletRow; o
         <div style={{ padding: '20px 26px' }}>
           {/* Add / Deduct toggle */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
-            <button onClick={() => setMode('add')} style={{ flex: 1, padding: '11px', borderRadius: '12px', border: mode === 'add' ? 'none' : '1.5px solid #e2e8f0', background: mode === 'add' ? 'linear-gradient(135deg, #16a34a, #15803d)' : '#fff', color: mode === 'add' ? '#fff' : '#64748b', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', fontFamily: 'inherit' }}>
+            <button onClick={() => setMode('add')} style={{ flex: 1, padding: '11px', borderRadius: '12px', border: mode === 'add' ? 'none' : '1.5px solid #e2e8f0', background: mode === 'add' ? 'linear-gradient(135deg, #16a34a, #15803d)' : '#fff', color: mode === 'add' ? '#fff' : '#6b7280', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', fontFamily: 'inherit' }}>
               <Plus size={16} /> إضافة رصيد
             </button>
-            <button onClick={() => setMode('deduct')} style={{ flex: 1, padding: '11px', borderRadius: '12px', border: mode === 'deduct' ? 'none' : '1.5px solid #e2e8f0', background: mode === 'deduct' ? 'linear-gradient(135deg, #dc2626, #b91c1c)' : '#fff', color: mode === 'deduct' ? '#fff' : '#64748b', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', fontFamily: 'inherit' }}>
+            <button onClick={() => setMode('deduct')} style={{ flex: 1, padding: '11px', borderRadius: '12px', border: mode === 'deduct' ? 'none' : '1.5px solid #e2e8f0', background: mode === 'deduct' ? 'linear-gradient(135deg, #16a34a, #15803d)' : '#fff', color: mode === 'deduct' ? '#fff' : '#6b7280', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', fontFamily: 'inherit' }}>
               <Minus size={16} /> خصم رصيد
             </button>
           </div>
@@ -252,9 +252,9 @@ function EditBalanceModal({ wallet, onClose, onSuccess }: { wallet: WalletRow; o
                 type="number" min="0.01" step="0.01"
                 value={amount} onChange={e => setAmount(e.target.value)}
                 placeholder="0.00"
-                style={{ ...inp, paddingLeft: '50px', fontSize: '1.1rem', fontWeight: '800', color: mode === 'add' ? '#16a34a' : '#dc2626' }}
+                style={{ ...inp, paddingLeft: '50px', fontSize: '1.1rem', fontWeight: '800', color: mode === 'add' ? '#16a34a' : '#16a34a' }}
               />
-              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', fontWeight: '700', color: '#94a3b8' }}>ج.م</span>
+              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', fontWeight: '700', color: '#6b7280' }}>ج.م</span>
             </div>
           </div>
 
@@ -292,14 +292,14 @@ function EditBalanceModal({ wallet, onClose, onSuccess }: { wallet: WalletRow; o
 
           {/* Preview new balance */}
           {amount && !isNaN(parseFloat(amount)) && (
-            <div style={{ marginBottom: '18px', background: mode === 'add' ? '#f0fdf4' : '#fef2f2', border: `1px solid ${mode === 'add' ? '#bbf7d0' : '#fecaca'}`, borderRadius: '12px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: mode === 'add' ? '#15803d' : '#dc2626' }}>الرصيد بعد التعديل:</span>
-              <span style={{ fontSize: '1.1rem', fontWeight: '900', color: mode === 'add' ? '#14532d' : '#991b1b' }}>{newBalance.toFixed(2)} ج.م</span>
+            <div style={{ marginBottom: '18px', background: mode === 'add' ? '#f0fdf4' : '#f0fdf4', border: `1px solid ${mode === 'add' ? '#bbf7d0' : '#dcfce7'}`, borderRadius: '12px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: mode === 'add' ? '#15803d' : '#16a34a' }}>الرصيد بعد التعديل:</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: '900', color: mode === 'add' ? '#14532d' : '#14532d' }}>{newBalance.toFixed(2)} ج.م</span>
             </div>
           )}
 
           {/* Submit */}
-          <button onClick={handleSubmit} disabled={submitting} style={{ width: '100%', padding: '14px', background: mode === 'add' ? 'linear-gradient(135deg, #16a34a, #15803d)' : 'linear-gradient(135deg, #dc2626, #b91c1c)', color: '#fff', border: 'none', borderRadius: '13px', fontWeight: '900', fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+          <button onClick={handleSubmit} disabled={submitting} style={{ width: '100%', padding: '14px', background: mode === 'add' ? 'linear-gradient(135deg, #16a34a, #15803d)' : 'linear-gradient(135deg, #16a34a, #15803d)', color: '#fff', border: 'none', borderRadius: '13px', fontWeight: '900', fontSize: '0.95rem', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit', transition: 'all 0.15s' }}>
             {submitting ? <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> : mode === 'add' ? <Plus size={16} /> : <Minus size={16} />}
             {submitting ? 'جاري التنفيذ...' : mode === 'add' ? 'تأكيد الإضافة' : 'تأكيد الخصم'}
           </button>
@@ -388,7 +388,7 @@ export default function AdminWalletsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <h1 style={{ fontSize: '1.4rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>محافظ العملاء</h1>
-          <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '3px 0 0', fontWeight: '600' }}>إدارة أرصدة الكاش باك وكشوف الحساب</p>
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '3px 0 0', fontWeight: '600' }}>إدارة أرصدة الكاش باك وكشوف الحساب</p>
         </div>
         <button onClick={() => fetchWallets(search)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '9px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', fontFamily: "'Cairo', sans-serif" }}>
           <RefreshCw size={14} /> تحديث
@@ -404,7 +404,7 @@ export default function AdminWalletsPage() {
         ].map((s, i) => (
           <div key={i} style={{ background: s.light, border: `1px solid ${s.border}`, borderRadius: '14px', padding: '14px 16px', animation: `fadeUp 0.3s ease ${i*0.05}s both` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700' }}>{s.label}</span>
+              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '700' }}>{s.label}</span>
               <div style={{ color: s.color }}>{s.icon}</div>
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: '900', color: s.color, letterSpacing: '-0.5px' }}>{s.value}</div>
@@ -415,7 +415,7 @@ export default function AdminWalletsPage() {
       {/* Search */}
       <div className="wlt-search-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px', background: '#fff', borderRadius: '14px', padding: '12px 16px', border: '1px solid #f1f5f9' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', borderRadius: '10px', padding: '9px 13px' }}>
-          <Search size={15} color="#cbd5e1" />
+          <Search size={15} color="#374151" />
           <input
             type="text"
             placeholder="بحث بالاسم أو رقم الموبايل أو الإيميل..."
@@ -424,24 +424,24 @@ export default function AdminWalletsPage() {
             style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.9rem', color: '#334155', fontFamily: "'Cairo', sans-serif" }}
           />
           {search && (
-            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex' }}>
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0, display: 'flex' }}>
               <X size={14} />
             </button>
           )}
         </div>
-        <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600', whiteSpace: 'nowrap', flexShrink: 0 }}>
           {wallets.length} محفظة
         </div>
       </div>
 
       {/* Table */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>
           <RefreshCw size={32} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 12px' }} />
           جاري التحميل...
         </div>
       ) : wallets.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#cbd5e1', background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#374151', background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
           <Wallet size={44} strokeWidth={1} style={{ display: 'block', margin: '0 auto 12px' }} />
           <p style={{ fontWeight: '700' }}>لا توجد محافظ</p>
         </div>
@@ -453,7 +453,7 @@ export default function AdminWalletsPage() {
             {/* Table header */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.4fr 1.2fr 1fr 1.4fr', padding: '10px 18px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
               {['العميل', 'الموبايل', 'الإيميل', 'الرصيد', 'إجراءات'].map((h, i) => (
-                <div key={i} style={{ fontSize: '0.72rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '8px' : 0 }}>{h}</div>
+                <div key={i} style={{ fontSize: '0.72rem', fontWeight: '800', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '8px' : 0 }}>{h}</div>
               ))}
             </div>
 
@@ -463,11 +463,11 @@ export default function AdminWalletsPage() {
                 {/* Name */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: wallet.balance > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${wallet.balance > 0 ? '#bbf7d0' : '#e2e8f0'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <User size={15} color={wallet.balance > 0 ? '#16a34a' : '#94a3b8'} />
+                    <User size={15} color={wallet.balance > 0 ? '#16a34a' : '#6b7280'} />
                   </div>
                   <div>
                     <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{wallet.full_name}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', marginTop: '1px' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', marginTop: '1px' }}>
                       {wallet.balance > 0 ? <span style={{ color: '#16a34a', fontWeight: '700' }}>● نشط</span> : <span>● فارغة</span>}
                     </div>
                   </div>
@@ -479,16 +479,16 @@ export default function AdminWalletsPage() {
                 </div>
 
                 {/* Email */}
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8', paddingRight: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: '0.78rem', color: '#6b7280', paddingRight: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {wallet.email}
                 </div>
 
                 {/* Balance */}
                 <div style={{ paddingRight: '8px' }}>
-                  <div style={{ fontSize: '1rem', fontWeight: '900', color: wallet.balance > 0 ? '#15803d' : '#94a3b8' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: '900', color: wallet.balance > 0 ? '#15803d' : '#6b7280' }}>
                     {wallet.balance.toFixed(2)}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600' }}>ج.م</div>
+                  <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600' }}>ج.م</div>
                 </div>
 
                 {/* Actions */}
@@ -508,7 +508,7 @@ export default function AdminWalletsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginTop: '14px', padding: '12px 18px', background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
-              <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '600' }}>
+              <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: '600' }}>
                 عرض {(currentPage-1)*ITEMS_PER_PAGE+1}–{Math.min(currentPage*ITEMS_PER_PAGE, wallets.length)} من {wallets.length}
               </div>
               <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -518,11 +518,11 @@ export default function AdminWalletsPage() {
                   { icon: <ChevronLeft size={13} />,   action: () => setCurrentPage(p => p+1),   disabled: currentPage === totalPages },
                   { icon: <ChevronsLeft size={13} />,  action: () => setCurrentPage(totalPages), disabled: currentPage === totalPages },
                 ].map((btn, i) => (
-                  <button key={i} onClick={btn.action} disabled={btn.disabled} style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #e2e8f0', background: btn.disabled ? '#f8fafc' : '#fff', color: btn.disabled ? '#cbd5e1' : '#475569', cursor: btn.disabled ? 'not-allowed' : 'pointer' }}>
+                  <button key={i} onClick={btn.action} disabled={btn.disabled} style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid #e2e8f0', background: btn.disabled ? '#f8fafc' : '#fff', color: btn.disabled ? '#374151' : '#475569', cursor: btn.disabled ? 'not-allowed' : 'pointer' }}>
                     {btn.icon}
                   </button>
                 ))}
-                <span style={{ fontSize: '0.8rem', color: '#64748b', padding: '0 8px', fontWeight: '600' }}>
+                <span style={{ fontSize: '0.8rem', color: '#6b7280', padding: '0 8px', fontWeight: '600' }}>
                   {currentPage} / {totalPages}
                 </span>
               </div>

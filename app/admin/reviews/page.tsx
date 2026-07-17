@@ -121,7 +121,7 @@ export default function AdminReviewsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
           <h1 style={{ fontSize: '1.3rem', fontWeight: '900', margin: 0, color: '#0f172a' }}>إدارة التقييمات</h1>
-          <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '3px 0 0', fontWeight: '600' }}>راجع وافق أو ارفض تقييمات العملاء قبل نشرها</p>
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '3px 0 0', fontWeight: '600' }}>راجع وافق أو ارفض تقييمات العملاء قبل نشرها</p>
         </div>
         <button onClick={fetchReviews} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '9px', cursor: 'pointer', fontWeight: '700', fontSize: '0.82rem', fontFamily: "'Cairo', sans-serif" }}>
           <RefreshCw size={14} /> تحديث
@@ -145,21 +145,21 @@ export default function AdminReviewsPage() {
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
         {([['pending', 'في الانتظار'], ['approved', 'معتمدة'], ['all', 'الكل']] as const).map(([val, label]) => (
-          <button key={val} onClick={() => setFilter(val)} style={{ padding: '7px 16px', background: filter === val ? '#0f172a' : '#f1f5f9', color: filter === val ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', fontFamily: "'Cairo', sans-serif" }}>
-            {label} {val === 'pending' && pendingCount > 0 && <span style={{ background: '#dc2626', color: '#fff', borderRadius: '6px', padding: '0 6px', fontSize: '0.7rem', marginRight: '4px' }}>{pendingCount}</span>}
+          <button key={val} onClick={() => setFilter(val)} style={{ padding: '7px 16px', background: filter === val ? '#0f172a' : '#f1f5f9', color: filter === val ? '#fff' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', fontFamily: "'Cairo', sans-serif" }}>
+            {label} {val === 'pending' && pendingCount > 0 && <span style={{ background: '#16a34a', color: '#fff', borderRadius: '6px', padding: '0 6px', fontSize: '0.7rem', marginRight: '4px' }}>{pendingCount}</span>}
           </button>
         ))}
       </div>
 
       {/* List */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>
           <RefreshCw size={32} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 12px' }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           جاري التحميل...
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#cbd5e1', background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#374151', background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
           <Star size={40} strokeWidth={1} style={{ display: 'block', margin: '0 auto 12px' }} />
           <p style={{ fontWeight: '700' }}>لا توجد تقييمات</p>
         </div>
@@ -171,24 +171,24 @@ export default function AdminReviewsPage() {
               <div style={{ width: '52px', height: '52px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                 {review.product?.image_url
                   ? <img src={review.product.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                  : <Package size={20} color="#cbd5e1" />}
+                  : <Package size={20} color="#374151" />}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Top row */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '600', marginBottom: '2px' }}>
+                    <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: '600', marginBottom: '2px' }}>
                       {review.product?.brand && <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '1px 7px', borderRadius: '4px', fontWeight: '700', marginLeft: '6px' }}>{review.product.brand}</span>}
                       {review.product?.name}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <User size={12} color="#94a3b8" />
+                        <User size={12} color="#6b7280" />
                         <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a' }}>{review.customer_name}</span>
                       </div>
-                      {review.customer_email && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{review.customer_email}</span>}
-                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                      {review.customer_email && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{review.customer_email}</span>}
+                      <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>
                         {new Date(review.created_at).toLocaleDateString('ar-EG', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
                     </div>

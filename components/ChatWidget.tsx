@@ -140,7 +140,7 @@ export default function ChatWidget() {
 
         .z-open-btn {
           width:56px; height:56px; border-radius:50%;
-          background:linear-gradient(135deg,#e50914,#dc2626);
+          background:linear-gradient(135deg,#22c55e,#16a34a);
           border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
           box-shadow:0 4px 20px rgba(34,197,94,0.4);
           transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s;
@@ -151,7 +151,7 @@ export default function ChatWidget() {
 
         .z-badge {
           position:absolute; top:-3px; right:-3px;
-          background:#ef4444; color:#fff; width:18px; height:18px;
+          background:#16a34a; color:#fff; width:18px; height:18px;
           border-radius:50%; font-size:0.65rem; font-weight:900;
           display:flex; align-items:center; justify-content:center;
           border:2px solid #fff;
@@ -160,7 +160,7 @@ export default function ChatWidget() {
         .z-window {
           position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 84px); right:20px;
           width:364px; max-width:calc(100vw - 24px); height:530px; max-height:calc(100dvh - 120px);
-          background:#1c1c1c; border-radius:20px;
+          background:#ffffff; border-radius:20px;
           box-shadow:0 16px 56px rgba(0,0,0,0.16),0 2px 12px rgba(0,0,0,0.06);
           display:flex; flex-direction:column; overflow:hidden;
           z-index:9998; animation:z-pop 0.25s cubic-bezier(0.34,1.56,0.64,1);
@@ -174,13 +174,13 @@ export default function ChatWidget() {
 
         .z-msgs {
           flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;
-          background:#161616;
+          background:#f9fafb;
         }
         .z-msgs::-webkit-scrollbar { width:4px; }
         .z-msgs::-webkit-scrollbar-thumb { background:#d4d4d8; border-radius:4px; }
 
         .z-bubble-bot {
-          background:#1c1c1c; color:#e5e7eb;
+          background:#ffffff; color:#374151;
           border-radius:4px 18px 18px 18px;
           padding:10px 14px; font-size:0.88rem; line-height:1.7;
           max-width:88%; white-space:pre-line; word-break:break-word;
@@ -188,7 +188,7 @@ export default function ChatWidget() {
           animation:z-fadeIn 0.3s ease;
         }
         .z-bubble-user {
-          background:linear-gradient(135deg,#e50914,#dc2626); color:#fff;
+          background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff;
           border-radius:18px 4px 18px 18px;
           padding:10px 14px; font-size:0.88rem; line-height:1.6;
           max-width:88%; word-break:break-word; align-self:flex-end;
@@ -209,13 +209,13 @@ export default function ChatWidget() {
           animation:z-slideUp 0.35s ease;
         }
         .z-faq-tile {
-          background:#1c1c1c; border:1px solid #e4e4e7; border-radius:12px;
+          background:#ffffff; border:1px solid #e4e4e7; border-radius:12px;
           padding:8px 14px; font-size:0.8rem; font-weight:600; color:#e5e7eb;
           cursor:pointer; text-align:right; transition:all 0.15s;
           font-family:inherit; box-shadow:0 1px 3px rgba(0,0,0,0.04);
         }
         .z-faq-tile:hover {
-          border-color:#e50914; color:#f87171; background:#1a0d0d;
+          border-color:#22c55e; color:#15803d; background:#f0fdf4;
           box-shadow:0 2px 8px rgba(34,197,94,0.12); transform:translateY(-1px);
         }
 
@@ -235,29 +235,29 @@ export default function ChatWidget() {
             <div className="z-header">
               <div style={{
                 width:'36px', height:'36px', borderRadius:'10px',
-                background:'rgba(255,255,255,0.1)', backdropFilter:'blur(4px)',
+                background:'rgba(0,0,0,0.05)', backdropFilter:'blur(4px)',
                 display:'flex', alignItems:'center', justifyContent:'center',
                 flexShrink:0,
               }}>
-                <MessageSquare size={18} color="#e50914" />
+                <MessageSquare size={18} color="#22c55e" />
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontWeight:'800', fontSize:'0.92rem', color:'#fff', letterSpacing:'0.01em' }}>
                   زيت أند فلترز
                 </div>
-                <div style={{ fontSize:'0.7rem', color:'rgba(255,255,255,0.6)', fontWeight:'500', marginTop:'1px' }}>
+                <div style={{ fontSize:'0.7rem', color:'rgba(0,0,0,0.05)', fontWeight:'500', marginTop:'1px' }}>
                   المساعد الذكي • متاح 24/7
                 </div>
               </div>
               <button onClick={() => setOpen(false)}
                 style={{
-                  background:'rgba(255,255,255,0.08)', border:'none', borderRadius:'8px',
+                  background:'rgba(0,0,0,0.08)', border:'none', borderRadius:'8px',
                   width:'28px', height:'28px', cursor:'pointer', display:'flex',
-                  alignItems:'center', justifyContent:'center', color:'rgba(255,255,255,0.5)',
+                  alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.2)',
                   transition:'background 0.15s',
                 }}
-                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                onMouseOver={e => e.currentTarget.style.background = 'rgba(0,0,0,0.08)'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(0,0,0,0.08)'}
               >
                 <ChevronDown size={15} />
               </button>
@@ -293,7 +293,7 @@ export default function ChatWidget() {
                         </button>
                       ))}
                       <button onClick={() => { setOpen(false); openTawkTo(); }} className="z-faq-tile"
-                        style={{ borderColor:'#1e3a5f', color:'#1e3a5f', background:'#161616' }}>
+                        style={{ borderColor:'#1e3a5f', color:'#1e3a5f', background:'#f9fafb' }}>
                         <Headphones size={12} style={{ marginLeft:'4px' }} /> خدمة العملاء
                       </button>
                     </div>
@@ -311,12 +311,12 @@ export default function ChatWidget() {
             {/* Input */}
             <div style={{
               padding:'10px 12px 14px', borderTop:'1px solid #f1f1f1',
-              display:'flex', gap:'8px', flexShrink:0, background:'#1c1c1c',
+              display:'flex', gap:'8px', flexShrink:0, background:'#ffffff',
             }}>
               <Link href="/contact"
                 style={{
                   width:'40px', height:'40px', borderRadius:'12px',
-                  background:'#2a2a2a', display:'flex', alignItems:'center',
+                  background:'#e5e7eb', display:'flex', alignItems:'center',
                   justifyContent:'center', flexShrink:0, textDecoration:'none',
                   color:'#fff', transition:'transform 0.15s',
                 }}
@@ -331,16 +331,16 @@ export default function ChatWidget() {
                   style={{
                     flex:1, border:'1.5px solid #e4e4e7', borderRadius:'12px',
                     padding:'0 12px', fontSize:'0.85rem', outline:'none',
-                    fontFamily:'inherit', background:'#161616', color:'#e5e7eb',
+                    fontFamily:'inherit', background:'#f9fafb', color:'#1a1a1a',
                     height:'40px', transition:'border-color 0.15s',
                   }}
-                  onFocus={e => { e.target.style.borderColor = '#e50914'; e.target.style.background = '#fff'; }}
-                  onBlur={e => { e.target.style.borderColor = '#e4e4e7'; e.target.style.background = '#161616'; }}
+                  onFocus={e => { e.target.style.borderColor = '#22c55e'; e.target.style.background = '#fff'; }}
+                  onBlur={e => { e.target.style.borderColor = '#e4e4e7'; e.target.style.background = '#f9fafb'; }}
                 />
                 <button type="submit" disabled={!input.trim()}
                   style={{
                     width:'40px', height:'40px', borderRadius:'12px',
-                    background: input.trim() ? 'linear-gradient(135deg,#e50914,#dc2626)' : '#e4e4e7',
+                    background: input.trim() ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e4e4e7',
                     border:'none', cursor: input.trim() ? 'pointer' : 'default',
                     display:'flex', alignItems:'center', justifyContent:'center',
                     color: input.trim() ? '#fff' : '#a1a1aa', flexShrink:0,

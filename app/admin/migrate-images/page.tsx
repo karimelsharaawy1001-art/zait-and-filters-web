@@ -76,18 +76,18 @@ export default function MigrateImagesPage() {
       <h1 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: 6, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 10 }}>
         <CloudUpload size={24} color="#15803d" /> نقل صور المنتجات إلى Cloudinary
       </h1>
-      <p style={{ color: '#888', fontSize: '0.85rem', marginBottom: 20 }}>
+      <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: 20 }}>
         ينقل صور المنتجات المستضافة على روابط خارجية (غير Cloudinary) إلى حساب Cloudinary الخاص بنا، ويحدّث رابط الصورة تلقائياً. آمن للتكرار — يتخطى الصور المنقولة مسبقاً.
       </p>
 
       {msg && (
-        <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontWeight: 700, fontSize: '0.85rem' }}>⚠️ {msg}</div>
+        <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#f0fdf4', border: '1px solid #dcfce7', color: '#16a34a', fontWeight: 700, fontSize: '0.85rem' }}>⚠️ {msg}</div>
       )}
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
         <Stat label="متبقّي" value={remaining ?? '—'} color="#c2410c" bg="#fff7ed" />
         <Stat label="تم نقلها" value={migrated} color="#15803d" bg="#f0fdf4" />
-        <Stat label="فشلت" value={failed} color="#dc2626" bg="#fef2f2" />
+        <Stat label="فشلت" value={failed} color="#16a34a" bg="#f0fdf4" />
       </div>
 
       {total > 0 && (
@@ -95,7 +95,7 @@ export default function MigrateImagesPage() {
           <div style={{ height: 12, background: '#f1f5f9', borderRadius: 999, overflow: 'hidden' }}>
             <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#22c55e,#15803d)', transition: 'width 0.3s' }} />
           </div>
-          <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#64748b', marginTop: 6, fontWeight: 700 }}>{done} / {total} ({pct}%)</div>
+          <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#6b7280', marginTop: 6, fontWeight: 700 }}>{done} / {total} ({pct}%)</div>
         </div>
       )}
 
@@ -107,7 +107,7 @@ export default function MigrateImagesPage() {
           </button>
         ) : (
           <button onClick={stop}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit' }}>
             <Square size={15} /> إيقاف
           </button>
         )}
@@ -126,10 +126,10 @@ export default function MigrateImagesPage() {
           <div style={{ padding: '10px 16px', background: '#f8fafc', borderBottom: '1px solid #eee', fontWeight: 800, fontSize: '0.82rem', color: '#475569' }}>السجل</div>
           <div style={{ maxHeight: 360, overflowY: 'auto' }}>
             {log.map((r, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderBottom: '1px solid #f5f5f5', fontSize: '0.8rem' }}>
-                {r.ok ? <CheckCircle2 size={16} color="#16a34a" style={{ flexShrink: 0 }} /> : <AlertTriangle size={16} color="#dc2626" style={{ flexShrink: 0 }} />}
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderBottom: '1px solid #1a1a1a', fontSize: '0.8rem' }}>
+                {r.ok ? <CheckCircle2 size={16} color="#16a34a" style={{ flexShrink: 0 }} /> : <AlertTriangle size={16} color="#16a34a" style={{ flexShrink: 0 }} />}
                 <span style={{ flex: 1, fontWeight: 700, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name || r.id}</span>
-                {!r.ok && <span style={{ color: '#dc2626', fontSize: '0.72rem' }}>{r.error}</span>}
+                {!r.ok && <span style={{ color: '#16a34a', fontSize: '0.72rem' }}>{r.error}</span>}
               </div>
             ))}
           </div>
@@ -142,7 +142,7 @@ export default function MigrateImagesPage() {
 function Stat({ label, value, color, bg }: { label: string; value: any; color: string; bg: string }) {
   return (
     <div style={{ flex: 1, minWidth: 120, background: bg, borderRadius: 12, padding: '12px 16px' }}>
-      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8' }}>{label}</div>
+      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#6b7280' }}>{label}</div>
       <div style={{ fontSize: '1.4rem', fontWeight: 900, color }}>{value}</div>
     </div>
   );

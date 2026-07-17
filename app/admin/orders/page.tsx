@@ -29,17 +29,17 @@ function Dropdown({ label, options, value, onChange, disabled }: {
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button type="button" onClick={() => !disabled && setOpen(!open)} style={{
-        width: '100%', height: '46px', padding: '0 14px', backgroundColor: disabled ? '#f5f5f5' : '#fff',
+        width: '100%', height: '46px', padding: '0 14px', backgroundColor: disabled ? '#1a1a1a' : '#fff',
         border: '1px solid #e5e5e5', borderRadius: '10px', fontSize: '0.88rem',
-        color: value ? '#1a1a1a' : '#999', cursor: disabled ? 'not-allowed' : 'pointer',
+        color: value ? '#1a1a1a' : '#6b7280', cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box' as any,
       }}>
         <span>{value || `اختر ${label}`}</span>
-        <ChevronDown size={15} color="#999" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+        <ChevronDown size={15} color="#6b7280" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
       </button>
       {open && options.length > 0 && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 3000, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: '200px', overflowY: 'auto', marginTop: '4px' }}>
-          <div onClick={() => { onChange(''); setOpen(false); }} style={ddItem}><span style={{ color: '#999' }}>— بدون تحديد —</span></div>
+          <div onClick={() => { onChange(''); setOpen(false); }} style={ddItem}><span style={{ color: '#6b7280' }}>— بدون تحديد —</span></div>
           {options.map(opt => (
             <div key={opt} onClick={() => { onChange(opt); setOpen(false); }}
               style={{ ...ddItem, backgroundColor: value === opt ? '#f0fdf4' : '#fff', fontWeight: value === opt ? '800' : '600', color: value === opt ? '#16a34a' : '#1a1a1a' }}>
@@ -195,7 +195,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '12px', backdropFilter: 'blur(4px)' }}>
-      <div style={{ background: '#f8f9fa', width: '100%', maxWidth: '1060px', maxHeight: '95vh', overflowY: 'auto', borderRadius: '24px', padding: 'clamp(16px, 4vw, 28px)', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', direction: 'rtl' }}>
+      <div style={{ background: '#f8f9fa', width: '100%', maxWidth: '1060px', maxHeight: '95vh', overflowY: 'auto', borderRadius: '24px', padding: 'clamp(16px, 4vw, 28px)', boxShadow: '0 25px 60px rgba(0,0,0,0.05)', direction: 'rtl' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', borderBottom: '1px solid #e8e8e8', paddingBottom: '16px' }}>
           <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.4rem)', fontWeight: '900', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Package size={22} color="#22c55e" /> إنشاء طلب جديد يدوياً
@@ -215,13 +215,13 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                 <Dropdown label="الفئة" options={categoriesOptions} value={filterCategory} onChange={setFilterCategory} />
                 <Dropdown label="القسم الفرعي" options={subcategoriesOptions} value={filterSubcategory} onChange={setFilterSubcategory} disabled={!filterCategory} />
                 <button onClick={() => { setFilterMake(''); setFilterModel(''); setFilterYear(''); setFilterCategory(''); setFilterSubcategory(''); }}
-                  style={{ height: '46px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                  style={{ height: '46px', background: '#fee2e2', color: '#16a34a', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
                   <X size={13} /> مسح الفلاتر
                 </button>
               </div>
               <div ref={searchRef} style={{ position: 'relative' }}>
                 <div style={{ position: 'relative' }}>
-                  <Search size={16} color="#aaa" style={{ position: 'absolute', right: '13px', top: '15px', pointerEvents: 'none' }} />
+                  <Search size={16} color="#6b7280" style={{ position: 'absolute', right: '13px', top: '15px', pointerEvents: 'none' }} />
                   {searching && <Loader2 size={14} color="#22c55e" style={{ position: 'absolute', left: '13px', top: '16px', animation: 'spin 1s linear infinite' }} />}
                   <input type="text" placeholder="ابحث باسم المنتج..." value={productSearch}
                     onChange={e => { setProductSearch(e.target.value); setShowResults(true); }}
@@ -232,13 +232,13 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                   <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2500, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', maxHeight: '340px', overflowY: 'auto', marginTop: '6px' }}>
                     {searchResults.map((p: any) => (
                       <div key={p.id} onClick={() => addProduct(p)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #1a1a1a' }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f0fdf4')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#fff')}>
                         <img src={p.image_url || '/placeholder.png'} alt="" style={{ width: '46px', height: '46px', objectFit: 'contain', borderRadius: '8px', background: '#f9f9f9', flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: '800', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#888', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ fontSize: '0.72rem', color: '#9ca3af', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             <span style={{ color: '#22c55e', fontWeight: '700' }}>{p.brand}</span>
                             {p.car_make && <span>{p.car_make} {p.car_model}</span>}
                             {p.category && <span>{p.category}</span>}
@@ -246,7 +246,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                         </div>
                         <div style={{ textAlign: 'left', flexShrink: 0 }}>
                           <div style={{ fontWeight: '900', fontSize: '0.92rem', color: '#1a1a1a' }}>{(p.sale_price > 0 ? p.sale_price : p.regular_price).toLocaleString()} ج.م</div>
-                          {p.sale_price > 0 && <div style={{ fontSize: '0.7rem', color: '#bbb', textDecoration: 'line-through' }}>{p.regular_price?.toLocaleString()}</div>}
+                          {p.sale_price > 0 && <div style={{ fontSize: '0.7rem', color: '#374151', textDecoration: 'line-through' }}>{p.regular_price?.toLocaleString()}</div>}
                         </div>
                         <div style={{ backgroundColor: '#22c55e', color: '#fff', borderRadius: '8px', padding: '5px 10px', fontSize: '0.75rem', fontWeight: '800', flexShrink: 0 }}>+ إضافة</div>
                       </div>
@@ -254,7 +254,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                   </div>
                 )}
                 {showResults && searchResults.length === 0 && productSearch.length >= 1 && !searching && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2500, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '18px', textAlign: 'center', marginTop: '6px', color: '#888', fontSize: '0.86rem' }}>لا توجد نتائج</div>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2500, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '18px', textAlign: 'center', marginTop: '6px', color: '#9ca3af', fontSize: '0.86rem' }}>لا توجد نتائج</div>
                 )}
               </div>
             </div>
@@ -275,7 +275,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                         <button onClick={() => setOrderItems(p => p.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i))} style={nomQtyBtn}>+</button>
                       </div>
                       <div style={{ fontWeight: '900', minWidth: '70px', textAlign: 'left', fontSize: '0.85rem', color: '#15803d', flexShrink: 0 }}>{(item.price * item.quantity).toLocaleString()} ج.م</div>
-                      <button onClick={() => setOrderItems(p => p.filter(i => i.id !== item.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px', flexShrink: 0 }}><Trash2 size={16} /></button>
+                      <button onClick={() => setOrderItems(p => p.filter(i => i.id !== item.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', padding: '4px', flexShrink: 0 }}><Trash2 size={16} /></button>
                     </div>
                   ))}
                 </div>
@@ -286,19 +286,19 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
               <div ref={customerRef} style={{ position: 'relative', marginBottom: '14px' }}>
                 <label style={nomLabel}>ابحث عن عميل موجود (بالاسم أو رقم الهاتف)</label>
                 <div style={{ position: 'relative' }}>
-                  <Search size={15} color="#aaa" style={{ position: 'absolute', right: '12px', top: '15px', pointerEvents: 'none' }} />
+                  <Search size={15} color="#6b7280" style={{ position: 'absolute', right: '12px', top: '15px', pointerEvents: 'none' }} />
                   <input type="text" placeholder="اكتب اسم العميل أو رقم هاتفه..."
                     value={selectedUser ? `${selectedUser.full_name} — ${selectedUser.phone_number}` : customerSearch}
                     onChange={e => { setSelectedUser(null); searchCustomers(e.target.value); }}
                     style={{ ...nomInput, paddingRight: '38px' }} />
-                  {selectedUser && <button onClick={() => { setSelectedUser(null); setCustomerSearch(''); }} style={{ position: 'absolute', left: '10px', top: '13px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={15} color="#aaa" /></button>}
+                  {selectedUser && <button onClick={() => { setSelectedUser(null); setCustomerSearch(''); }} style={{ position: 'absolute', left: '10px', top: '13px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={15} color="#6b7280" /></button>}
                 </div>
                 {showCustomerResults && customerResults.length > 0 && !selectedUser && (
                   <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2500, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', marginTop: '4px' }}>
                     {customerResults.map((u: any) => (
                       <div key={u.id}
                         onClick={() => { setSelectedUser(u); setManualName(u.full_name); setManualPhone(u.phone_number); setShowCustomerResults(false); }}
-                        style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: '10px' }}
+                        style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', gap: '10px' }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f0fdf4')}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#fff')}>
                         <div style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -306,7 +306,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                         </div>
                         <div>
                           <div style={{ fontWeight: '800', fontSize: '0.88rem' }}>{u.full_name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#888' }}>{u.phone_number}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{u.phone_number}</div>
                         </div>
                         <CheckCircle size={15} color="#22c55e" style={{ marginRight: 'auto' }} />
                       </div>
@@ -347,7 +347,7 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
             <div style={{ ...nomCard, border: '2px solid #e8e8e8' }}>
               <h3 style={nomTitle}><Tag size={16} color="#22c55e" /> ملخص الطلب</h3>
               {orderItems.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '28px 0', color: '#ccc' }}>
+                <div style={{ textAlign: 'center', padding: '28px 0', color: '#9ca3af' }}>
                   <ShoppingCart size={44} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.3 }} />
                   <p style={{ fontSize: '0.85rem' }}>لم تُضف منتجات بعد</p>
                 </div>
@@ -381,11 +381,11 @@ function NewOrderModal({ onClose, onCreated }: { onClose: () => void; onCreated:
                 </>
               )}
               <button onClick={submitOrder} disabled={submitting || orderItems.length === 0}
-                style={{ width: '100%', marginTop: '16px', padding: '13px', backgroundColor: orderItems.length === 0 ? '#ccc' : '#22c55e', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '0.95rem', cursor: orderItems.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}>
+                style={{ width: '100%', marginTop: '16px', padding: '13px', backgroundColor: orderItems.length === 0 ? '#9ca3af' : '#22c55e', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '900', fontSize: '0.95rem', cursor: orderItems.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}>
                 {submitting ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={18} />}
                 {submitting ? 'جاري الإنشاء...' : 'إنشاء الطلب'}
               </button>
-              <p style={{ fontSize: '0.7rem', color: '#aaa', textAlign: 'center', marginTop: '8px', marginBottom: 0 }}>سيتم إنشاء الطلب بحالة "قيد المعالجة"</p>
+              <p style={{ fontSize: '0.7rem', color: '#6b7280', textAlign: 'center', marginTop: '8px', marginBottom: 0 }}>سيتم إنشاء الطلب بحالة "قيد المعالجة"</p>
             </div>
           </div>
         </div>
@@ -399,7 +399,7 @@ const nomCard: any = { backgroundColor: '#fff', borderRadius: '14px', padding: '
 const nomTitle: any = { fontSize: '0.98rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '14px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '7px' };
 const nomInput: any = { width: '100%', height: '46px', padding: '0 14px', backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', fontSize: '0.88rem', color: '#1a1a1a', boxSizing: 'border-box' as any };
 const nomLabel: any = { display: 'block', marginBottom: '5px', fontSize: '0.76rem', fontWeight: '700', color: '#555' };
-const nomQtyBtn: any = { width: '26px', height: '26px', borderRadius: '6px', border: '1px solid #e5e5e5', backgroundColor: '#f5f5f5', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' };
+const nomQtyBtn: any = { width: '26px', height: '26px', borderRadius: '6px', border: '1px solid #e5e5e5', backgroundColor: '#ffffff', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' };
 const ddItem: any = { padding: '9px 14px', cursor: 'pointer', fontSize: '0.85rem', borderBottom: '1px solid #f9f9f9', transition: '0.1s' };
 
 // ─── Payment Status helpers ───────────────────────────────────────────────────
@@ -413,7 +413,7 @@ const paymentStatusLabels: Record<string, string> = {
 const paymentStatusColors: Record<string, { bg: string; color: string; border: string }> = {
   pending:  { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
   paid:     { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-  failed:   { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  failed:   { bg: '#f0fdf4', color: '#16a34a', border: '#dcfce7' },
   refunded: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
 };
 
@@ -464,8 +464,8 @@ function RemainingAmountCell({ order }: { order: any }) {
           fontSize: '0.85rem', fontWeight: 800, outline: 'none',
         }}
       />
-      <small style={{ color: '#94a3b8', fontSize: '0.68rem' }}>ج.م</small>
-      {saving && <Loader2 size={12} color="#94a3b8" style={{ animation: 'spin 1s linear infinite' }} />}
+      <small style={{ color: '#6b7280', fontSize: '0.68rem' }}>ج.م</small>
+      {saving && <Loader2 size={12} color="#6b7280" style={{ animation: 'spin 1s linear infinite' }} />}
     </div>
   );
 }
@@ -495,20 +495,20 @@ function ExpandedOrderRow({
       <style dangerouslySetInnerHTML={{ __html: `@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }` }} />
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 220px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
-          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>بيانات العميل</div>
+          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#9ca3af', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>بيانات العميل</div>
           <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '4px' }}>{order.customer_name}</div>
           <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}><Phone size={12} color="#22c55e" /> {order.customer_phone}</div>
           <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={12} color="#22c55e" /> {order.city} — {order.customer_address}</div>
         </div>
         <div style={{ flex: '1 1 180px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
-          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>تفاصيل الطلب</div>
+          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#9ca3af', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>تفاصيل الطلب</div>
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الدفع: <strong>{paymentLabels[order.payment_method] || order.payment_method}</strong></div>
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
-          {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#ef4444', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
+          {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#16a34a', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
           {order.tracking_number && (
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>
+              <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#9ca3af', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1a1a1a', fontFamily: 'monospace', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>{order.tracking_number}</span>
                 <a href={buildTrackingUrl(order.tracking_number)} target="_blank" rel="noreferrer"
@@ -520,16 +520,16 @@ function ExpandedOrderRow({
           )}
         </div>
         <div style={{ flex: '1 1 200px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#888', letterSpacing: '1px', marginBottom: '2px', textTransform: 'uppercase' }}>تحديث الحالات</div>
+          <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#9ca3af', letterSpacing: '1px', marginBottom: '2px', textTransform: 'uppercase' }}>تحديث الحالات</div>
           <div>
-            <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الشحن</div>
+            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px', fontWeight: '700' }}>حالة الشحن</div>
             {/* ── CHANGED: added pending_payment option ── */}
             <select value={order.status} onChange={(e) => onUpdateStatus(order.id, e.target.value)} style={{ ...miniSelectStyle(order.status), width: '100%' }}>
               <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
             </select>
           </div>
           <div>
-            <div style={{ fontSize: '0.72rem', color: '#888', marginBottom: '4px', fontWeight: '700' }}>حالة الدفع</div>
+            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px', fontWeight: '700' }}>حالة الدفع</div>
             <select value={order.payment_status || 'pending'} onChange={(e) => onUpdatePaymentStatus(order.id, e.target.value)} disabled={updatingPayment}
               style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e5e5', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', background: '#f9fafb', color: '#1a1a1a' }}>
               {Object.entries(paymentStatusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -565,11 +565,11 @@ function ExpandedOrderRow({
       <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e0f2e9', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f0fdf4', borderBottom: '1px solid #e0f2e9' }}>
           <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '800', fontSize: '0.85rem', color: '#15803d', padding: 0 }}>
-            {allPrepared ? <CheckSquare size={18} color="#22c55e" /> : <Square size={18} color="#aaa" />}
+            {allPrepared ? <CheckSquare size={18} color="#22c55e" /> : <Square size={18} color="#6b7280" />}
             {allPrepared ? 'إلغاء تحضير الكل' : 'تحضير الكل'}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: '700' }}>{someCount} / {items.length} محضّر</span>
+            <span style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '700' }}>{someCount} / {items.length} محضّر</span>
             {allPrepared && <span style={{ background: '#22c55e', color: '#fff', borderRadius: '8px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: '800' }}>✓ جاهز للشحن</span>}
           </div>
         </div>
@@ -584,7 +584,7 @@ function ExpandedOrderRow({
                 <img src={item.image_url || item.image || 'https://via.placeholder.com/50'} alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: '1px solid #eee', background: '#f9f9f9', flexShrink: 0, opacity: prepared ? 0.6 : 1, transition: 'opacity 0.2s' }} />
                 <div style={{ flex: 1, minWidth: 0 }} onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#888' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s', flex: 1 }}>{item.name}</span>
+                    <span style={{ fontWeight: '800', fontSize: '0.88rem', color: prepared ? '#9ca3af' : '#1a1a1a', textDecoration: prepared ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'all 0.2s', flex: 1 }}>{item.name}</span>
                     {item.id && (
                       <a href={`/products/${item.slug || item.id}`} target="_blank" rel="noopener noreferrer"
                         title="عرض المنتج"
@@ -597,14 +597,14 @@ function ExpandedOrderRow({
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
                     {item.brand && <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: '700', background: '#f0fdf4', padding: '2px 8px', borderRadius: '6px' }}>{item.brand}</span>}
-                    {(item.car_make || item.car_model) && <span style={{ fontSize: '0.72rem', color: '#666', background: '#f5f5f5', padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</span>}
+                    {(item.car_make || item.car_model) && <span style={{ fontSize: '0.72rem', color: '#666', background: '#ffffff', padding: '2px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</span>}
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, textAlign: 'left' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', marginBottom: '4px' }}>
                     <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span>
                   </div>
-                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: prepared ? '#aaa' : '#15803d', transition: 'color 0.2s' }}>{(parseFloat(item.price) * item.quantity).toLocaleString()} ج.م</div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: prepared ? '#6b7280' : '#15803d', transition: 'color 0.2s' }}>{(parseFloat(item.price) * item.quantity).toLocaleString()} ج.م</div>
                 </div>
                 {prepared && <div style={{ flexShrink: 0, background: '#dcfce7', color: '#15803d', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: '800' }}>✓ محضّر</div>}
               </div>
@@ -1069,20 +1069,20 @@ export default function AdminOrders() {
             </div>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: '2.6rem', fontWeight: '900', color: '#22c55e', letterSpacing: '-1px', lineHeight: 1 }}>ORDER</div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
+              <div style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.8rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
             </div>
           </div>
           <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', padding: '5px 14px', borderRadius: '20px' }}>
               <span style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>✓ {statusLabel}</span>
             </div>
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.78rem' }}>{orderDate}</span>
+            <span style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.78rem' }}>{orderDate}</span>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
           {[{ label: 'رقم الطلب', value: `#${orderNum}` }, { label: 'تاريخ الطلب', value: orderDate }, { label: 'عدد المنتجات', value: `${items.length} منتج` }].map((item, i) => (
             <div key={i} style={{ padding: '18px 22px', borderRight: i < 2 ? '1px solid #f0f0f0' : 'none' }}>
-              <div style={{ fontSize: '0.68rem', color: '#aaa', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
+              <div style={{ fontSize: '0.68rem', color: '#6b7280', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
               <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
             </div>
           ))}
@@ -1090,16 +1090,16 @@ export default function AdminOrders() {
         <div style={{ padding: '30px 44px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
             <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>بيانات العميل</div>
+              <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>بيانات العميل</div>
               <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '8px' }}>{order.customer_name}</div>
               <div style={{ fontSize: '0.82rem', color: '#555', fontWeight: '600', direction: 'ltr', marginBottom: '4px' }}>{order.customer_phone}</div>
-              {order.customer_email && <div style={{ fontSize: '0.78rem', color: '#888' }}>{order.customer_email}</div>}
+              {order.customer_email && <div style={{ fontSize: '0.78rem', color: '#9ca3af' }}>{order.customer_email}</div>}
             </div>
             <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '20px', border: '1px solid #f0f0f0' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>عنوان التوصيل</div>
+              <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>عنوان التوصيل</div>
               <div style={{ fontSize: '0.85rem', color: '#1a1a1a', fontWeight: '700', lineHeight: '1.5', marginBottom: '6px' }}>{order.customer_address}</div>
               <div style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: '700' }}>{order.city}</div>
-              <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>{paymentLabels[order.payment_method] || order.payment_method}</span></div>
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e5e5' }}>طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>{paymentLabels[order.payment_method] || order.payment_method}</span></div>
             </div>
           </div>
           {order.tracking_number && (
@@ -1115,10 +1115,10 @@ export default function AdminOrders() {
             </div>
           )}
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
+            <div style={{ fontSize: '0.68rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>تفاصيل المنتجات</div>
             <div style={{ backgroundColor: '#0f172a', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
               {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map((h, i) => (
-                <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
+                <div key={i} style={{ fontSize: '0.68rem', fontWeight: '800', color: '#6b7280', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
               ))}
             </div>
             {items.map((item: any, i: number) => (
@@ -1137,10 +1137,10 @@ export default function AdminOrders() {
                     )}
                   </div>
                   {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700', marginTop: '2px' }}>{item.brand}</div>}
-                  {(item.car_make || item.car_model) && <div style={{ fontSize: '0.68rem', color: '#888', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</div>}
+                  {(item.car_make || item.car_model) && <div style={{ fontSize: '0.68rem', color: '#9ca3af', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>🚗 {[item.car_make, item.car_model, item.car_model_year].filter(Boolean).join(' ')}</div>}
                 </div>
                 <div style={{ textAlign: 'center' }}><span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '800' }}>×{item.quantity}</span></div>
-                <div style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', color: '#444' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
+                <div style={{ textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', color: '#6b7280' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
                 <div style={{ textAlign: 'center', fontSize: '0.9rem', fontWeight: '900', color: '#1a1a1a' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
               </div>
             ))}
@@ -1158,11 +1158,11 @@ export default function AdminOrders() {
               {discountVal > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e5e5', fontSize: '0.86rem' }}>
                   <span style={{ color: '#666', fontWeight: '700' }}>الخصم</span>
-                  <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discountVal.toLocaleString('ar-EG')} ج.م</span>
+                  <span style={{ color: '#16a34a', fontWeight: '800' }}>- {discountVal.toLocaleString('ar-EG')} ج.م</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '14px 18px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: '12px' }}>
-                <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
+                <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '0.82rem', fontWeight: '700' }}>الإجمالي الكلي</span>
                 <span style={{ color: '#22c55e', fontSize: '1.35rem', fontWeight: '900' }}>{total.toLocaleString('ar-EG')} ج.م</span>
               </div>
             </div>
@@ -1171,11 +1171,11 @@ export default function AdminOrders() {
         <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', padding: '24px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '1rem', fontWeight: '900', fontStyle: 'italic', color: '#fff' }}>ZAIT <span style={{ color: '#22c55e' }}>&amp; FILTERS</span></div>
-            <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.7rem', marginTop: '3px' }}>zaitandfilters.com</div>
+            <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.7rem', marginTop: '3px' }}>zaitandfilters.com</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
-            <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '2px' }}>Thank you for your order</div>
+            <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.68rem', marginTop: '2px' }}>Thank you for your order</div>
           </div>
           <div style={{ backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '8px', padding: '6px 14px', color: '#22c55e', fontSize: '0.72rem', fontWeight: '800', letterSpacing: '1px' }}>ORDER #{orderNum}</div>
         </div>
@@ -1224,7 +1224,7 @@ export default function AdminOrders() {
 
       {/* ── Search bar ── */}
       <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: `1.5px solid ${orderSearch ? '#22c55e' : '#e2e8f0'}`, borderRadius: '14px', padding: '10px 16px', boxShadow: orderSearch ? '0 0 0 3px rgba(34,197,94,0.1)' : 'none', transition: 'all 0.15s', maxWidth: '480px' }}>
-        <Search size={18} color={orderSearch ? '#22c55e' : '#94a3b8'} style={{ flexShrink: 0 }} />
+        <Search size={18} color={orderSearch ? '#22c55e' : '#6b7280'} style={{ flexShrink: 0 }} />
         <input
           value={orderSearch}
           onChange={e => { setOrderSearch(e.target.value); setCurrentPage(1); }}
@@ -1234,13 +1234,13 @@ export default function AdminOrders() {
         />
         {orderSearch && (
           <button onClick={() => { setOrderSearch(''); setCurrentPage(1); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0, display: 'flex', flexShrink: 0 }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0, display: 'flex', flexShrink: 0 }}>
             <X size={16} />
           </button>
         )}
       </div>
       {orderSearch && (
-        <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '700', marginBottom: '12px', marginTop: '-8px' }}>
+        <p style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '700', marginBottom: '12px', marginTop: '-8px' }}>
           {getFilteredOrders().length} نتيجة لـ "{orderSearch}"
         </p>
       )}
@@ -1255,7 +1255,7 @@ export default function AdminOrders() {
           { key: 'processing',      label: 'تجهيز',             color: '#ca8a04' },
           { key: 'shipped',         label: 'شحن',               color: '#1e40af' },
           { key: 'delivered',       label: 'توصيل',             color: '#15803d' },
-          { key: 'cancelled',       label: 'ملغي',              color: '#dc2626' },
+          { key: 'cancelled',       label: 'ملغي',              color: '#16a34a' },
           { key: 'refunded',        label: 'مسترجع',            color: '#6d28d9' },
         ];
         return (
@@ -1277,17 +1277,17 @@ export default function AdminOrders() {
 
       {/* ── BULK ACTION BAR ── */}
       {selectedIds.size > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '14px 20px', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.95rem' }}>
-            تم تحديد <span style={{ color: '#ff4d4d', fontSize: '1.1rem', fontWeight: '900' }}>{selectedIds.size}</span> طلب
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f0fdf4', border: '1px solid #22c55e44', borderRadius: '12px', padding: '14px 20px', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{ color: '#1a1a1a', fontWeight: '700', fontSize: '0.95rem' }}>
+            تم تحديد <span style={{ color: '#22c55e', fontSize: '1.1rem', fontWeight: '900' }}>{selectedIds.size}</span> طلب
           </span>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button onClick={() => setSelectedIds(new Set())}
-              style={{ padding: '8px 15px', backgroundColor: '#111', color: '#aaa', border: '1px solid #333', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              style={{ padding: '8px 15px', backgroundColor: '#e5e7eb', color: '#6b7280', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <X size={14} /> إلغاء التحديد
             </button>
             <button onClick={handleBulkDelete} disabled={bulkDeleting}
-              style={{ padding: '8px 16px', backgroundColor: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '8px', cursor: bulkDeleting ? 'not-allowed' : 'pointer', fontSize: '0.8rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '6px', opacity: bulkDeleting ? 0.7 : 1 }}>
+              style={{ padding: '8px 16px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: bulkDeleting ? 'not-allowed' : 'pointer', fontSize: '0.8rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '6px', opacity: bulkDeleting ? 0.7 : 1 }}>
               <Trash2 size={14} />
               {bulkDeleting ? 'جاري الحذف...' : `حذف ${selectedIds.size} طلب`}
             </button>
@@ -1315,10 +1315,10 @@ export default function AdminOrders() {
                         style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}
                         title={allPageSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل'}>
                         {allPageSelected
-                          ? <CheckSquare size={20} color="#ff4d4d" />
+                          ? <CheckSquare size={20} color="#22c55e" />
                           : partialPageSelected
                             ? <Minus size={20} color="#f1c40f" style={{ border: '2px solid #f1c40f', borderRadius: '4px' }} />
-                            : <Square size={20} color="#ccc" />
+                            : <Square size={20} color="#9ca3af" />
                         }
                       </button>
                     </th>
@@ -1337,7 +1337,7 @@ export default function AdminOrders() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
+                    <tr><td colSpan={12} style={{ textAlign: 'center', padding: '60px', color: '#6b7280', fontSize: '0.95rem' }}>لا توجد طلبات في هذا القسم</td></tr>
                   ) : paginated.map((order) => {
                     const { datePart, timePart } = formatDateTime(order.created_at);
                     const isExpanded = expandedOrderId === order.id;
@@ -1347,25 +1347,25 @@ export default function AdminOrders() {
                     return (
                       <>
                         <tr key={order.id} className="order-row-clickable"
-                          style={{ ...tr, background: isSelected ? 'rgba(255,77,77,0.06)' : isExpanded ? '#f0fdf4' : '#fff', cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                          style={{ ...tr, background: isSelected ? 'rgba(34,197,94,0.06)' : isExpanded ? '#f0fdf4' : '#fff', cursor: 'pointer', transition: 'background-color 0.15s ease' }}
                           onClick={() => toggleExpandOrder(order)}>
                           <td style={{ ...td, textAlign: 'center', width: '40px' }} onClick={e => e.stopPropagation()}>
                             <button onClick={() => toggleSelectOne(order.id)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                              {isSelected ? <CheckSquare size={18} color="#ff4d4d" /> : <Square size={18} color="#ccc" />}
+                              {isSelected ? <CheckSquare size={18} color="#22c55e" /> : <Square size={18} color="#9ca3af" />}
                             </button>
                           </td>
                           <td style={{ ...td, padding: '18px 8px 18px 0', width: '32px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {isExpanding
                                 ? <Loader2 size={16} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} />
-                                : <ChevronDown size={18} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                                : <ChevronDown size={18} color={isExpanded ? '#22c55e' : '#6b7280'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                               }
                             </div>
                           </td>
                           <td style={td}>
                             <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={10} /> {order.customer_phone}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={10} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
                             {order.promo_code && (
                               <div style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
@@ -1421,7 +1421,7 @@ export default function AdminOrders() {
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); setQuickTrackingOrderId(null); setQuickTrackingValue(''); }}
                                   style={{ width: '28px', height: '28px', background: '#fee2e2', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  <X size={12} color="#dc2626" />
+                                  <X size={12} color="#16a34a" />
                                 </button>
                               </div>
                             ) : order.tracking_number ? (
@@ -1429,7 +1429,7 @@ export default function AdminOrders() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                   <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#1a1a1a', fontFamily: 'monospace', background: '#f0fdf4', padding: '2px 7px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>{order.tracking_number}</span>
                                   <button onClick={(e) => { e.stopPropagation(); setQuickTrackingOrderId(order.id); setQuickTrackingValue(order.tracking_number); }}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#888', flexShrink: 0 }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#9ca3af', flexShrink: 0 }}
                                     title="تعديل رقم التتبع">
                                     <Edit2 size={12} />
                                   </button>
@@ -1441,15 +1441,15 @@ export default function AdminOrders() {
                               </div>
                             ) : (
                               <button onClick={(e) => { e.stopPropagation(); setQuickTrackingOrderId(order.id); setQuickTrackingValue(''); }}
-                                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f8faff', color: '#94a3b8', border: '1.5px dashed #cbd5e1', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f8faff', color: '#6b7280', border: '1.5px dashed #374151', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
                                 onMouseEnter={e => { const b = e.currentTarget; b.style.borderColor = '#22c55e'; b.style.color = '#22c55e'; b.style.background = '#f0fdf4'; }}
-                                onMouseLeave={e => { const b = e.currentTarget; b.style.borderColor = '#cbd5e1'; b.style.color = '#94a3b8'; b.style.background = '#f8faff'; }}>
+                                onMouseLeave={e => { const b = e.currentTarget; b.style.borderColor = '#374151'; b.style.color = '#6b7280'; b.style.background = '#f8faff'; }}>
                                 <Plus size={12} /> إضافة رقم تتبع
                               </button>
                             )}
                           </td>
                           <td style={td}>
-                            <div style={{ fontSize: '0.75rem', color: '#444', fontWeight: '700' }}>{datePart}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '700' }}>{datePart}</div>
                             <div style={{ fontSize: '0.68rem', color: '#22c55e', fontWeight: '700', marginTop: '1px' }}>{timePart}</div>
                           </td>
                           <td style={td}>
@@ -1483,7 +1483,7 @@ export default function AdminOrders() {
             {/* ── MOBILE CARDS ── */}
             <div className="mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: '10px' }}>
               {paginated.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#aaa', fontSize: '0.95rem', background: '#fff', borderRadius: '16px' }}>لا توجد طلبات في هذا القسم</div>
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280', fontSize: '0.95rem', background: '#fff', borderRadius: '16px' }}>لا توجد طلبات في هذا القسم</div>
               ) : paginated.map((order) => {
                 const { datePart, timePart } = formatDateTime(order.created_at);
                 const isExpanded = expandedOrderId === order.id;
@@ -1492,16 +1492,16 @@ export default function AdminOrders() {
                 const ps = order.payment_status || 'pending';
                 const pc = paymentStatusColors[ps] || paymentStatusColors.pending;
                 return (
-                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isSelected ? '2px solid #ff4d4d' : isExpanded ? '2px solid #22c55e' : '1px solid #eee', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 0', background: isSelected ? 'rgba(255,77,77,0.04)' : '#fff' }}>
+                  <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isSelected ? '2px solid #22c55e' : isExpanded ? '2px solid #22c55e' : '1px solid #eee', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'border-color 0.2s' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px 0', background: isSelected ? 'rgba(34,197,94,0.04)' : '#fff' }}>
                       <button onClick={() => toggleSelectOne(order.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '4px' }}>
-                        {isSelected ? <CheckSquare size={20} color="#ff4d4d" /> : <Square size={20} color="#ccc" />}
+                        {isSelected ? <CheckSquare size={20} color="#22c55e" /> : <Square size={20} color="#9ca3af" />}
                       </button>
                       <div onClick={() => toggleExpandOrder(order)} style={{ flex: 1, cursor: 'pointer' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                           <div>
                             <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
-                            <div style={{ fontSize: '0.78rem', color: '#777', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
+                            <div style={{ fontSize: '0.78rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
                             {order.promo_code && (
                               <div style={{ marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 7px', fontSize: '0.68rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace' }}>
@@ -1511,7 +1511,7 @@ export default function AdminOrders() {
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                             <span style={{ fontWeight: '900', fontSize: '1rem', color: '#15803d' }}>{order.total_price} ج.م</span>
-                            {isExpanding ? <Loader2 size={18} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} /> : <ChevronDown size={20} color={isExpanded ? '#22c55e' : '#aaa'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />}
+                            {isExpanding ? <Loader2 size={18} color="#22c55e" style={{ animation: 'spin 1s linear infinite' }} /> : <ChevronDown size={20} color={isExpanded ? '#22c55e' : '#6b7280'} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />}
                           </div>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
@@ -1524,7 +1524,7 @@ export default function AdminOrders() {
                             return <span style={{ fontSize: '0.72rem', fontWeight: '800', padding: '4px 10px', borderRadius: '8px', background: sc.background, color: sc.color, border: sc.border }}>{statusLabels[order.status] || order.status}</span>;
                           })()}
                           <span onClick={e => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <small style={{ color: '#94a3b8', fontSize: '0.68rem' }}>متبقٍّ</small>
+                            <small style={{ color: '#6b7280', fontSize: '0.68rem' }}>متبقٍّ</small>
                             <RemainingAmountCell order={order} />
                           </span>
                           {order.tracking_number && (
@@ -1533,7 +1533,7 @@ export default function AdminOrders() {
                               <Truck size={10} /> {order.tracking_number}
                             </a>
                           )}
-                          <span style={{ fontSize: '0.72rem', color: '#999', marginRight: 'auto' }}>{datePart} • {timePart}</span>
+                          <span style={{ fontSize: '0.72rem', color: '#6b7280', marginRight: 'auto' }}>{datePart} • {timePart}</span>
                         </div>
                         <div style={{ paddingBottom: '12px' }} />
                       </div>
@@ -1541,7 +1541,7 @@ export default function AdminOrders() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '1px solid #f0f0f0', background: '#fafafa' }} onClick={e => e.stopPropagation()}>
                       {/* ── CHANGED: added pending_payment option ── */}
                       <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                        style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#333', borderLeft: '1px solid #f0f0f0' }}>
+                        style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px 12px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', outline: 'none', color: '#d1d5db', borderLeft: '1px solid #f0f0f0' }}>
                         <option value="pending_payment">انتظار الدفع</option><option value="pending">جديد</option><option value="processing">تجهيز</option><option value="shipped">شحن</option><option value="delivered">توصيل</option><option value="cancelled">ملغي</option><option value="refunded">مسترجع</option>
                       </select>
                       <button onClick={() => openDetailModal(order)} style={{ flex: 1, border: 'none', background: 'transparent', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.78rem', fontWeight: '700', color: '#1e40af', borderLeft: '1px solid #f0f0f0' }}><Eye size={14} /> تفاصيل</button>
@@ -1561,12 +1561,12 @@ export default function AdminOrders() {
             {totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === 1 ? '#f5f5f5' : '#fff', color: currentPage === 1 ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>← السابق</button>
+                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === 1 ? '#1a1a1a' : '#fff', color: currentPage === 1 ? '#9ca3af' : '#1a1a1a', fontWeight: '700', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>← السابق</button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
                   const isNear = Math.abs(page - currentPage) <= 2 || page === 1 || page === totalPages;
                   if (!isNear) {
-                    if (page === 2 && currentPage > 4) return <span key={page} style={{ color: '#aaa' }}>...</span>;
-                    if (page === totalPages - 1 && currentPage < totalPages - 3) return <span key={page} style={{ color: '#aaa' }}>...</span>;
+                    if (page === 2 && currentPage > 4) return <span key={page} style={{ color: '#6b7280' }}>...</span>;
+                    if (page === totalPages - 1 && currentPage < totalPages - 3) return <span key={page} style={{ color: '#6b7280' }}>...</span>;
                     return null;
                   }
                   return (
@@ -1577,8 +1577,8 @@ export default function AdminOrders() {
                   );
                 })}
                 <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === totalPages ? '#f5f5f5' : '#fff', color: currentPage === totalPages ? '#ccc' : '#1a1a1a', fontWeight: '700', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>التالي →</button>
-                <span style={{ color: '#888', fontSize: '0.82rem', marginRight: '8px' }}>صفحة {currentPage} من {totalPages} — {filtered.length} طلب</span>
+                  style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid #e5e5e5', background: currentPage === totalPages ? '#1a1a1a' : '#fff', color: currentPage === totalPages ? '#9ca3af' : '#1a1a1a', fontWeight: '700', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}>التالي →</button>
+                <span style={{ color: '#9ca3af', fontSize: '0.82rem', marginRight: '8px' }}>صفحة {currentPage} من {totalPages} — {filtered.length} طلب</span>
               </div>
             )}
           </>
@@ -1597,7 +1597,7 @@ export default function AdminOrders() {
               </div>
               <button onClick={handlePrintInvoice} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 14px', background: '#fff', color: '#1a1a1a', border: '1.5px solid #ddd', borderRadius: '12px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' }}><Printer size={16} /> طباعة</button>
               <button onClick={() => handleDownloadInvoice(selectedOrder)} disabled={isDownloadingPdf}
-                style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 16px', background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: isDownloadingPdf ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 16px', background: isDownloadingPdf ? '#9ca3af' : 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: isDownloadingPdf ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
                 <Download size={16} /> {isDownloadingPdf ? 'جاري...' : 'PDF'}
               </button>
               <button onClick={() => { setShowInvoice(false); setSelectedOrder(null); setEnrichedItems([]); }} style={closeBtn}><X size={22} /></button>
@@ -1653,7 +1653,7 @@ export default function AdminOrders() {
                     const c = paymentStatusColors[ps] || paymentStatusColors.pending;
                     return (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '0.78rem', color: '#888', fontWeight: '700' }}>الحالة الحالية:</span>
+                        <span style={{ fontSize: '0.78rem', color: '#9ca3af', fontWeight: '700' }}>الحالة الحالية:</span>
                         <span style={{ fontSize: '0.88rem', fontWeight: '900', padding: '6px 16px', borderRadius: '10px', background: c.bg, color: c.color, border: `1.5px solid ${c.border}` }}>{paymentStatusLabels[ps]}</span>
                       </div>
                     );
@@ -1665,9 +1665,9 @@ export default function AdminOrders() {
                       const c = paymentStatusColors[key];
                       return (
                         <button key={key} disabled={isActive || updatingPayment} onClick={() => updatePaymentStatus(selectedOrder.id, key)}
-                          style={{ padding: '7px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800', cursor: isActive || updatingPayment ? 'not-allowed' : 'pointer', border: `1.5px solid ${isActive ? c.border : '#e5e7eb'}`, background: isActive ? c.bg : '#fff', color: isActive ? c.color : '#888', opacity: isActive ? 1 : 0.75, transition: 'all 0.15s' }}
+                          style={{ padding: '7px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800', cursor: isActive || updatingPayment ? 'not-allowed' : 'pointer', border: `1.5px solid ${isActive ? c.border : '#e5e7eb'}`, background: isActive ? c.bg : '#fff', color: isActive ? c.color : '#9ca3af', opacity: isActive ? 1 : 0.75, transition: 'all 0.15s' }}
                           onMouseEnter={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = c.bg; b.style.color = c.color; b.style.border = `1.5px solid ${c.border}`; b.style.opacity = '1'; } }}
-                          onMouseLeave={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = '#fff'; b.style.color = '#888'; b.style.border = '1.5px solid #e5e7eb'; b.style.opacity = '0.75'; } }}>
+                          onMouseLeave={e => { if (!isActive) { const b = e.currentTarget as HTMLButtonElement; b.style.background = '#fff'; b.style.color = '#9ca3af'; b.style.border = '1.5px solid #e5e7eb'; b.style.opacity = '0.75'; } }}>
                           {updatingPayment && !isActive ? '...' : label}
                         </button>
                       );
@@ -1713,7 +1713,7 @@ export default function AdminOrders() {
                     <label style={labelStyle}>رقم التتبع (اختياري)</label>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                        <Truck size={16} color="#aaa" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                        <Truck size={16} color="#6b7280" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                         <input
                           className="tracking-input"
                           type="text"
@@ -1730,7 +1730,7 @@ export default function AdminOrders() {
                         </a>
                       )}
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#9ca3af' }}>
                       سيتم إنشاء رابط تتبع تلقائي على موقع البريد المصري وإظهاره للعميل في حسابه.
                       اتركه فارغاً إذا لم يكن لديك رقم تتبع بعد.
                     </p>
@@ -1760,7 +1760,7 @@ export default function AdminOrders() {
                         {(parseFloat(selectedOrder.discount_applied || selectedOrder.discount_amount || 0) > 0) && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontSize: '0.82rem', color: '#555', fontWeight: '700' }}>قيمة الخصم:</span>
-                            <span style={{ color: '#dc2626', fontWeight: '900', fontSize: '0.95rem' }}>- {parseFloat(selectedOrder.discount_applied || selectedOrder.discount_amount || 0).toFixed(2)} ج.م</span>
+                            <span style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.95rem' }}>- {parseFloat(selectedOrder.discount_applied || selectedOrder.discount_amount || 0).toFixed(2)} ج.م</span>
                           </div>
                         )}
                         {(parseFloat(selectedOrder.wallet_discount || 0) > 0) && (
@@ -1877,7 +1877,7 @@ export default function AdminOrders() {
                             <label style={labelStyle}>🔍 بحث سريع باسم المنتج</label>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <div style={{ position: 'relative', flex: 1 }}>
-                                <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999', pointerEvents: 'none' }} />
+                                <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', pointerEvents: 'none' }} />
                                 <input value={productSearchQuery} onChange={e => setProductSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchFilteredProducts()} placeholder="اكتب اسم المنتج..." style={{ ...inputStyle, paddingRight: '38px', background: '#fff' }} />
                               </div>
                               <button onClick={fetchFilteredProducts} style={saveBtnStyle}><Search size={15} /> بحث</button>
@@ -1893,14 +1893,14 @@ export default function AdminOrders() {
                           <button onClick={fetchFilteredProducts} style={{ ...saveBtnStyle, width: '100%', justifyContent: 'center', marginBottom: '14px' }}>{loadingProducts ? 'جاري البحث...' : 'بحث بالفلاتر'}</button>
                           <div style={{ display: 'grid', gap: '8px', maxHeight: '320px', overflowY: 'auto' }}>
                             {loadingProducts && <p style={{ color: '#27ae60', textAlign: 'center', padding: '20px' }}>جاري البحث...</p>}
-                            {!loadingProducts && filteredProducts.length === 0 && <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>ابحث باسم المنتج أو استخدم الفلاتر أعلاه</p>}
+                            {!loadingProducts && filteredProducts.length === 0 && <p style={{ color: '#6b7280', textAlign: 'center', padding: '20px' }}>ابحث باسم المنتج أو استخدم الفلاتر أعلاه</p>}
                             {filteredProducts.map((prod: any) => (
                               <div key={prod.id} style={searchProductRow}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <img src={prod.image_url || 'https://via.placeholder.com/50'} style={{ width: '45px', height: '45px', borderRadius: '8px', objectFit: 'contain', border: '1px solid #eee' }} alt="" />
                                   <div>
                                     <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#1a1a1a' }}>{prod.name}</div>
-                                    <div style={{ fontSize: '0.75rem', color: '#888' }}>{prod.brand}{prod.car_make ? ` • ${prod.car_make} ${prod.car_model}` : ''}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{prod.brand}{prod.car_make ? ` • ${prod.car_make} ${prod.car_model}` : ''}</div>
                                   </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1931,7 +1931,7 @@ export default function AdminOrders() {
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                           <select value={discount.type} onChange={e => setDiscount(d => ({ ...d, type: e.target.value as any }))} style={{ ...inputStyle, width: 'clamp(130px, 40%, 160px)' }}><option value="amount">خصم بمبلغ (ج.م)</option><option value="percent">خصم بنسبة (%)</option></select>
                           <input type="number" min={0} value={discount.value || ''} onChange={e => setDiscount(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))} placeholder={discount.type === 'percent' ? 'مثال: 10' : 'مثال: 50'} style={{ ...inputStyle, width: '100px' }} />
-                          <span style={{ color: '#999', fontWeight: '700', fontSize: '0.9rem', flexShrink: 0 }}>{discount.type === 'percent' ? '%' : 'ج.م'}</span>
+                          <span style={{ color: '#6b7280', fontWeight: '700', fontSize: '0.9rem', flexShrink: 0 }}>{discount.type === 'percent' ? '%' : 'ج.م'}</span>
                         </div>
                       </div>
                       <div>
@@ -1950,7 +1950,7 @@ export default function AdminOrders() {
                             <>
                               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#666' }}><span>المنتجات</span><span>{itemsTotal.toLocaleString()} ج.م</span></div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#666' }}><span>الشحن</span><span style={{ color: ship === 0 ? '#22c55e' : '#666' }}>{ship === 0 ? 'مجاني' : `${ship.toLocaleString()} ج.م`}</span></div>
-                              {discVal > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#ef4444' }}><span>الخصم</span><span>- {discVal.toFixed(0)} ج.م</span></div>}
+                              {discVal > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#16a34a' }}><span>الخصم</span><span>- {discVal.toFixed(0)} ج.م</span></div>}
                               {extraFee.amount > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#f59e0b' }}><span>{extraFee.reason || 'رسوم إضافية'}</span><span>+ {extraFee.amount.toLocaleString()} ج.م</span></div>}
                               <div style={{ borderTop: '2px dashed #fde68a', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontWeight: '900', color: '#92400e', fontSize: '0.95rem' }}>الإجمالي الجديد</span>
@@ -1992,14 +1992,14 @@ export default function AdminOrders() {
       {/* Delete Confirm Modal */}
       {deleteConfirmId && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)', padding: '16px' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 36px)', maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 36px)', maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🗑️</div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>تأكيد الحذف</h3>
             <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '8px', lineHeight: 1.6 }}>هل أنت متأكد من حذف هذا الطلب نهائياً؟</p>
-            <p style={{ color: '#dc2626', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
+            <p style={{ color: '#16a34a', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Trash2 size={16} /> نعم، احذف</button>
-              <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
+              <button onClick={() => handleDelete(deleteConfirmId)} style={{ padding: '12px 28px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Trash2 size={16} /> نعم، احذف</button>
+              <button onClick={() => setDeleteConfirmId(null)} style={{ padding: '12px 28px', backgroundColor: '#ffffff', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>
@@ -2008,25 +2008,25 @@ export default function AdminOrders() {
       {/* Cancel Order Confirm Modal */}
       {cancelConfirmOrderId && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)', padding: '16px' }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 36px)', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 36px)', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🚫</div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>تأكيد إلغاء الطلب</h3>
             <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '20px', lineHeight: 1.6 }}>هل أنت متأكد من إلغاء هذا الطلب؟</p>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', background: banCodOnCancel ? '#fef2f2' : '#f9fafb', border: banCodOnCancel ? '2px solid #dc2626' : '2px solid #e5e7eb', borderRadius: '14px', padding: '16px', cursor: 'pointer', marginBottom: '24px', transition: 'all 0.15s', textAlign: 'right' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', background: banCodOnCancel ? '#f0fdf4' : '#f9fafb', border: banCodOnCancel ? '2px solid #16a34a' : '2px solid #e5e7eb', borderRadius: '14px', padding: '16px', cursor: 'pointer', marginBottom: '24px', transition: 'all 0.15s', textAlign: 'right' }}>
               <input
                 type="checkbox"
                 checked={banCodOnCancel}
                 onChange={(e) => setBanCodOnCancel(e.target.checked)}
-                style={{ width: '20px', height: '20px', accentColor: '#dc2626', flexShrink: 0, cursor: 'pointer' }}
+                style={{ width: '20px', height: '20px', accentColor: '#16a34a', flexShrink: 0, cursor: 'pointer' }}
               />
               <div>
                 <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '2px' }}>منع العميل من الدفع عند الاستلام</div>
-                <div style={{ fontSize: '0.78rem', color: '#888', fontWeight: '600' }}>لن يتمكن العميل من استخدام خيار الدفع عند الاستلام في طلباته القادمة</div>
+                <div style={{ fontSize: '0.78rem', color: '#9ca3af', fontWeight: '600' }}>لن يتمكن العميل من استخدام خيار الدفع عند الاستلام في طلباته القادمة</div>
               </div>
             </label>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button onClick={confirmCancelOrder} style={{ padding: '12px 28px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16} /> نعم، إلغاء الطلب</button>
-              <button onClick={() => { setCancelConfirmOrderId(null); setBanCodOnCancel(false); }} style={{ padding: '12px 28px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
+              <button onClick={confirmCancelOrder} style={{ padding: '12px 28px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16} /> نعم، إلغاء الطلب</button>
+              <button onClick={() => { setCancelConfirmOrderId(null); setBanCodOnCancel(false); }} style={{ padding: '12px 28px', backgroundColor: '#ffffff', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>
@@ -2042,16 +2042,16 @@ const badgeCount: any = { background: '#27ae60', color: '#fff', padding: '4px 14
 const tableWrapper: any = { background: '#fff', borderRadius: '25px', border: '1px solid #eee', overflow: 'auto', maxWidth: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const thRow: any = { background: '#fcfcfc', borderBottom: '1px solid #eee' };
-const th: any = { padding: '10px 8px', fontSize: '0.75rem', color: '#888', fontWeight: 'bold', whiteSpace: 'nowrap' };
+const th: any = { padding: '10px 8px', fontSize: '0.75rem', color: '#9ca3af', fontWeight: 'bold', whiteSpace: 'nowrap' };
 const tr: any = { borderBottom: '1px solid #f9f9f9', transition: '0.2s' };
-const td: any = { padding: '10px 8px', fontSize: '0.82rem', color: '#333', verticalAlign: 'middle' };
+const td: any = { padding: '10px 8px', fontSize: '0.82rem', color: '#d1d5db', verticalAlign: 'middle' };
 const cityBadge: any = { display: 'flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#15803d', padding: '4px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold', width: 'fit-content' };
 const payTypeStyle: any = { display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#555' };
 // ── CHANGED: added pending_payment color to miniSelectStyle ──
 const miniSelectStyle = (s: string): any => ({
-  background: s === 'pending_payment' ? '#f5f3ff' : s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#fef2f2' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
-  color: s === 'pending_payment' ? '#7c3aed' : s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : s === 'cancelled' ? '#dc2626' : s === 'refunded' ? '#6d28d9' : '#ca8a04',
-  border: `1px solid ${s === 'pending_payment' ? '#ddd6fe' : s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : s === 'cancelled' ? '#fecaca' : s === 'refunded' ? '#ddd6fe' : '#fef3c7'}`,
+  background: s === 'pending_payment' ? '#f5f3ff' : s === 'pending' ? '#fff7ed' : s === 'delivered' ? '#f0fdf4' : s === 'shipped' ? '#eff6ff' : s === 'cancelled' ? '#f0fdf4' : s === 'refunded' ? '#f5f3ff' : '#fef3c7',
+  color: s === 'pending_payment' ? '#7c3aed' : s === 'pending' ? '#c2410c' : s === 'delivered' ? '#15803d' : s === 'shipped' ? '#1e40af' : s === 'cancelled' ? '#16a34a' : s === 'refunded' ? '#6d28d9' : '#ca8a04',
+  border: `1px solid ${s === 'pending_payment' ? '#ddd6fe' : s === 'pending' ? '#ffedd5' : s === 'delivered' ? '#dcfce7' : s === 'shipped' ? '#dbeafe' : s === 'cancelled' ? '#dcfce7' : s === 'refunded' ? '#ddd6fe' : '#fef3c7'}`,
   padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', outline: 'none', fontSize: '0.8rem', fontWeight: 'bold'
 });
 const iconBtn: any = { background: '#f8f9fa', border: '1px solid #eee', color: '#555', padding: '9px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' };
@@ -2060,7 +2060,7 @@ const delBtn: any = { background: '#fff5f5', border: '1px solid #ffebeb', color:
 const modalOverlay: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'clamp(8px, 3vw, 20px)', backdropFilter: 'blur(4px)' };
 const modalContent: any = { background: '#fff', width: '100%', maxHeight: '95vh', overflowY: 'auto', borderRadius: 'clamp(16px, 4vw, 35px)', padding: 'clamp(16px, 4vw, 35px)', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' };
 const modalHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '15px' };
-const closeBtn: any = { background: '#f8f9fa', border: 'none', color: '#888', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+const closeBtn: any = { background: '#f8f9fa', border: 'none', color: '#9ca3af', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 const modalBody: any = { display: 'flex', flexDirection: 'column', gap: '20px' };
 const modalCard: any = { background: '#fcfcfc', padding: 'clamp(14px, 3vw, 25px)', borderRadius: '20px', border: '1px solid #f0f0f0' };
 const cardTitle: any = { fontSize: '1.1rem', color: '#1a1a1a', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' };
@@ -2085,7 +2085,7 @@ const cancelBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '6px',
 const qtyBtn: any = { width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #e0e0e0', background: '#f8f9fa', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
 const removeItemBtn: any = { display: 'flex', alignItems: 'center', gap: '5px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', whiteSpace: 'nowrap' };
 const addItemBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', color: '#15803d', border: '2px dashed #86efac', borderRadius: '12px', padding: '10px 18px', cursor: 'pointer', fontWeight: '700', fontSize: '0.9rem', width: '100%', justifyContent: 'center' };
-const addrBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', color: '#444', width: '100%' };
+const addrBtnStyle: any = { display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', color: '#6b7280', width: '100%' };
 const searchProductRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '10px 12px', borderRadius: '12px', border: '1px solid #eee', flexWrap: 'wrap', gap: '8px' };
 
 export function CustomerTrackingBanner({ order }: { order: { tracking_number?: string | null; status?: string } }) {
@@ -2114,7 +2114,7 @@ export function CustomerTrackingBanner({ order }: { order: { tracking_number?: s
       </div>
       <div style={{ background: '#fff', borderRadius: '12px', padding: '14px 16px', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#888', marginBottom: '4px', letterSpacing: '0.5px' }}>رقم تتبع الشحنة</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#9ca3af', marginBottom: '4px', letterSpacing: '0.5px' }}>رقم تتبع الشحنة</div>
           <div style={{ fontWeight: '900', fontSize: '1.05rem', color: '#1a1a1a', fontFamily: 'monospace', letterSpacing: '1.5px' }}>{order.tracking_number}</div>
         </div>
         <a

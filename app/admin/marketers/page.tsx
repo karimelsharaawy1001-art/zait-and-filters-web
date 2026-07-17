@@ -189,7 +189,7 @@ export default function AdminMarketers() {
           .pm-table td[data-label]::before {
             content: attr(data-label);
             font-weight: 700;
-            color: #94a3b8;
+            color: #6b7280;
             font-size: 0.72rem;
             flex-shrink: 0;
             min-width: 90px;
@@ -213,7 +213,7 @@ export default function AdminMarketers() {
         </h1>
         <div className="pm-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' as const }}>
           <div style={searchBox}>
-            <Search size={18} color="#94a3b8" />
+            <Search size={18} color="#6b7280" />
             <input
               placeholder="Search by Promoter name, code, or email..."
               style={searchInp}
@@ -243,11 +243,11 @@ export default function AdminMarketers() {
 
       {filteredMarketers.length === 0 ? (
         <div style={emptyState}>
-          <Users size={64} color="#ccc" />
-          <h3 style={{ color: '#64748b', marginTop: '20px' }}>
+          <Users size={64} color="#9ca3af" />
+          <h3 style={{ color: '#6b7280', marginTop: '20px' }}>
             {search ? 'No Promoters match your search' : 'No Promoters registered yet'}
           </h3>
-          <p style={{ color: '#94a3b8', marginTop: '10px' }}>
+          <p style={{ color: '#6b7280', marginTop: '10px' }}>
             {search ? 'حاول البحث بكلمات أخرى' : 'سيظهرون هنا بمجرد التسجيل في نظام الأفلييت'}
           </p>
         </div>
@@ -276,11 +276,11 @@ export default function AdminMarketers() {
                       <div style={{ fontWeight: '900', color: '#1e293b', marginBottom: '4px' }}>
                         {m.full_name}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
                         {m.email}
                       </div>
                       {m.phone_number && (
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '2px' }}>
                           {m.phone_number}
                         </div>
                       )}
@@ -320,7 +320,7 @@ export default function AdminMarketers() {
                     <td style={td} data-label="Codes">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div style={codeBox}>
-                          <LinkIcon size={11} color="#64748b" />
+                          <LinkIcon size={11} color="#6b7280" />
                           <code style={{ fontSize: '0.8rem' }}>{m.referral_id}</code>
                           <button
                             onClick={() => copyToClipboard(m.referral_id, 'كود الإحالة')}
@@ -331,7 +331,7 @@ export default function AdminMarketers() {
                           </button>
                         </div>
                         <div style={codeBox}>
-                          <Ticket size={11} color="#64748b" />
+                          <Ticket size={11} color="#6b7280" />
                           <code style={{ fontSize: '0.8rem' }}>{m.promo_code}</code>
                           <button
                             onClick={() => copyToClipboard(m.promo_code, 'كود البرومو')}
@@ -362,7 +362,7 @@ export default function AdminMarketers() {
                     </td>
                     
                     <td style={td} data-label="Total Earned" className="pm-hide-md">
-                      <span style={{ color: '#64748b', fontWeight: '900', fontSize: '1rem' }}>
+                      <span style={{ color: '#6b7280', fontWeight: '900', fontSize: '1rem' }}>
                         {(m.total_earnings || 0).toFixed(2)} ج.م
                       </span>
                     </td>
@@ -378,7 +378,7 @@ export default function AdminMarketers() {
                         <span style={{ color: '#f59e0b', fontWeight: '900', fontSize: '0.95rem' }}>
                           {(m.pending_balance || 0).toFixed(2)} ج.م
                         </span>
-                        <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '2px' }}>
                           (14d)
                         </span>
                       </div>
@@ -397,7 +397,7 @@ export default function AdminMarketers() {
                           </div>
                         )}
                         {!m.instapay_phone && !m.withdrawal_phone && !m.wallet_phone && (
-                          <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>لم يُضف بعد</span>
+                          <span style={{ color: '#6b7280', fontSize: '0.72rem' }}>لم يُضف بعد</span>
                         )}
                       </div>
                     </td>
@@ -490,7 +490,7 @@ export default function AdminMarketers() {
               </div>
               <div style={detailItem}>
                 <strong>Total Earnings:</strong>
-                <span style={{ color: '#64748b', fontWeight: '900' }}>
+                <span style={{ color: '#6b7280', fontWeight: '900' }}>
                   {(selectedMarketer.total_earnings || 0).toFixed(2)} ج.م
                 </span>
               </div>
@@ -512,13 +512,13 @@ export default function AdminMarketers() {
                   <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '12px 14px' }}>
                     <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', marginBottom: '4px' }}>📱 انستاباي</div>
                     <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#0f172a', direction: 'ltr' }}>
-                      {selectedMarketer.instapay_phone || selectedMarketer.withdrawal_phone || <span style={{ color: '#94a3b8', fontWeight: '600' }}>غير محدد</span>}
+                      {selectedMarketer.instapay_phone || selectedMarketer.withdrawal_phone || <span style={{ color: '#6b7280', fontWeight: '600' }}>غير محدد</span>}
                     </div>
                   </div>
                   <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '12px 14px' }}>
                     <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#1d4ed8', marginBottom: '4px' }}>💳 محفظة إلكترونية</div>
                     <div style={{ fontWeight: '900', fontSize: '0.95rem', color: '#0f172a', direction: 'ltr' }}>
-                      {selectedMarketer.wallet_phone || <span style={{ color: '#94a3b8', fontWeight: '600' }}>غير محدد</span>}
+                      {selectedMarketer.wallet_phone || <span style={{ color: '#6b7280', fontWeight: '600' }}>غير محدد</span>}
                     </div>
                   </div>
                 </div>
@@ -551,7 +551,7 @@ export default function AdminMarketers() {
 
       {/* ── Commissions modal ── */}
       {commMarketer && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 3000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.08)', zIndex: 3000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
           onClick={() => setCommMarketer(null)}>
           <div className="pm-comm-modal" style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px', padding: '28px', direction: 'rtl', marginTop: '20px' }}
             onClick={e => e.stopPropagation()}>
@@ -559,7 +559,7 @@ export default function AdminMarketers() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>💰 Commissions: {commMarketer.full_name}</h2>
-                <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>كود: {commMarketer.promo_code} — رصيد معلق: <b style={{ color: '#f59e0b' }}>{(commMarketer.pending_balance || 0).toFixed(2)} ج.م</b></p>
+                <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#6b7280' }}>كود: {commMarketer.promo_code} — رصيد معلق: <b style={{ color: '#f59e0b' }}>{(commMarketer.pending_balance || 0).toFixed(2)} ج.م</b></p>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => releaseAvailable(commMarketer.id)}
@@ -585,9 +585,9 @@ export default function AdminMarketers() {
             </div>
 
             {loadingComm ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}><Loader2 size={28} style={{ animation: 'spin 0.8s linear infinite', display: 'block', margin: '0 auto' }} /></div>
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}><Loader2 size={28} style={{ animation: 'spin 0.8s linear infinite', display: 'block', margin: '0 auto' }} /></div>
             ) : commissions.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: '700' }}>No Commissions yet</div>
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontWeight: '700' }}>No Commissions yet</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="pm-comm-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
@@ -623,10 +623,10 @@ export default function AdminMarketers() {
                       return (
                         <tr key={c.id} style={{ borderBottom: '1px solid #f8fafc' }}>
                           <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>#{c.order_id?.slice(0,8)}</td>
-                          <td className="pm-hide-sm" style={{ padding: '10px 12px', color: '#64748b' }}>{new Date(c.created_at).toLocaleDateString('ar-EG')}</td>
+                          <td className="pm-hide-sm" style={{ padding: '10px 12px', color: '#6b7280' }}>{new Date(c.created_at).toLocaleDateString('ar-EG')}</td>
                           <td className="pm-hide-sm" style={{ padding: '10px 12px', fontWeight: '700' }}>{parseFloat(c.order_total).toFixed(2)} ج.م</td>
                           <td style={{ padding: '10px 12px', color: '#15803d', fontWeight: '900' }}>+{parseFloat(c.commission_amount).toFixed(2)} ج.م</td>
-                          <td className="pm-hide-sm" style={{ padding: '10px 12px', color: '#64748b' }}>{c.delivery_date ? new Date(c.delivery_date).toLocaleDateString('ar-EG') : '—'}</td>
+                          <td className="pm-hide-sm" style={{ padding: '10px 12px', color: '#6b7280' }}>{c.delivery_date ? new Date(c.delivery_date).toLocaleDateString('ar-EG') : '—'}</td>
                           <td style={{ padding: '10px 12px' }}>
                             {releaseDate ? (
                               <span style={{ color: daysLeft && daysLeft > 0 ? '#f59e0b' : '#15803d', fontWeight: '700', fontSize: '0.8rem' }}>
@@ -645,7 +645,7 @@ export default function AdminMarketers() {
                                 💸 دفع
                               </button>
                             ) : c.is_released ? (
-                              <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>✓ مدفوع</span>
+                              <span style={{ color: '#6b7280', fontSize: '0.78rem' }}>✓ مدفوع</span>
                             ) : '—'}
                           </td>
                         </tr>
@@ -675,22 +675,22 @@ const searchInp: any = { border: 'none', outline: 'none', width: '100%', fontSiz
 const tableCard: any = { background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '10px', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' };
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const thRow: any = { borderBottom: '2px solid #f1f5f9', background: '#fcfcfc' };
-const th: any = { padding: '18px 15px', color: '#64748b', fontSize: '0.85rem', fontWeight: 'bold' };
+const th: any = { padding: '18px 15px', color: '#6b7280', fontSize: '0.85rem', fontWeight: 'bold' };
 const tr: any = { borderBottom: '1px solid #f1f5f9', transition: '0.2s' };
 const td: any = { padding: '18px 15px', fontSize: '0.95rem', verticalAlign: 'middle' };
 const codeBox: any = { display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '5px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontFamily: 'monospace', width: 'fit-content' };
 const copyBtn: any = { background: 'transparent', border: 'none', cursor: 'pointer', color: '#27ae60', padding: '3px', display: 'flex', alignItems: 'center' };
 const statItem: any = { display: 'flex', alignItems: 'center', gap: '6px' };
-const payBtn: any = { background: '#1a1a1a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '0.85rem', transition: '0.2s' };
-const disabledBtn: any = { ...payBtn, background: '#f1f5f9', color: '#94a3b8', cursor: 'not-allowed' };
-const viewBtn: any = { background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: '0.2s' };
+const payBtn: any = { background: '#ffffff', color: '#1a1a1a', border: '1px solid #e5e7eb', padding: '10px 16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', fontSize: '0.85rem', transition: '0.2s' };
+const disabledBtn: any = { ...payBtn, background: '#f1f5f9', color: '#6b7280', cursor: 'not-allowed' };
+const viewBtn: any = { background: '#f8fafc', color: '#6b7280', border: '1px solid #e2e8f0', padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: '0.2s' };
 const loaderStyle: any = { textAlign: 'center', padding: '100px', color: '#27ae60', fontWeight: 'bold', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' };
-const emptyState: any = { textAlign: 'center', padding: '100px 20px', color: '#64748b' };
+const emptyState: any = { textAlign: 'center', padding: '100px 20px', color: '#6b7280' };
 const modalOverlay: any = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' };
 const modalContent: any = { background: '#fff', padding: 'clamp(18px, 4vw, 40px)', borderRadius: 'clamp(16px, 4vw, 30px)', maxWidth: '700px', width: '92%', maxHeight: '90vh', overflowY: 'auto' };
 const modalHeader: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' };
 const modalTitle: any = { margin: 0, display: 'flex', alignItems: 'center', gap: '12px', color: '#1e293b' };
-const closeBtn: any = { background: '#f8fafc', border: 'none', color: '#64748b', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const closeBtn: any = { background: '#f8fafc', border: 'none', color: '#6b7280', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const detailsGrid: any = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px', fontSize: '0.95rem' };
 const detailItem: any = { display: 'flex', flexDirection: 'column', gap: '6px' };
 const inlineCode: any = { background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.9rem' };

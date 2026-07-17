@@ -320,13 +320,13 @@ export default function CarImagesAdmin() {
 
             {/* Year From */}
             <div>
-              <label style={labelStyle}>سنة البداية <span style={{ color: '#888', fontWeight: '500' }}>(اختياري)</span></label>
+              <label style={labelStyle}>سنة البداية <span style={{ color: '#9ca3af', fontWeight: '500' }}>(اختياري)</span></label>
               <input type="number" value={yearFrom} onChange={(e) => setYearFrom(e.target.value)} placeholder="مثال: 2015" min="1990" max="2030" style={inputStyle} />
             </div>
 
             {/* Year To */}
             <div>
-              <label style={labelStyle}>سنة النهاية <span style={{ color: '#888', fontWeight: '500' }}>(اختياري)</span></label>
+              <label style={labelStyle}>سنة النهاية <span style={{ color: '#9ca3af', fontWeight: '500' }}>(اختياري)</span></label>
               <input type="number" value={yearTo} onChange={(e) => setYearTo(e.target.value)} placeholder="مثال: 2020" min="1990" max="2030" style={inputStyle} />
             </div>
 
@@ -355,7 +355,7 @@ export default function CarImagesAdmin() {
               {uploading ? 'جاري الحفظ...' : editingId ? 'تحديث' : manualMode ? 'إضافة سيارة جديدة وحفظ الصورة' : 'حفظ'}
             </button>
             {(editingId || manualMode) && (
-              <button type="button" onClick={resetForm} style={{ padding: '14px 24px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>
+              <button type="button" onClick={resetForm} style={{ padding: '14px 24px', backgroundColor: '#ffffff', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>
                 إلغاء
               </button>
             )}
@@ -364,13 +364,13 @@ export default function CarImagesAdmin() {
       </div>
 
       {loading ? (
-        <p style={{ textAlign: 'center', color: '#888', fontSize: '1.1rem' }}>جاري التحميل...</p>
+        <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '1.1rem' }}>جاري التحميل...</p>
       ) : (
         <>
           {/* ── Without Image ── */}
           {withoutImage.length > 0 && (
             <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '20px', marginBottom: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '20px', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '20px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ImageOff size={22} /> سيارات بدون صورة ({withoutImage.length})
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '15px' }}>
@@ -415,7 +415,7 @@ export default function CarImagesAdmin() {
                             )}
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <button onClick={() => prefillForm(entry)} style={{ flex: 1, padding: '7px', backgroundColor: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.82rem' }}>تعديل</button>
-                              <button onClick={() => setDeleteConfirm(entry.id!)} style={{ flex: 1, padding: '7px', backgroundColor: '#fee', color: '#dc2626', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.82rem' }}>
+                              <button onClick={() => setDeleteConfirm(entry.id!)} style={{ flex: 1, padding: '7px', backgroundColor: '#fee', color: '#16a34a', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.82rem' }}>
                                 <Trash2 size={13} /> حذف
                               </button>
                             </div>
@@ -441,17 +441,17 @@ export default function CarImagesAdmin() {
 
       {/* ── Delete Confirmation Modal ── */}
       {deleteConfirm && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: '40px 36px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '20px', padding: '40px 36px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🗑️</div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: '900', marginBottom: '10px', color: '#1a1a1a' }}>تأكيد الحذف</h3>
             <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '10px', lineHeight: 1.6 }}>هل أنت متأكد من حذف هذه الصورة؟</p>
-            <p style={{ color: '#dc2626', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
+            <p style={{ color: '#16a34a', fontWeight: '700', fontSize: '0.9rem', marginBottom: '28px' }}>لا يمكن التراجع عن هذا الإجراء</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{ padding: '12px 32px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ padding: '12px 32px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Trash2 size={16} /> نعم، احذف
               </button>
-              <button onClick={() => setDeleteConfirm(null)} style={{ padding: '12px 32px', backgroundColor: '#f5f5f5', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ padding: '12px 32px', backgroundColor: '#ffffff', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>

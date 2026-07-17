@@ -133,7 +133,7 @@ export default function AdminHero() {
 
 
   if (loading) return (
-    <div style={{ color: '#fff', padding: 'clamp(40px, 10vw, 100px)', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+    <div style={{ color: '#1a1a1a', padding: 'clamp(40px, 10vw, 100px)', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
       <Loader2 size={30} color="#2ecc71" className="animate-spin" />
       جاري تحميل السلايدات...
     </div>
@@ -141,10 +141,10 @@ export default function AdminHero() {
 
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#fff', padding: 'clamp(12px, 3vw, 20px)', paddingBottom: '50px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#1a1a1a', padding: 'clamp(12px, 3vw, 20px)', paddingBottom: '50px' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', borderBottom: '1px solid #111', paddingBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', borderBottom: '1px solid #e5e7eb', paddingBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <LayoutIcon size={32} color="#2ecc71" />
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900' }}>إدارة سلايدر الواجهة</h1>
@@ -231,7 +231,7 @@ export default function AdminHero() {
                     <img
                       src={slide.bg_image_url}
                       alt="preview"
-                      style={{ width: '60px', height: '50px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #222', flexShrink: 0 }}
+                      style={{ width: '60px', height: '50px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb', flexShrink: 0 }}
                       onError={e => (e.currentTarget.style.display = 'none')}
                     />
                   )}
@@ -257,7 +257,7 @@ export default function AdminHero() {
               disabled={savingId === slide.id}
               style={{
                 ...saveBtnStyle,
-                backgroundColor: status.id === slide.id && status.msg.includes('❌') ? '#ff4d4d' : '#2ecc71',
+                backgroundColor: status.id === slide.id && status.msg.includes('❌') ? '#22c55e' : '#2ecc71',
                 opacity: savingId === slide.id ? 0.8 : 1,
               }}
             >
@@ -271,8 +271,8 @@ export default function AdminHero() {
       </div>
 
       {slides.length === 0 && !loading && (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#444', border: '2px dashed #222', borderRadius: '20px' }}>
-          <LayoutIcon size={50} color="#222" style={{ marginBottom: '15px' }} />
+        <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280', border: '2px dashed #e5e7eb', borderRadius: '20px' }}>
+          <LayoutIcon size={50} color="#e5e7eb" style={{ marginBottom: '15px' }} />
           <p style={{ marginBottom: '20px' }}>لا توجد سلايدات حالياً</p>
           <button onClick={handleAddSlide} disabled={addingSlide} style={addBtnStyle}>
             <Plus size={20} /> إضافة أول سلايد
@@ -285,34 +285,34 @@ export default function AdminHero() {
 
 
 const slideCardStyle = {
-  backgroundColor: '#050505',
+  backgroundColor: '#ffffff',
   padding: 'clamp(16px, 4vw, 30px)',
   borderRadius: '25px',
-  border: '1px solid #111',
+  border: '1px solid #e5e7eb',
   position: 'relative' as const
 };
 
 const cardHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' };
-const badgeStyle = { backgroundColor: '#111', color: '#2ecc71', padding: '5px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold' };
+const badgeStyle = { backgroundColor: '#e5e7eb', color: '#2ecc71', padding: '5px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold' };
 const formGridStyle = { display: 'grid', gap: '20px', marginBottom: '20px' };
 const inputGroup = { display: 'flex', flexDirection: 'column' as const, gap: '8px' };
 const labelStyle = { fontSize: '0.85rem', color: '#666', fontWeight: 'bold' };
-const inputStyle: any = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #1a1a1a', backgroundColor: '#0a0a0a', color: '#fff', outline: 'none', fontFamily: 'inherit', fontSize: '0.9rem' };
+const inputStyle: any = { width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #d1d5db', backgroundColor: '#ffffff', color: '#1a1a1a', outline: 'none', fontFamily: 'inherit', fontSize: '0.9rem' };
 
 const addBtnStyle: any = {
-  display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2ecc71', color: '#000',
+  display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#2ecc71', color: '#1a1a1a',
   border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer',
   fontSize: '0.95rem', fontFamily: 'inherit'
 };
 
 const saveBtnStyle: any = {
-  width: '100%', padding: '15px', color: '#000', border: 'none', borderRadius: '12px',
+  width: '100%', padding: '15px', color: '#1a1a1a', border: 'none', borderRadius: '12px',
   fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center',
   alignItems: 'center', gap: '10px', transition: '0.3s', fontFamily: 'inherit', fontSize: '1rem'
 };
 
 const deleteBtnStyle: any = {
   display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'transparent',
-  color: '#ff4d4d', border: '1px solid #200', padding: '5px 10px', borderRadius: '8px',
+  color: '#22c55e', border: '1px solid #200', padding: '5px 10px', borderRadius: '8px',
   cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'inherit'
 };

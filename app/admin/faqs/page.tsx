@@ -88,7 +88,7 @@ export default function AdminFAQs() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>إدارة الأسئلة الشائعة</h1>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0' }}>
+          <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: '4px 0 0' }}>
             الأسئلة التي تظهر في شات بوت الموقع — يمكنك إضافتها وتعديلها وترتيبها
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function AdminFAQs() {
         <div
           onClick={() => setEditing(null)}
           style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.06)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 9999, padding: '20px',
           }}
@@ -164,7 +164,7 @@ export default function AdminFAQs() {
                 onClick={save}
                 disabled={saving || !editing.question?.trim() || !editing.answer?.trim()}
                 style={{
-                  background: saving ? '#94a3b8' : 'linear-gradient(135deg,#22c55e,#16a34a)',
+                  background: saving ? '#6b7280' : 'linear-gradient(135deg,#22c55e,#16a34a)',
                   color: '#fff', border: 'none', borderRadius: '10px',
                   padding: '10px 24px', fontWeight: 800, fontSize: '0.85rem',
                   cursor: saving ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
@@ -177,7 +177,7 @@ export default function AdminFAQs() {
               <button
                 onClick={() => setEditing(null)}
                 style={{
-                  background: '#f1f5f9', color: '#64748b', border: 'none',
+                  background: '#f1f5f9', color: '#6b7280', border: 'none',
                   borderRadius: '10px', padding: '10px 20px', fontWeight: 700,
                   fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit',
                 }}
@@ -195,7 +195,7 @@ export default function AdminFAQs() {
           <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#22c55e' }} />
         </div>
       ) : faqs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>
           <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📭</div>
           <div style={{ fontWeight: 700, fontSize: '1rem' }}>لا توجد أسئلة بعد</div>
           <div style={{ fontSize: '0.85rem', marginTop: '4px' }}>اضغط على "إضافة سؤال" لبدء إضافة الأسئلة الشائعة</div>
@@ -220,7 +220,7 @@ export default function AdminFAQs() {
                 }}
                 onClick={() => setExpandedId(expandedId === faq.id ? null : faq.id)}
               >
-                <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, minWidth: '28px' }}>
+                <div style={{ color: '#6b7280', fontSize: '0.75rem', fontWeight: 700, minWidth: '28px' }}>
                   {index + 1}
                 </div>
                 <div style={{ flex: 1, fontWeight: 700, color: '#0f172a', fontSize: '0.9rem' }}>
@@ -230,24 +230,24 @@ export default function AdminFAQs() {
                   <button
                     onClick={e => { e.stopPropagation(); moveUp(faq, index); }}
                     disabled={index === 0}
-                    style={{ background: 'none', border: 'none', cursor: index === 0 ? 'default' : 'pointer', color: index === 0 ? '#e2e8f0' : '#94a3b8', padding: '4px' }}
+                    style={{ background: 'none', border: 'none', cursor: index === 0 ? 'default' : 'pointer', color: index === 0 ? '#e2e8f0' : '#6b7280', padding: '4px' }}
                   >
                     <ChevronUp size={16} />
                   </button>
                   <button
                     onClick={e => { e.stopPropagation(); moveDown(faq, index); }}
                     disabled={index === faqs.length - 1}
-                    style={{ background: 'none', border: 'none', cursor: index === faqs.length - 1 ? 'default' : 'pointer', color: index === faqs.length - 1 ? '#e2e8f0' : '#94a3b8', padding: '4px' }}
+                    style={{ background: 'none', border: 'none', cursor: index === faqs.length - 1 ? 'default' : 'pointer', color: index === faqs.length - 1 ? '#e2e8f0' : '#6b7280', padding: '4px' }}
                   >
                     <ChevronDown size={16} />
                   </button>
                   <button
                     onClick={e => { e.stopPropagation(); toggleActive(faq); }}
                     style={{
-                      background: faq.is_active ? '#dcfce7' : '#fef2f2',
+                      background: faq.is_active ? '#dcfce7' : '#f0fdf4',
                       border: 'none', borderRadius: '6px',
                       padding: '4px 10px', fontSize: '0.7rem', fontWeight: 700,
-                      cursor: 'pointer', color: faq.is_active ? '#15803d' : '#ef4444',
+                      cursor: 'pointer', color: faq.is_active ? '#15803d' : '#16a34a',
                       fontFamily: 'inherit',
                     }}
                   >
@@ -255,13 +255,13 @@ export default function AdminFAQs() {
                   </button>
                   <button
                     onClick={e => { e.stopPropagation(); setEditing({ ...faq }); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '6px' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: '6px' }}
                   >
                     <Pencil size={15} />
                   </button>
                   <button
                     onClick={e => { e.stopPropagation(); remove(faq.id); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '6px' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', padding: '6px' }}
                   >
                     <Trash2 size={15} />
                   </button>

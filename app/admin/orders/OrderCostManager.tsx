@@ -49,7 +49,7 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
       <h3 style={{ margin: '0 0 4px', color: '#1a1a1a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
         <Wallet size={18} color="#15803d" /> تكلفة المنتجات (للأرباح)
       </h3>
-      <p style={{ color: '#888', fontSize: '0.78rem', margin: '0 0 14px' }}>
+      <p style={{ color: '#9ca3af', fontSize: '0.78rem', margin: '0 0 14px' }}>
         أدخل سعر تكلفة (شراء) كل منتج. يُحسب الربح تلقائياً ويظهر في صفحة الأرباح.
       </p>
 
@@ -62,10 +62,10 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
           return (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: '#f9fafb', border: '1px solid #f0f0f0', borderRadius: '10px', padding: '8px 12px' }}>
               <div style={{ flex: 1, minWidth: '140px' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name} <span style={{ color: '#888', fontWeight: 600 }}>×{qty}</span></div>
-                <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name} <span style={{ color: '#9ca3af', fontWeight: 600 }}>×{qty}</span></div>
+                <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
                   البيع: <strong style={{ color: '#15803d' }}>{price.toFixed(0)} ج.م</strong>
-                  {cost > 0 && <> · الربح: <strong style={{ color: profit >= 0 ? '#15803d' : '#dc2626' }}>{profit.toFixed(0)} ج.م</strong></>}
+                  {cost > 0 && <> · الربح: <strong style={{ color: profit >= 0 ? '#15803d' : '#16a34a' }}>{profit.toFixed(0)} ج.م</strong></>}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -77,7 +77,7 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
                   onChange={e => setCosts(p => ({ ...p, [String(idx)]: e.target.value }))}
                   style={{ width: '90px', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none' }}
                 />
-                <span style={{ fontSize: '0.75rem', color: '#888' }}>ج.م</span>
+                <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>ج.م</span>
               </div>
             </div>
           );
@@ -88,7 +88,7 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: '#f9fafb', border: '1px solid #f0f0f0', borderRadius: '10px', padding: '8px 12px', marginBottom: '14px' }}>
         <div style={{ flex: 1, minWidth: '140px' }}>
           <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a1a' }}>تكلفة الشحن المدفوعة</div>
-          <div style={{ fontSize: '0.72rem', color: '#888' }}>
+          <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
             الشحن المحصّل من العميل: <strong style={{ color: '#15803d' }}>{num(order.shipping_cost).toFixed(0)} ج.م</strong>
           </div>
         </div>
@@ -101,17 +101,17 @@ export default function OrderCostManager({ order, onSaved }: { order: any; onSav
             onChange={e => setShipCost(e.target.value)}
             style={{ width: '90px', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none' }}
           />
-          <span style={{ fontSize: '0.75rem', color: '#888' }}>ج.م</span>
+          <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>ج.م</span>
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#555' }}>
-            ربح المنتجات: <span style={{ color: totalProfit >= 0 ? '#15803d' : '#dc2626' }}>{totalProfit.toFixed(0)} ج.م</span>
+            ربح المنتجات: <span style={{ color: totalProfit >= 0 ? '#15803d' : '#16a34a' }}>{totalProfit.toFixed(0)} ج.م</span>
           </div>
           <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#1a1a1a' }}>
-            صافي الربح بعد الشحن: <span style={{ color: netProfit >= 0 ? '#15803d' : '#dc2626' }}>{netProfit.toFixed(0)} ج.م</span>
+            صافي الربح بعد الشحن: <span style={{ color: netProfit >= 0 ? '#15803d' : '#16a34a' }}>{netProfit.toFixed(0)} ج.م</span>
           </div>
         </div>
         <button

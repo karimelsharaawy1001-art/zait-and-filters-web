@@ -17,7 +17,7 @@ import { optimizeImageUrl } from '@/lib/images';
 
 const Select = dynamic(() => import('react-select'), { 
   ssr: false,
-  loading: () => <div style={{ height: '52px', backgroundColor: '#161616', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 15px', color: '#999' }}>جاري التحميل...</div>
+  loading: () => <div style={{ height: '52px', backgroundColor: '#f9fafb', borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 15px', color: '#6b7280' }}>جاري التحميل...</div>
 });
 
 
@@ -44,7 +44,7 @@ const REVIEWS_ROW1 = ALL_REVIEWS.slice(0, 8);
 const REVIEWS_ROW2 = ALL_REVIEWS.slice(8);
 
 // Avatar color palette — assigns a consistent color per name
-const AVATAR_COLORS = ['#dc2626','#0284c7','#a78bfa','#db2777','#d97706','#0891b2','#dc2626','#65a30d'];
+const AVATAR_COLORS = ['#16a34a','#0284c7','#a78bfa','#db2777','#d97706','#0891b2','#16a34a','#65a30d'];
 function avatarColor(name: string) {
   const seed = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   return AVATAR_COLORS[seed % AVATAR_COLORS.length];
@@ -59,7 +59,7 @@ function StarRow({ rating }: { rating: number }) {
   return (
     <div style={{ display: 'flex', gap: '2px' }}>
       {[1,2,3,4,5].map(i => (
-        <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill={i <= rating ? '#f59e0b' : '#2a2a2a'}>
+        <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill={i <= rating ? '#f59e0b' : '#e5e7eb'}>
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
         </svg>
       ))}
@@ -74,8 +74,8 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
       flexShrink: 0,
       width: '290px',
       margin: '0 8px',
-      background: '#1c1c1c',
-      border: '1px solid #242424',
+      background: '#ffffff',
+      border: '1px solid #f3f4f6',
       borderRadius: '18px',
       padding: '18px 20px',
       boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
@@ -85,7 +85,7 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
       direction: 'rtl',
     }}>
       <StarRow rating={r.rating} />
-      <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.6', fontWeight: '600', margin: 0, flex: 1 }}>
+      <p style={{ fontSize: '0.88rem', color: '#374151', lineHeight: '1.6', fontWeight: '600', margin: 0, flex: 1 }}>
         "{r.text}"
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -93,8 +93,8 @@ function ReviewCard({ r }: { r: typeof ALL_REVIEWS[0] }) {
           {initials(r.name)}
         </div>
         <div>
-          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5', lineHeight: 1.2 }}>{r.name}</div>
-          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', marginTop: '1px' }}>عميل موثق ✓</div>
+          <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a', lineHeight: 1.2 }}>{r.name}</div>
+          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', marginTop: '1px' }}>عميل موثق ✓</div>
         </div>
       </div>
     </div>
@@ -183,9 +183,9 @@ function GooglePlayBanner() {
         {/* Google Play icon box */}
         <div style={{
           width: '46px', height: '46px', borderRadius: '12px', flexShrink: 0,
-          background: '#1c1c1c',
+          background: '#ffffff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
         }}>
           <svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M3.18 23.76c.3.17.64.24.99.19l13.2-11.94L13.94 8.6 3.18 23.76z" fill="#EA4335"/>
@@ -203,13 +203,13 @@ function GooglePlayBanner() {
             background: 'rgba(34,197,94,0.18)', border: '1px solid rgba(34,197,94,0.4)',
             borderRadius: '20px', padding: '2px 9px', marginBottom: '4px',
           }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#e50914', display: 'inline-block', animation: 'gplayPulse 1.6s ease-in-out infinite', flexShrink: 0 }} />
-            <span style={{ fontSize: '0.68rem', fontWeight: '900', color: '#e50914', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>🎉 جديد — تطبيقنا الرسمي على Google Play!</span>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'gplayPulse 1.6s ease-in-out infinite', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.68rem', fontWeight: '900', color: '#22c55e', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>🎉 جديد — تطبيقنا الرسمي على Google Play!</span>
           </div>
           <div style={{ color: '#fff', fontWeight: '800', fontSize: '0.9rem', lineHeight: '1.35' }}>
             حمّل تطبيق Zait &amp; Filters الآن
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: '600', marginTop: '1px' }}>
+          <div style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.72rem', fontWeight: '600', marginTop: '1px' }}>
             تسوق أسرع · عروض حصرية · إشعارات فورية
           </div>
         </div>
@@ -222,7 +222,7 @@ function GooglePlayBanner() {
           style={{
             flexShrink: 0,
             display: 'inline-flex', alignItems: 'center', gap: '6px',
-            background: 'linear-gradient(135deg, #e50914, #dc2626)',
+            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
             color: '#fff', padding: '9px 16px', borderRadius: '10px',
             fontWeight: '900', fontSize: '0.82rem', textDecoration: 'none',
             boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
@@ -239,10 +239,10 @@ function GooglePlayBanner() {
           aria-label="إغلاق"
           style={{
             flexShrink: 0,
-            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+            background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.08)',
             borderRadius: '8px', width: '30px', height: '30px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem',
+            cursor: 'pointer', color: 'rgba(0,0,0,0.2)', fontSize: '0.85rem',
           }}
         >✕</button>
 
@@ -317,7 +317,7 @@ function SearchCard({
               isRtl={true} isSearchable={false} value={selectedMake} onChange={(opt: any) => setSelectedMake(opt)}
               formatOptionLabel={(brand: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {brand.logo ? <img src={optimizeImageUrl(brand.logo)} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#ccc" />}
+                  {brand.logo ? <img src={optimizeImageUrl(brand.logo)} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} /> : <Car size={20} color="#9ca3af" />}
                   <span>{brand.label}</span>
                 </div>
               )}
@@ -338,10 +338,10 @@ function SearchCard({
       <div style={{ marginBottom: '12px' }}>
         <label style={{ fontSize: '0.8rem', fontWeight: '800', color: '#9ca3af', marginBottom: '6px', display: 'block' }}>سنة الصنع</label>
         <input type="text" placeholder="مثلاً: 2024" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#161616', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+          style={{ width: '100%', height: '52px', padding: '0 15px', backgroundColor: '#f9fafb', border: 'none', borderRadius: '12px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
       </div>
       <button onClick={handleSearch}
-        style={{ width: '100%', marginTop: '15px', background: 'linear-gradient(135deg, #e50914 0%, #b91c1c 100%)', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem', boxShadow: '0 8px 22px rgba(229,9,20,0.35)' }}>
+        style={{ width: '100%', marginTop: '15px', background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)', color: '#fff', border: 'none', padding: '16px', borderRadius: '15px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1.1rem', boxShadow: '0 8px 22px rgba(34,197,94,0.35)' }}>
         بحث الآن <ChevronLeft size={22} />
       </button>
     </>
@@ -378,7 +378,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
           display: block;
           box-shadow: 0 4px 18px rgba(0,0,0,0.13);
           transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
-          background: #1a1a1a;
+          background: #f0fdf4;
         }
         .cat-card:hover {
           transform: translateY(-5px) scale(1.025);
@@ -436,7 +436,7 @@ function CategoriesGrid({ categories }: { categories: any[] }) {
   display: block;
   font-size: 3rem;
   font-weight: 700;
-  color: #e50914;
+  color: #22c55e;
   letter-spacing: 0.04em;
   opacity: 0;
   transform: translateY(4px);
@@ -502,9 +502,9 @@ export default function HomePage() {
   const [userCar, setUserCar] = useState<any>(null);
 
   const loadingMessages = [
-    { icon: <Shield size={22} color="#e50914" />, text: 'منتجات أصلية 100%' },
-    { icon: <Sparkles size={22} color="#e50914" />, text: 'أفضل الأسعار في السوق' },
-    { icon: <TrendingUp size={22} color="#e50914" />, text: 'توصيل سريع لجميع المحافظات' },
+    { icon: <Shield size={22} color="#22c55e" />, text: 'منتجات أصلية 100%' },
+    { icon: <Sparkles size={22} color="#22c55e" />, text: 'أفضل الأسعار في السوق' },
+    { icon: <TrendingUp size={22} color="#22c55e" />, text: 'توصيل سريع لجميع المحافظات' },
   ];
 
   useEffect(() => {
@@ -675,14 +675,14 @@ export default function HomePage() {
   };
 
   const customSelectStyles = {
-    control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: '1px solid #2a2a2a', backgroundColor: '#161616', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
-    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#2a0f10' : '#161616', color: '#f5f5f5', cursor: 'pointer' }),
-    singleValue: (base: any) => ({ ...base, color: '#f5f5f5', display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
+    control: (base: any) => ({ ...base, height: '52px', borderRadius: '12px', border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', fontSize: '1rem', textAlign: 'right', display: 'flex', flexDirection: 'row-reverse', cursor: 'pointer' }),
+    option: (base: any, state: any) => ({ ...base, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'row-reverse', gap: '8px', padding: '10px 15px', fontSize: '0.95rem', backgroundColor: state.isFocused ? '#f0fdf4' : '#f9fafb', color: '#1a1a1a', cursor: 'pointer' }),
+    singleValue: (base: any) => ({ ...base, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px', flexDirection: 'row-reverse' }),
     placeholder: (base: any) => ({ ...base, color: '#9ca3af' }),
-    input: (base: any) => ({ ...base, color: '#f5f5f5' }),
+    input: (base: any) => ({ ...base, color: '#1a1a1a' }),
     valueContainer: (base: any) => ({ ...base, padding: '0 12px', display: 'flex', flexDirection: 'row-reverse' }),
-    menu: (base: any) => ({ ...base, zIndex: 10000, backgroundColor: '#161616', border: '1px solid #2a2a2a' }),
-    menuList: (base: any) => ({ ...base, maxHeight: '250px', backgroundColor: '#161616' })
+    menu: (base: any) => ({ ...base, zIndex: 10000, backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }),
+    menuList: (base: any) => ({ ...base, maxHeight: '250px', backgroundColor: '#f9fafb' })
   };
 
   if (!isMounted) return null;
@@ -715,7 +715,7 @@ export default function HomePage() {
     <>
       <StructuredData />
 
-      <div style={{ direction: 'rtl', backgroundColor: '#161616', color: '#f5f5f5', minHeight: '100vh', fontSize: '13px' }}>
+      <div style={{ direction: 'rtl', backgroundColor: '#f9fafb', color: '#1a1a1a', minHeight: '100vh', fontSize: '13px' }}>
 
         {loading && (
           <m.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={fullPageLoaderStyle}>
@@ -736,9 +736,9 @@ export default function HomePage() {
                 </div>
               </m.div>
               <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={featurePills}>
-                <div style={pill}><Shield size={16} color="#e50914" /><span>ضمان الجودة</span></div>
-                <div style={pill}><Sparkles size={16} color="#e50914" /><span>أسعار تنافسية</span></div>
-                <div style={pill}><TrendingUp size={16} color="#e50914" /><span>شحن مجاني</span></div>
+                <div style={pill}><Shield size={16} color="#22c55e" /><span>ضمان الجودة</span></div>
+                <div style={pill}><Sparkles size={16} color="#22c55e" /><span>أسعار تنافسية</span></div>
+                <div style={pill}><TrendingUp size={16} color="#22c55e" /><span>شحن مجاني</span></div>
               </m.div>
             </div>
           </m.div>
@@ -751,8 +751,8 @@ export default function HomePage() {
           @keyframes slideUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
           @keyframes shimmer  { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
           @keyframes badgePulse {
-            0%, 100% { box-shadow: 0 0 6px 2px rgba(255,200,0,0.45), 0 2px 8px rgba(0,0,0,0.25); }
-            50%       { box-shadow: 0 0 14px 5px rgba(255,200,0,0.75), 0 2px 8px rgba(0,0,0,0.25); }
+            0%, 100% { box-shadow: 0 0 6px 2px rgba(255,200,0,0.45), 0 2px 8px rgba(0,0,0,0.05); }
+            50%       { box-shadow: 0 0 14px 5px rgba(255,200,0,0.75), 0 2px 8px rgba(0,0,0,0.05); }
           }
           @keyframes gplayPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
@@ -770,7 +770,7 @@ export default function HomePage() {
             animation: shimmer 2.5s linear infinite, badgePulse 2s ease-in-out infinite;
             color: #3d2200; padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 900;
             z-index: 11; letter-spacing: 0.5px; border: 1px solid rgba(255,215,0,0.7);
-            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+            text-shadow: 0 1px 0 rgba(0,0,0,0.05);
           }
 
           .page-container { animation: pageLoad 0.4s ease-out; }
@@ -786,11 +786,11 @@ export default function HomePage() {
             .hero-inner { width: 100%; max-width: 1300px; margin: 0 auto; padding: 40px 50px; display: flex; flex-direction: row; gap: 60px; align-items: center; justify-content: space-between; direction: rtl; }
             .hero-text { flex: 1; direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; animation: slideIn 0.6s ease-out 0.15s both; }
             .hero-text-title { width: 100%; }
-            .hero-text h1 { font-size: 5rem !important; font-weight: 900 !important; line-height: 1.2 !important; margin: 0 0 22px 0 !important; color: #e50914 !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.9), 0 0 60px rgba(0,0,0,0.6) !important; letter-spacing: -1.5px !important; width: 100% !important; display: block !important; }
+            .hero-text h1 { font-size: 5rem !important; font-weight: 900 !important; line-height: 1.2 !important; margin: 0 0 22px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.9), 0 0 60px rgba(0,0,0,0.6) !important; letter-spacing: -1.5px !important; width: 100% !important; display: block !important; }
             .hero-text p { font-size: 1.45rem !important; font-weight: 700 !important; line-height: 1.7 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 16px rgba(0,0,0,0.95) !important; margin: 0 0 36px 0 !important; max-width: 580px !important; display: block !important; width: 100% !important; }
-            .hero-cta-btn { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 20px 56px !important; background-color: #e50914 !important; color: #fff !important; border-radius: 18px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.35rem !important; letter-spacing: -0.3px !important; box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important; transition: all 0.25s ease !important; white-space: nowrap !important; align-self: flex-end !important; }
-            .hero-cta-btn:hover { background-color: #dc2626 !important; transform: translateY(-3px) !important; box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important; }
-            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #1c1c1c; color: #f5f5f5; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
+            .hero-cta-btn { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; padding: 20px 56px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 18px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.35rem !important; letter-spacing: -0.3px !important; box-shadow: 0 10px 40px rgba(34,197,94,0.55) !important; transition: all 0.25s ease !important; white-space: nowrap !important; align-self: flex-end !important; }
+            .hero-cta-btn:hover { background-color: #16a34a !important; transform: translateY(-3px) !important; box-shadow: 0 16px 50px rgba(34,197,94,0.65) !important; }
+            .hero-card-desktop { width: 400px; flex-shrink: 0; background: #ffffff; color: #1a1a1a; padding: 30px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); animation: slideUp 0.6s ease-out 0.25s both; align-self: center; }
             .hero-card-mobile { display: none; }
           }
 
@@ -800,11 +800,11 @@ export default function HomePage() {
             .hero-inner { width: 100%; padding: 0 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; direction: rtl; }
             .hero-text { direction: rtl; text-align: right; display: flex; flex-direction: column; align-items: flex-end; width: 100%; }
             .hero-text-title { width: 100%; }
-            .hero-text h1 { font-size: 2.2rem !important; font-weight: 900 !important; line-height: 1.25 !important; margin: 0 0 10px 0 !important; color: #e50914 !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.8) !important; letter-spacing: -0.5px !important; width: 100% !important; display: block !important; }
-            .hero-text p { font-size: 1rem !important; font-weight: 700 !important; line-height: 1.55 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.98) !important; margin: 0 0 16px 0 !important; width: 100% !important; display: block !important; }
-            .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 16px 24px !important; background-color: #e50914 !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.1rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
+            .hero-text h1 { font-size: 2.2rem !important; font-weight: 900 !important; line-height: 1.25 !important; margin: 0 0 10px 0 !important; color: #22c55e !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 0 rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.05), 0 0 40px rgba(0,0,0,0.8) !important; letter-spacing: -0.5px !important; width: 100% !important; display: block !important; }
+            .hero-text p { font-size: 1rem !important; font-weight: 700 !important; line-height: 1.55 !important; color: #fff !important; direction: rtl !important; text-align: right !important; text-shadow: 0 2px 14px rgba(0,0,0,0.05) !important; margin: 0 0 16px 0 !important; width: 100% !important; display: block !important; }
+            .hero-cta-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; width: 100% !important; padding: 16px 24px !important; background-color: #22c55e !important; color: #fff !important; border-radius: 16px !important; text-decoration: none !important; font-weight: 900 !important; font-size: 1.1rem !important; box-shadow: 0 8px 28px rgba(34,197,94,0.45) !important; }
             .hero-card-desktop { display: none; }
-            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #1c1c1c; color: #f5f5f5; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.3); }
+            .hero-card-mobile { width: 100%; box-sizing: border-box; background: #ffffff; color: #1a1a1a; padding: 16px 16px 18px; border-radius: 22px; box-shadow: 0 12px 36px rgba(0,0,0,0.05); }
           }
 
           @media (max-width: 380px) {
@@ -821,39 +821,39 @@ export default function HomePage() {
           .product-grid-carousel { display: flex !important; flex-wrap: nowrap !important; gap: 18px; overflow-x: auto !important; scroll-snap-type: x mandatory; padding: 12px 20px 20px; -webkit-overflow-scrolling: touch; }
           .product-card-mdrn {
             flex: 0 0 270px !important; min-width: 270px !important; max-width: 270px !important;
-            background: #1a1a1a;
+            background: #ffffff;
             border-radius: 22px;
-            border: 1px solid #2e2e2e;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08), inset 0 1px 0 rgba(0,0,0,0.05);
             transition: transform 0.28s cubic-bezier(.4,0,.2,1), box-shadow 0.28s cubic-bezier(.4,0,.2,1), border-color 0.2s;
             position: relative; display: flex; flex-direction: column; overflow: hidden;
             scroll-snap-align: start;
           }
-          .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(229,9,20,0.28); border-color: rgba(229,9,20,0.55); }
-          .img-container { background: #242424; height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
+          .product-card-mdrn:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(34,197,94,0.28); border-color: rgba(34,197,94,0.55); }
+          .img-container { background: #f3f4f6; height: 210px; width: 100%; position: relative; cursor: pointer; overflow: hidden; display: block; }
           /* Override globals.css height so image fills the container with no gap */
           .img-container .img-fill-100 { height: 100% !important; transition: transform 0.38s cubic-bezier(.4,0,.2,1); }
           .img-container:hover .img-fill-100 { transform: scale(1.07); }
           .card-brand-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-          .card-brand { color:#ffffff; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
-          .card-origin { font-size:0.7rem; color:#888; font-weight:700; display:flex; align-items:center; gap:3px; }
+          .card-brand { color:#1a1a1a; font-weight:800; font-size:0.75rem; letter-spacing:0.5px; text-transform:uppercase; }
+          .card-origin { font-size:0.7rem; color:#9ca3af; font-weight:700; display:flex; align-items:center; gap:3px; }
           /* Allow up to 3 lines — no fixed height so long names show fully */
-          .card-name { font-size:0.92rem; font-weight:900; color:#f5f5f5; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
-          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#1a0d0d; border:1px solid #7f1d1d; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#f87171; margin-bottom:8px; max-width:100%; overflow:hidden; }
+          .card-name { font-size:0.92rem; font-weight:900; color:#1a1a1a; line-height:1.45; overflow:hidden; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+          .card-compat { display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; border:1px solid #166534; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:800; color:#15803d; margin-bottom:8px; max-width:100%; overflow:hidden; }
           .card-compat span, .card-cat span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#161616; border:1px solid #2a2a2a; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#94a3b8; max-width:100%; overflow:hidden; }
+          .card-cat { display:inline-flex; align-items:center; gap:4px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:20px; padding:3px 9px; font-size:0.7rem; font-weight:700; color:#6b7280; max-width:100%; overflow:hidden; }
           /* Price: main amount + ج.م on same line, old price + save badge below */
           .card-price-block { margin:10px 0 4px; }
           .card-price-row { display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; }
-          .card-price-main { font-size:1.35rem; font-weight:900; color:#f5f5f5; white-space:nowrap; }
-          .card-price-currency { font-size:0.85rem; font-weight:800; color:#f5f5f5; white-space:nowrap; }
+          .card-price-main { font-size:1.35rem; font-weight:900; color:#1a1a1a; white-space:nowrap; }
+          .card-price-currency { font-size:0.85rem; font-weight:800; color:#1a1a1a; white-space:nowrap; }
           .card-price-meta { display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap; }
-          .card-price-old { font-size:0.78rem; color:#aaa; text-decoration:line-through; font-weight:600; white-space:nowrap; }
-          .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#ef4444; border-radius:6px; padding:2px 7px; white-space:nowrap; }
-          .card-btn-buy { width:100%; padding:13px; background:linear-gradient(135deg,#e50914 0%,#dc2626 100%); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; box-shadow:0 6px 20px rgba(34,197,94,0.35); letter-spacing:0.2px; }
-          .card-btn-buy:hover { background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%); box-shadow:0 10px 28px rgba(34,197,94,0.5); transform:translateY(-1px); }
-          .card-btn-cart { width:100%; padding:11px; background:#2a2a2a; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
-          .card-btn-cart:hover { background:#3a3a3a; }
+          .card-price-old { font-size:0.78rem; color:#6b7280; text-decoration:line-through; font-weight:600; white-space:nowrap; }
+          .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#16a34a; border-radius:6px; padding:2px 7px; white-space:nowrap; }
+          .card-btn-buy { width:100%; padding:13px; background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; box-shadow:0 6px 20px rgba(34,197,94,0.35); letter-spacing:0.2px; }
+          .card-btn-buy:hover { background:linear-gradient(135deg,#16a34a 0%,#15803d 100%); box-shadow:0 10px 28px rgba(34,197,94,0.5); transform:translateY(-1px); }
+          .card-btn-cart { width:100%; padding:11px; background:#e5e7eb; color:#374151; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
+          .card-btn-cart:hover { background:#6b7280; }
 
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }
@@ -863,17 +863,17 @@ export default function HomePage() {
 
           .features-strip { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; padding: 20px 0; }
           .feature-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; justify-content: center; }
-          .feature-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #1a0d0d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+          .feature-icon-wrap { width: 52px; height: 52px; border-radius: 14px; background: #f0fdf4; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
           .feature-text { display: flex; flex-direction: column; gap: 2px; }
-          .feature-title { font-size: 0.88rem; font-weight: 900; color: #f5f5f5; line-height: 1.3; }
-          .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #888; line-height: 1.3; }
-          .feature-divider { width: 1px; height: 48px; background: #242424; flex-shrink: 0; }
+          .feature-title { font-size: 0.88rem; font-weight: 900; color: #1a1a1a; line-height: 1.3; }
+          .feature-sub   { font-size: 0.75rem; font-weight: 600; color: #9ca3af; line-height: 1.3; }
+          .feature-divider { width: 1px; height: 48px; background: #f3f4f6; flex-shrink: 0; }
 
           @media (max-width: 768px) {
             .features-strip { grid-template-columns: 1fr 1fr; gap: 0; padding: 8px 0; }
             .feature-divider { display: none; }
-            .feature-item { padding: 14px 10px; border-bottom: 1px solid #1c1c1c; justify-content: flex-start; }
-            .feature-item:nth-child(odd)  { border-right: 1px solid #1c1c1c; }
+            .feature-item { padding: 14px 10px; border-bottom: 1px solid #ffffff; justify-content: flex-start; }
+            .feature-item:nth-child(odd)  { border-right: 1px solid #ffffff; }
             .feature-item:nth-last-child(-n+2) { border-bottom: none; }
             .feature-icon-wrap { width: 42px; height: 42px; border-radius: 11px; }
             .feature-title { font-size: 0.8rem; }
@@ -896,12 +896,12 @@ export default function HomePage() {
 
           /* Maintenance banner */
           .bn-maintenance { }
-          .bn-bg-maint { position:absolute;inset:0;background:linear-gradient(135deg,#052e16,#7f1d1d,#991b1b,#b91c1c,#0f4c20);background-size:300% 300%;animation:bn-gradient-maint 6s ease infinite; }
+          .bn-bg-maint { position:absolute;inset:0;background:linear-gradient(135deg,#052e16,#166534,#14532d,#15803d,#0f4c20);background-size:300% 300%;animation:bn-gradient-maint 6s ease infinite; }
           /* Promoter banner */
-          .bn-bg-promo { position:absolute;inset:0;background:linear-gradient(135deg,#2a2a2a,#1e1b4b,#312e81,#1e3a5f,#2a2a2a);background-size:300% 300%;animation:bn-gradient-promo 6s ease infinite 1s; }
+          .bn-bg-promo { position:absolute;inset:0;background:linear-gradient(135deg,#e5e7eb,#1e1b4b,#312e81,#1e3a5f,#e5e7eb);background-size:300% 300%;animation:bn-gradient-promo 6s ease infinite 1s; }
           /* Shimmer sweep on both */
           .bn-shimmer { position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit; }
-          .bn-shimmer::after { content:'';position:absolute;top:0;left:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);animation:bn-shimmer-move 3.5s ease-in-out infinite; }
+          .bn-shimmer::after { content:'';position:absolute;top:0;left:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.08),transparent);animation:bn-shimmer-move 3.5s ease-in-out infinite; }
           /* Icons */
           .bn-icon-gear { position:absolute;left:-10px;top:50%;width:170px;height:170px;opacity:0.1;pointer-events:none;animation:bn-gear-spin 20s linear infinite; }
           .bn-icon-drop { position:absolute;right:14px;bottom:8px;width:72px;height:72px;opacity:0.15;pointer-events:none;animation:bn-drop-float 4s ease-in-out infinite; }
@@ -918,14 +918,14 @@ export default function HomePage() {
           /* Pills */
           .bn-pill { display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:5px 14px;margin-bottom:12px;font-size:0.78rem;font-weight:800;letter-spacing:0.4px; }
           .bn-pill-gold { background:rgba(251,191,36,0.18);border:1px solid rgba(251,191,36,0.45);color:#fde047; }
-          .bn-pill-green { background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#f87171; }
+          .bn-pill-green { background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#15803d; }
           /* Title animation */
           .bn-title { animation:bn-title-in 0.6s ease-out both; }
           /* CTAs */
-          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#f5f5f5!important;font-weight:900!important;transition:all 0.2s!important; }
+          .bn-cta-gold { background:linear-gradient(135deg,#fbbf24,#f59e0b)!important;color:#1a1a1a!important;font-weight:900!important;transition:all 0.2s!important; }
           .bn-cta-gold:hover { background:linear-gradient(135deg,#fcd34d,#fbbf24)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(251,191,36,0.4)!important; }
-          .bn-cta-green { background:linear-gradient(135deg,#e50914,#dc2626)!important;transition:all 0.2s!important; }
-          .bn-cta-green:hover { background:linear-gradient(135deg,#f87171,#e50914)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(34,197,94,0.45)!important; }
+          .bn-cta-green { background:linear-gradient(135deg,#22c55e,#16a34a)!important;transition:all 0.2s!important; }
+          .bn-cta-green:hover { background:linear-gradient(135deg,#15803d,#22c55e)!important;transform:translateY(-2px)!important;box-shadow:0 8px 20px rgba(34,197,94,0.45)!important; }
           /* Hover lift */
           .bn-maintenance:hover .bn-icon-gear { animation-duration:5s; }
           .bn-promoter:hover .bn-icon-coin { animation-duration:2s; }
@@ -936,13 +936,13 @@ export default function HomePage() {
             .home-banner-inner { height: 200px; border-radius: 16px; }
           }
           .home-banner-bg  { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-          .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.82) 60%, rgba(0,0,0,0.88) 100%); }
+          .home-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to left, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.82) 60%, rgba(0,0,0,0.88) 100%); }
           .home-banner-content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-start; padding: 0 48px; direction: rtl; }
           .home-banner-text-block { text-align: right; max-width: 72%; }
           .home-banner-title { color: #fff; font-size: 3.2rem; font-weight: 900; line-height: 1.15; text-shadow: 0 4px 24px rgba(0,0,0,0.9), 0 2px 0 rgba(0,0,0,0.6); margin: 0 0 12px; letter-spacing: -1.5px; }
           .home-banner-subtitle { color: rgba(255,255,255,0.97); font-size: 1.35rem; font-weight: 700; text-shadow: 0 2px 14px rgba(0,0,0,0.85); margin: 0 0 22px; line-height: 1.5; }
-          .home-banner-cta { display: inline-flex; align-items: center; gap: 7px; background: #e50914; color: #fff; padding: 13px 28px; border-radius: 12px; font-size: 1.05rem; font-weight: 900; text-decoration: none; box-shadow: 0 4px 16px rgba(34,197,94,0.45); transition: background 0.2s, transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; white-space: nowrap; }
-          .home-banner-cta:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(34,197,94,0.55); }
+          .home-banner-cta { display: inline-flex; align-items: center; gap: 7px; background: #22c55e; color: #fff; padding: 13px 28px; border-radius: 12px; font-size: 1.05rem; font-weight: 900; text-decoration: none; box-shadow: 0 4px 16px rgba(34,197,94,0.45); transition: background 0.2s, transform 0.2s, box-shadow 0.2s; border: none; cursor: pointer; white-space: nowrap; }
+          .home-banner-cta:hover { background: #16a34a; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(34,197,94,0.55); }
 
           @media (max-width: 768px) {
             .home-banner-section { padding: 12px 12px; }
@@ -1030,7 +1030,7 @@ export default function HomePage() {
             {/* Brand Logos */}
             {brandLogos.length > 0 && (
               <ScrollReveal direction="up" delay={0.05}>
-                <section style={{ padding: '14px 0', background: 'linear-gradient(90deg, #7f1d1d 0%, #b91c1c 50%, #7f1d1d 100%)', borderTop: '1px solid #8b0000', borderBottom: '1px solid #8b0000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35)' }}>
+                <section style={{ padding: '14px 0', background: 'linear-gradient(90deg, #166534 0%, #15803d 50%, #166534 100%)', borderTop: '1px solid #166534', borderBottom: '1px solid #166534', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35)' }}>
                   <div style={{ overflow: 'hidden', direction: 'ltr' }}>
                     <div className="marquee-inner">
                       {[...brandLogos, ...brandLogos].map((brand, index) => (
@@ -1048,16 +1048,16 @@ export default function HomePage() {
 
             {/* ══ CUSTOMER REVIEWS ════════════════════════════════════════════ */}
             <ScrollReveal direction="up" delay={0.06}>
-              <section style={{ background: '#0a0a0a', padding: '52px 0 56px', borderBottom: '1px solid #242424' }}>
+              <section style={{ background: '#ffffff', padding: '52px 0 56px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                   <div style={{ textAlign: 'center', marginBottom: '38px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
-                      <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#dc2626', letterSpacing: '0.05em' }}>⭐ آراء عملاؤنا</span>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #166534', borderRadius: '20px', padding: '6px 18px', marginBottom: '14px' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#16a34a', letterSpacing: '0.05em' }}>⭐ آراء عملاؤنا</span>
                     </div>
-                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#f5f5f5', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
+                    <h2 style={{ fontSize: '2.1rem', fontWeight: '900', color: '#1a1a1a', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
                       بيثقوا فينا ليه؟
                     </h2>
-                    <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                    <p style={{ color: '#6b7280', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
                       أكتر من 20,000+ عميل سعيد بتجربته معانا
                     </p>
                   </div>
@@ -1182,14 +1182,14 @@ export default function HomePage() {
                 <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff4d4d', marginBottom: '4px' }}>
-                        <Zap size={16} fill="#ff4d4d" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', marginBottom: '4px' }}>
+                        <Zap size={16} fill="#22c55e" />
                         <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{garageMode && userCar ? `عروض لسيارتك ${userCar.make}` : 'أقوى الخصومات'}</span>
                       </div>
                       <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>عروض حصرية 🔥</h2>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <Link href="/store?filter=sales" style={{ color: '#e50914', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link>
+                      <Link href="/store?filter=sales" style={{ color: '#22c55e', fontWeight: '800', textDecoration: 'none', marginLeft: '15px', fontSize: '0.9rem' }}>عرض الكل</Link>
                       <button onClick={() => scroll(scrollRef, 'right')} style={arrowBtnSmall}><ChevronRight size={14}/></button>
                       <button onClick={() => scroll(scrollRef, 'left')} style={arrowBtnSmall}><ChevronLeft size={14}/></button>
                     </div>
@@ -1204,7 +1204,7 @@ export default function HomePage() {
                       return (
                         <div key={p.id} className="product-card-mdrn">
                           {/* Discount badge */}
-                          <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#fff', padding:'4px 10px', borderRadius:'20px', fontSize:'0.72rem', fontWeight:'900', zIndex:10, boxShadow:'0 4px 12px rgba(239,68,68,0.4)', letterSpacing:'0.3px' }}>
+                          <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#16a34a,#16a34a)', color:'#fff', padding:'4px 10px', borderRadius:'20px', fontSize:'0.72rem', fontWeight:'900', zIndex:10, boxShadow:'0 4px 12px rgba(22,163,74,0.4)', letterSpacing:'0.3px' }}>
                             خصم {discPct}%
                           </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
@@ -1214,7 +1214,7 @@ export default function HomePage() {
                           <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
                             <div className="card-brand-row">
                               <span className="card-brand">{p.brand}</span>
-                              {isAsli && <span style={{fontSize:'0.68rem',color:'#fbbf24',fontWeight:'800',background:'#242424',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
+                              {isAsli && <span style={{fontSize:'0.68rem',color:'#fbbf24',fontWeight:'800',background:'#f3f4f6',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
                             </div>
                             <h3 className="card-name">{p.name}</h3>
                             <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
@@ -1236,10 +1236,10 @@ export default function HomePage() {
                                 const cartItem = cartItems.find((i: any) => i.id === p.id);
                                 const qty = cartItem?.quantity ?? 0;
                                 if (qty > 0) return (
-                                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#1a0d0d', border:'2px solid #e50914', borderRadius:'12px', padding:'6px 10px', marginBottom:'2px' }}>
-                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, -1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#e50914', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
-                                    <span style={{ fontSize:'1.1rem', fontWeight:'900', color:'#dc2626' }}>{qty} <span style={{fontSize:'0.65rem',fontWeight:'700'}}>في السلة</span></span>
-                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#e50914', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
+                                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:'12px', padding:'6px 10px', marginBottom:'2px' }}>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, -1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
+                                    <span style={{ fontSize:'1.1rem', fontWeight:'900', color:'#16a34a' }}>{qty} <span style={{fontSize:'0.65rem',fontWeight:'700'}}>في السلة</span></span>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: p.sale_price}, 1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
                                   </div>
                                 );
                                 return (
@@ -1264,11 +1264,11 @@ export default function HomePage() {
             {/* Trending Section */}
             {bestSellers.length > 0 && (
               <ScrollReveal direction="up" delay={0.15}>
-                <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto', background: '#1c1c1c', borderRadius: '30px' }}>
+                <section style={{ padding: '25px 0', maxWidth: '1200px', margin: '0 auto', background: '#ffffff', borderRadius: '30px' }}>
                   <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e50914', marginBottom: '4px' }}>
-                        <Flame size={16} fill="#e50914" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22c55e', marginBottom: '4px' }}>
+                        <Flame size={16} fill="#22c55e" />
                         <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{garageMode && userCar ? `تريند لسيارتك ${userCar.make}` : 'الأكثر طلباً'}</span>
                       </div>
                       <h2 style={{ fontSize: '1.8rem', fontWeight: '900', margin: 0 }}>تريند الآن 🔥</h2>
@@ -1289,7 +1289,7 @@ export default function HomePage() {
                       return (
                         <div key={p.id} className="product-card-mdrn">
                           {/* Trending badge */}
-                          <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#e50914,#dc2626)', color:'#fff', padding:'4px 10px', borderRadius:'20px', fontSize:'0.7rem', fontWeight:'900', zIndex:10, boxShadow:'0 4px 12px rgba(34,197,94,0.4)' }}>
+                          <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#22c55e,#16a34a)', color:'#fff', padding:'4px 10px', borderRadius:'20px', fontSize:'0.7rem', fontWeight:'900', zIndex:10, boxShadow:'0 4px 12px rgba(34,197,94,0.4)' }}>
                             🔥 تريند
                           </div>
                           {isAsli && <div className="badge-asli">✦ أصلي</div>}
@@ -1299,7 +1299,7 @@ export default function HomePage() {
                           <div style={{ padding:'16px', flex:1, display:'flex', flexDirection:'column' }}>
                             <div className="card-brand-row">
                               <span className="card-brand">{p.brand}</span>
-                              {isAsli && <span style={{fontSize:'0.68rem',color:'#fbbf24',fontWeight:'800',background:'#242424',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
+                              {isAsli && <span style={{fontSize:'0.68rem',color:'#fbbf24',fontWeight:'800',background:'#f3f4f6',padding:'2px 7px',borderRadius:'10px'}}>✦ أصلي</span>}
                             </div>
                             <h3 className="card-name">{p.name}</h3>
                             <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
@@ -1323,10 +1323,10 @@ export default function HomePage() {
                                 const cartItem = cartItems.find((i: any) => i.id === p.id);
                                 const qty = cartItem?.quantity ?? 0;
                                 if (qty > 0) return (
-                                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#1a0d0d', border:'2px solid #e50914', borderRadius:'12px', padding:'6px 10px', marginBottom:'2px' }}>
-                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, -1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#e50914', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
-                                    <span style={{ fontSize:'1.1rem', fontWeight:'900', color:'#dc2626' }}>{qty} <span style={{fontSize:'0.65rem',fontWeight:'700'}}>في السلة</span></span>
-                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#e50914', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
+                                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:'12px', padding:'6px 10px', marginBottom:'2px' }}>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, -1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
+                                    <span style={{ fontSize:'1.1rem', fontWeight:'900', color:'#16a34a' }}>{qty} <span style={{fontSize:'0.65rem',fontWeight:'700'}}>في السلة</span></span>
+                                    <button onClick={(e) => { e.preventDefault(); addToCart({...p, price: itemPrice}, 1); }} style={{ width:'32px', height:'32px', borderRadius:'8px', border:'none', background:'#22c55e', color:'#fff', fontSize:'1.2rem', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
                                   </div>
                                 );
                                 return (
@@ -1350,12 +1350,12 @@ export default function HomePage() {
 
             {/* Features Strip */}
             <ScrollReveal direction="up" delay={0.18}>
-              <section style={{ background: '#1c1c1c', borderTop: '1px solid #242424', borderBottom: '1px solid #242424' }}>
+              <section style={{ background: '#ffffff', borderTop: '1px solid #f3f4f6', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                   <div className="features-strip">
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e50914" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
                       </div>
                       <div className="feature-text">
                         <span className="feature-title">شحن لأي مكان في مصر</span>
@@ -1365,7 +1365,7 @@ export default function HomePage() {
                     <div className="feature-divider" />
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e50914" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                       </div>
                       <div className="feature-text">
                         <span className="feature-title">قطع أصلية 100%</span>
@@ -1375,7 +1375,7 @@ export default function HomePage() {
                     <div className="feature-divider" />
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e50914" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                       </div>
                       <div className="feature-text">
                         <span className="feature-title">أكتر من 15+ طريقة دفع</span>
@@ -1385,7 +1385,7 @@ export default function HomePage() {
                     <div className="feature-divider" />
                     <div className="feature-item">
                       <div className="feature-icon-wrap">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e50914" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
                       </div>
                       <div className="feature-text">
                         <span className="feature-title">من الوكيل الرسمي فقط</span>
@@ -1403,7 +1403,7 @@ export default function HomePage() {
                 <section style={{ padding: '20px 0 40px', maxWidth: '1200px', margin: '0 auto' }}>
                   <div style={{ textAlign: 'right', marginBottom: '18px', padding: '0 20px' }}>
                     <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب الفئة</h2>
-                    <p style={{ fontSize: '0.9rem', color: '#888', fontWeight: '700', margin: '6px 0 0' }}>
+                    <p style={{ fontSize: '0.9rem', color: '#9ca3af', fontWeight: '700', margin: '6px 0 0' }}>
                       اختر فئة لعرض الأقسام الفرعية والمنتجات
                     </p>
                   </div>
@@ -1456,12 +1456,12 @@ export default function HomePage() {
                     box-shadow: 0 18px 40px rgba(0,0,0,0.32);
                   }
                   .make-card:hover::after {
-                    background: rgba(255,255,255,0.07);
+                    background: rgba(0,0,0,0.07);
                   }
                   .make-card-logo-wrap {
                     width: 80%;
                     aspect-ratio: 3/2;
-                    background: rgba(28,28,28,0.92);
+                    background: rgba(255,255,255,0.92);
                     border-radius: 12px;
                     display: flex;
                     align-items: center;
@@ -1482,20 +1482,20 @@ export default function HomePage() {
                     color: #fff;
                     text-align: center;
                     line-height: 1.2;
-                    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+                    text-shadow: 0 1px 8px rgba(0,0,0,0.06);
                     position: relative;
                     z-index: 1;
                   }
                   .make-card-cta {
                     font-size: 0.68rem;
                     font-weight: 700;
-                    color: rgba(255,255,255,0.55);
+                    color: rgba(0,0,0,0.2);
                     transition: color 0.18s;
                     position: relative;
                     z-index: 1;
                   }
                   .make-card:hover .make-card-cta {
-                    color: #ef4444;
+                    color: #16a34a;
                   }
                   @media (max-width: 580px) {
                     .make-card { padding: 18px 8px 14px; gap: 10px; border-radius: 12px; }
@@ -1509,11 +1509,11 @@ export default function HomePage() {
                   <div style={{ textAlign: 'right', marginBottom: '18px', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap' as const, gap: '10px' }}>
                     <div>
                       <h2 style={{ fontSize: '2.2rem', fontWeight: '900', margin: 0 }}>تسوق حسب سيارتك</h2>
-                      <p style={{ fontSize: '0.9rem', color: '#888', fontWeight: '700', margin: '6px 0 0' }}>
+                      <p style={{ fontSize: '0.9rem', color: '#9ca3af', fontWeight: '700', margin: '6px 0 0' }}>
                         اختر ماركة سيارتك واستعرض جميع القطع المتوافقة
                       </p>
                     </div>
-                    <Link href="/cars" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#e50914', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
+                    <Link href="/cars" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#22c55e', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
                       عرض جميع السيارات ←
                     </Link>
                   </div>
@@ -1523,7 +1523,7 @@ export default function HomePage() {
                       { make: 'HYUNDAI',    ar: 'هيونداي',   bg: 'linear-gradient(145deg,#002c5f,#0a4a8a)' },
                       { make: 'KIA',        ar: 'كيا',        bg: 'linear-gradient(145deg,#05141f,#0d2a40)' },
                       { make: 'TOYOTA',     ar: 'تويوتا',     bg: 'linear-gradient(145deg,#bb0000,#7a0000)' },
-                      { make: 'CHEVROLET',  ar: 'شيفروليه',   bg: 'linear-gradient(145deg,#1a1a1a,#3a3a3a)' },
+                      { make: 'CHEVROLET',  ar: 'شيفروليه',   bg: 'linear-gradient(145deg,#e5e7eb,#d1d5db)' },
                       { make: 'NISSAN',     ar: 'نيسان',      bg: 'linear-gradient(145deg,#c3002f,#6e001a)' },
                       { make: 'MITSUBISHI', ar: 'ميتسوبيشي', bg: 'linear-gradient(145deg,#cc0000,#880000)' },
                       { make: 'RENAULT',    ar: 'رينو',       bg: 'linear-gradient(145deg,#efdf00,#b8a800)' },
@@ -1535,9 +1535,9 @@ export default function HomePage() {
                       { make: 'HONDA',      ar: 'هوندا',      bg: 'linear-gradient(145deg,#cc0000,#880000)' },
                       { make: 'SUZUKI',     ar: 'سوزوكي',     bg: 'linear-gradient(145deg,#1a3a6a,#0d2040)' },
                       { make: 'MAZDA',      ar: 'مازدا',      bg: 'linear-gradient(145deg,#910000,#5a0000)' },
-                      { make: 'SEAT',       ar: 'سيات',       bg: 'linear-gradient(145deg,#222,#444)' },
+                      { make: 'SEAT',       ar: 'سيات',       bg: 'linear-gradient(145deg,#e5e7eb,#6b7280)' },
                       { make: 'BMW',        ar: 'بي إم دبليو', bg: 'linear-gradient(145deg,#1c69d4,#0d3f8f)' },
-                      { make: 'MERCEDES',   ar: 'مرسيدس',     bg: 'linear-gradient(145deg,#333,#555)' },
+                      { make: 'MERCEDES',   ar: 'مرسيدس',     bg: 'linear-gradient(145deg,#d1d5db,#555)' },
                       { make: 'FORD',       ar: 'فورد',       bg: 'linear-gradient(145deg,#003178,#001e50)' },
                       { make: 'JEEP',       ar: 'جيب',        bg: 'linear-gradient(145deg,#2d5016,#1a2e0a)' },
                     ] as { make: string; ar: string; bg: string }[]).map(({ make, ar, bg }) => {
@@ -1547,7 +1547,7 @@ export default function HomePage() {
                           <div className="make-card-logo-wrap">
                             {logoUrl
                               ? <img src={optimizeImageUrl(logoUrl)} alt={ar} loading="lazy" />
-                              : <Car size={32} color="#64748b" />
+                              : <Car size={32} color="#6b7280" />
                             }
                           </div>
                           <div className="make-card-name">{ar}</div>
@@ -1571,7 +1571,7 @@ export default function HomePage() {
                 <div style={garageIconWrapMini}><Car size={18} color="#fff" /></div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '0.9rem', fontWeight: '900', color: '#fff', lineHeight: '1.2' }}>وضع جراجي مفعل لسيارة {userCar.make}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)', fontWeight: '700' }}>نعرض المنتجات المتوافقة والعامة فقط</div>
+                  <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.06)', fontWeight: '700' }}>نعرض المنتجات المتوافقة والعامة فقط</div>
                 </div>
               </div>
             </m.div>
@@ -1583,18 +1583,18 @@ export default function HomePage() {
 }
 
 // Styles
-const fullPageLoaderStyle: any = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
+const fullPageLoaderStyle: any = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#ffffff 0%,#f0fdf4 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
 const brandNameText: any = { fontSize: 'clamp(2.2rem,8vw,4rem)', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-2px', marginBottom: '20px', lineHeight: '1', textTransform: 'uppercase', filter: 'drop-shadow(0 10px 30px rgba(34,197,94,0.4))' };
 const mainHeadline: any = { color: '#fff', fontWeight: '900', fontSize: 'clamp(1.6rem,6vw,3.5rem)', marginBottom: '16px', letterSpacing: '-1px', lineHeight: '1.2', textShadow: '0 4px 20px rgba(34,197,94,0.3)' };
 const tagline: any = { color: '#a0a0a0', fontSize: 'clamp(0.9rem,3vw,1.5rem)', fontWeight: '600', marginBottom: '36px', lineHeight: '1.7' };
-const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', marginBottom: '32px' };
-const loadingBar: any = { height: '100%', background: 'linear-gradient(90deg,#e50914 0%,#dc2626 50%,#e50914 100%)', borderRadius: '10px' };
+const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', overflow: 'hidden', marginBottom: '32px' };
+const loadingBar: any = { height: '100%', background: 'linear-gradient(90deg,#22c55e 0%,#16a34a 50%,#22c55e 100%)', borderRadius: '10px' };
 const messageContainer: any = { marginBottom: '28px', minHeight: '35px' };
 const messageText: any = { fontSize: '1.1rem', fontWeight: '700', color: '#fff' };
 const featurePills: any = { display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' };
-const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '25px', fontSize: '0.82rem', fontWeight: '700', color: '#e50914', backdropFilter: 'blur(10px)' };
-const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#1c1c1c', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
-const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#1c1c1c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' }; // legacy — kept for maintenance bundle page
+const pill: any = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '25px', fontSize: '0.82rem', fontWeight: '700', color: '#22c55e', backdropFilter: 'blur(10px)' };
+const arrowBtnSmall = { width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const cartBtnStyleSmall: any = { width: '100%', padding: '12px', backgroundColor: '#ffffff', color: '#1a1a1a', border: '1px solid #e5e7eb', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem' }; // legacy — kept for maintenance bundle page
 const stickyNotificationStyle: any = { position: 'fixed', bottom: '85px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'rgba(39,174,96,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', color: '#fff', padding: '12px 20px', borderRadius: '20px', zIndex: 1000, boxShadow: '0 10px 30px rgba(0,0,0,0.2)', width: 'max-content', maxWidth: '90%', border: '1px solid rgba(255,255,255,0.2)', direction: 'rtl' };
 const garageIconWrapMini: any = { width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const buyNowBtnStyle: any = { width: '100%', padding: '12px', backgroundColor: '#e50914', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', textDecoration: 'none' };
+const buyNowBtnStyle: any = { width: '100%', padding: '12px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '1rem', textDecoration: 'none' };

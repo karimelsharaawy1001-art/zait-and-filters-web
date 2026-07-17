@@ -116,23 +116,23 @@ function SmartPagination({ currentPage, totalPages, totalItems, onPageChange }: 
   const from = (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const to = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
   const PBtn = ({ onClick, disabled, children, title }: any) => (
-    <button onClick={onClick} disabled={disabled} title={title} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '9px', border: '1px solid #e2e8f0', background: disabled ? '#f8fafc' : '#fff', color: disabled ? '#cbd5e1' : '#475569', cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0 }}>{children}</button>
+    <button onClick={onClick} disabled={disabled} title={title} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '9px', border: '1px solid #e2e8f0', background: disabled ? '#f8fafc' : '#fff', color: disabled ? '#374151' : '#475569', cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0 }}>{children}</button>
   );
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '16px', padding: '14px 20px', background: '#fff', borderRadius: '14px', border: '1px solid #f1f5f9', direction: 'rtl' }}>
-      <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600' }}>عرض <span style={{ fontWeight: '800', color: '#0f172a' }}>{from}–{to}</span> من <span style={{ fontWeight: '800', color: '#0f172a' }}>{totalItems.toLocaleString()}</span> سلة</div>
+      <div style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '600' }}>عرض <span style={{ fontWeight: '800', color: '#0f172a' }}>{from}–{to}</span> من <span style={{ fontWeight: '800', color: '#0f172a' }}>{totalItems.toLocaleString()}</span> سلة</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <PBtn onClick={() => onPageChange(1)} disabled={currentPage === 1} title="الأولى"><ChevronsRight size={14} /></PBtn>
         <PBtn onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} title="السابقة"><ChevronRight size={14} /></PBtn>
         {getPageNumbers().map((p, idx) => p === 'ellipsis' ? (
-          <div key={`e-${idx}`} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}><MoreHorizontal size={14} /></div>
+          <div key={`e-${idx}`} style={{ width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}><MoreHorizontal size={14} /></div>
         ) : (
           <button key={p} onClick={() => onPageChange(p as number)} style={{ minWidth: '34px', height: '34px', padding: '0 6px', borderRadius: '9px', border: currentPage === p ? 'none' : '1px solid #e2e8f0', background: currentPage === p ? '#0f172a' : '#fff', color: currentPage === p ? '#fff' : '#475569', fontWeight: currentPage === p ? '800' : '600', fontSize: '0.875rem', cursor: 'pointer' }}>{p}</button>
         ))}
         <PBtn onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages} title="التالية"><ChevronLeft size={14} /></PBtn>
         <PBtn onClick={() => onPageChange(totalPages)} disabled={currentPage === totalPages} title="الأخيرة"><ChevronsLeft size={14} /></PBtn>
       </div>
-      <div className="ac-pagination-jump" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: '#64748b' }}>
+      <div className="ac-pagination-jump" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: '#6b7280' }}>
         <span style={{ fontWeight: '600' }}>انتقل إلى:</span>
         <input type="number" min={1} max={totalPages} value={jumpValue} onChange={e => setJumpValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleJump()} placeholder={`1–${totalPages}`} style={{ width: '72px', height: '34px', border: '1px solid #e2e8f0', borderRadius: '9px', padding: '0 10px', fontSize: '0.875rem', textAlign: 'center', outline: 'none' }} />
         <button onClick={handleJump} style={{ height: '34px', padding: '0 14px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '9px', fontSize: '0.875rem', fontWeight: '700', cursor: 'pointer' }}>اذهب</button>
@@ -167,7 +167,7 @@ function EmailModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClos
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px', backdropFilter: 'blur(4px)' }}>
       <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '620px', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', direction: 'rtl' }}>
         <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -176,9 +176,9 @@ function EmailModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClos
                 <div style={{ width: '38px', height: '38px', background: '#eff6ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Mail size={18} color="#3b82f6" /></div>
                 إرسال إيميل تذكير بخصم 5%
               </h2>
-              <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '0.88rem', fontWeight: '600' }}>العملاء اللي عندهم إيميل بس من غير رقم — {eligible.length} عميل</p>
+              <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: '0.88rem', fontWeight: '600' }}>العملاء اللي عندهم إيميل بس من غير رقم — {eligible.length} عميل</p>
             </div>
-            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', color: '#64748b' }}>✕</button>
+            <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', color: '#6b7280' }}>✕</button>
           </div>
           <div style={{ marginTop: '14px', background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '1px solid #93c5fd', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Mail size={16} color="#3b82f6" />
@@ -190,7 +190,7 @@ function EmailModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClos
         </div>
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 28px' }}>
           {eligible.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6b7280' }}>
               <Mail size={40} strokeWidth={1} style={{ margin: '0 auto 12px', display: 'block' }} />
               <p style={{ fontWeight: '700', fontSize: '0.95rem' }}>مفيش عملاء عندهم إيميل بس من غير رقم موبايل</p>
             </div>
@@ -205,17 +205,17 @@ function EmailModal({ carts, onClose, onDone }: { carts: AbandonedCart[]; onClos
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a' }}>{cart.customer_name || 'عميل'}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <span style={{ color: '#3b82f6' }}>{cart.customer_email}</span>
-                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span style={{ color: '#374151' }}>·</span>
                     <span>{(cart.cart_total || 0).toFixed(0)} ج.م</span>
-                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span style={{ color: '#374151' }}>·</span>
                     <span style={{ color: '#f59e0b', fontWeight: '700' }}>{ts.relative} مضت</span>
                   </div>
                   <div style={{ marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '5px', background: isSent ? '#dcfce7' : '#fff', border: `1px solid ${isSent ? '#86efac' : '#e2e8f0'}`, borderRadius: '7px', padding: '3px 9px' }}>
-                    <Tag size={11} color={isSent ? '#15803d' : '#94a3b8'} />
+                    <Tag size={11} color={isSent ? '#15803d' : '#6b7280'} />
                     <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', fontWeight: '900', color: isSent ? '#15803d' : '#475569', letterSpacing: '0.5px' }}>{promoCode}</span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600' }}>— خصم 5%</span>
+                    <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '600' }}>— خصم 5%</span>
                   </div>
                 </div>
                 <button onClick={() => sendEmail(cart)} disabled={sending === cart.id || isSent}
@@ -526,11 +526,11 @@ export default function AbandonedCartsAdmin() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>السلات المتروكة</h1>
-          <p style={{ fontSize: '0.92rem', color: '#94a3b8', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجاع العملاء المحتملين</p>
+          <p style={{ fontSize: '0.92rem', color: '#6b7280', marginTop: '3px', fontWeight: '500' }}>تتبع واسترجاع العملاء المحتملين</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setShowEmailModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: eligibleEmail.length > 0 ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : '#e2e8f0', color: eligibleEmail.length > 0 ? '#fff' : '#94a3b8', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligibleEmail.length > 0 ? '0 4px 14px rgba(59,130,246,0.35)' : 'none' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: eligibleEmail.length > 0 ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : '#e2e8f0', color: eligibleEmail.length > 0 ? '#fff' : '#6b7280', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: eligibleEmail.length > 0 ? '0 4px 14px rgba(59,130,246,0.35)' : 'none' }}>
             <Mail size={15} /> إيميل تذكير
             {eligibleEmail.length > 0 && <span style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '8px', padding: '1px 8px', fontSize: '0.8rem', fontWeight: '900' }}>{eligibleEmail.length}</span>}
           </button>
@@ -566,7 +566,7 @@ export default function AbandonedCartsAdmin() {
         ].map((s, i) => (
           <div key={i} style={{ background: '#fff', borderRadius: '14px', padding: '14px 16px', border: '1px solid #f1f5f9', animation: `fadeUp 0.3s ease ${i * 0.05}s both` }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>{s.label}</span>
+              <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '700' }}>{s.label}</span>
               <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: s.light, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>{s.icon}</div>
             </div>
             <div style={{ fontSize: '1.6rem', fontWeight: '900', color: s.color, letterSpacing: '-0.5px' }}>{s.value}</div>
@@ -577,12 +577,12 @@ export default function AbandonedCartsAdmin() {
       {/* Filters */}
       <div className="ac-filters" style={{ background: '#fff', borderRadius: '14px', padding: '12px 16px', marginBottom: '14px', border: '1px solid #f1f5f9' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', borderRadius: '9px', padding: '8px 12px' }}>
-          <Search size={15} color="#cbd5e1" />
+          <Search size={15} color="#374151" />
           <input type="text" placeholder="بحث بالاسم، الإيميل، أو الموبايل..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: '0.96rem', color: '#334155' }} />
         </div>
         <div className="ac-filters-chips">
           {(['all', 'pending', 'recovered'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} className="ac-chip" style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.15s' }}>
+            <button key={f} onClick={() => setFilter(f)} className="ac-chip" style={{ padding: '7px 14px', background: filter === f ? '#0f172a' : '#f1f5f9', color: filter === f ? '#fff' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.15s' }}>
               {f === 'all' ? `الكل · ${stats.total}` : f === 'pending' ? `انتظار · ${stats.pending}` : `مسترجع · ${stats.recovered}`}
             </button>
           ))}
@@ -590,7 +590,7 @@ export default function AbandonedCartsAdmin() {
       </div>
 
       {filteredCarts.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#cbd5e1', background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#374151', background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
           <ShoppingCart size={48} strokeWidth={1} />
           <p style={{ marginTop: '12px', fontWeight: '700' }}>لا توجد نتائج</p>
         </div>
@@ -599,7 +599,7 @@ export default function AbandonedCartsAdmin() {
           <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
             <div className="ac-table-header" style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
               {['العميل', 'التواصل', 'المنتجات', 'الإجمالي', 'التوقيت', 'الحالة', 'إجراءات'].map((h, i) => (
-                <div key={i} style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '10px' : 0 }}>{h}</div>
+                <div key={i} style={{ fontSize: '0.78rem', fontWeight: '800', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', paddingRight: i > 0 ? '10px' : 0 }}>{h}</div>
               ))}
             </div>
 
@@ -616,15 +616,15 @@ export default function AbandonedCartsAdmin() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
                       <div style={{ position: 'relative' }}>
                         <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: cart.recovered ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <User size={15} color={cart.recovered ? '#15803d' : '#94a3b8'} />
+                          <User size={15} color={cart.recovered ? '#15803d' : '#6b7280'} />
                         </div>
                         {is24h && !cart.recovered && <div style={{ position: 'absolute', top: '-3px', right: '-3px', width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', border: '2px solid #fff' }} />}
                       </div>
                       <div>
                         <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.2 }}>{cart.customer_name || 'غير محدد'}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
-                          {cart.device_type === 'mobile' ? <Smartphone size={10} color="#cbd5e1" /> : <Monitor size={10} color="#cbd5e1" />}
-                          <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '600' }}>{cart.device_type === 'mobile' ? 'موبايل' : 'كمبيوتر'}</span>
+                          {cart.device_type === 'mobile' ? <Smartphone size={10} color="#374151" /> : <Monitor size={10} color="#374151" />}
+                          <span style={{ fontSize: '0.8rem', color: '#374151', fontWeight: '600' }}>{cart.device_type === 'mobile' ? 'موبايل' : 'كمبيوتر'}</span>
                           {is24h && !cart.recovered && <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#15803d', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px' }}>24س</span>}
                           {cart._isDuplicate && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '900', color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '1px 6px', borderRadius: '6px' }}>
@@ -636,7 +636,7 @@ export default function AbandonedCartsAdmin() {
                     </div>
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ fontSize: '0.88rem', color: '#475569', fontWeight: '600', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{cart.customer_email}</div>
-                      {cart.customer_phone && <div style={{ fontSize: '0.84rem', color: '#94a3b8', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>}
+                      {cart.customer_phone && <div style={{ fontSize: '0.84rem', color: '#6b7280', fontWeight: '600', direction: 'ltr', textAlign: 'right' }}>{cart.customer_phone}</div>}
                       {!cart.customer_phone && cart.customer_email && (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: '800', color: '#3b82f6', background: '#eff6ff', padding: '1px 6px', borderRadius: '5px', marginTop: '2px' }}>
                           <Mail size={9} /> إيميل فقط
@@ -645,16 +645,16 @@ export default function AbandonedCartsAdmin() {
                     </div>
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ display: 'inline-block', padding: '2px 8px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.8rem', fontWeight: '800', color: '#15803d', marginBottom: '4px' }}>{cart.cart_items?.length || 0} منتج</div>
-                      {cart.cart_items?.[0] && <div style={{ fontSize: '0.84rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{cart.cart_items[0].name}</div>}
+                      {cart.cart_items?.[0] && <div style={{ fontSize: '0.84rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{cart.cart_items[0].name}</div>}
                     </div>
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ fontSize: '1rem', fontWeight: '900', color: '#0f172a' }}>{(cart.cart_total || 0).toFixed(0)}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>ج.م</div>
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>ج.م</div>
                     </div>
                     <div style={{ paddingRight: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}><Clock size={11} color="#94a3b8" /><span style={{ fontSize: '0.84rem', fontWeight: '700', color: '#334155' }}>{ts.time}</span></div>
-                      <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{ts.date}</div>
-                      <div style={{ display: 'inline-block', marginTop: '3px', padding: '1px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.78rem', fontWeight: '800', color: '#64748b' }}>{ts.relative}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}><Clock size={11} color="#6b7280" /><span style={{ fontSize: '0.84rem', fontWeight: '700', color: '#334155' }}>{ts.time}</span></div>
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>{ts.date}</div>
+                      <div style={{ display: 'inline-block', marginTop: '3px', padding: '1px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.78rem', fontWeight: '800', color: '#6b7280' }}>{ts.relative}</div>
                     </div>
                     <div style={{ paddingRight: '10px' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 9px', borderRadius: '7px', fontSize: '0.8rem', fontWeight: '800', background: cart.recovered ? '#dcfce7' : '#fef3c7', color: cart.recovered ? '#15803d' : '#92400e' }}>
@@ -688,7 +688,7 @@ export default function AbandonedCartsAdmin() {
                         {deletingCart === cart.id ? <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
                       </button>
                       <button onClick={() => setExpandedCart(isExpanded ? null : cart.id)} className="ac-btn"
-                        style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
+                        style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
                         {isExpanded ? '▲' : '▼'}
                       </button>
                     </div>
@@ -699,7 +699,7 @@ export default function AbandonedCartsAdmin() {
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                       <div style={{ position: 'relative', flexShrink: 0 }}>
                         <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: cart.recovered ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <User size={16} color={cart.recovered ? '#15803d' : '#94a3b8'} />
+                          <User size={16} color={cart.recovered ? '#15803d' : '#6b7280'} />
                         </div>
                         {is24h && !cart.recovered && <div style={{ position: 'absolute', top: '-3px', right: '-3px', width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', border: '2px solid #fff' }} />}
                       </div>
@@ -717,7 +717,7 @@ export default function AbandonedCartsAdmin() {
                         </div>
                         <div style={{ marginTop: '5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ display: 'inline-block', padding: '1px 7px', background: '#f0fdf4', borderRadius: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#15803d' }}>{cart.cart_items?.length || 0} منتج</span>
-                          {cart.cart_items?.[0] && <span style={{ fontSize: '0.78rem', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{cart.cart_items[0].name}</span>}
+                          {cart.cart_items?.[0] && <span style={{ fontSize: '0.78rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{cart.cart_items[0].name}</span>}
                         </div>
                         <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
@@ -752,7 +752,7 @@ export default function AbandonedCartsAdmin() {
                               {deletingCart === cart.id ? <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
                             </button>
                             <button onClick={() => setExpandedCart(isExpanded ? null : cart.id)} className="ac-btn"
-                              style={{ width: '34px', height: '34px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
+                              style={{ width: '34px', height: '34px', borderRadius: '8px', border: '1px solid #f1f5f9', background: isExpanded ? '#f0fdf4' : '#fff', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '900' }}>
                               {isExpanded ? '▲' : '▼'}
                             </button>
                           </div>
@@ -772,7 +772,7 @@ export default function AbandonedCartsAdmin() {
                           </div>
                         </div>
                       )}
-                      <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#6b7280', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {cart.cart_items?.map((item: any, i: number) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#fff', borderRadius: '11px', border: '1px solid #f1f5f9' }}>
@@ -792,12 +792,12 @@ export default function AbandonedCartsAdmin() {
                               </div>
                               <div style={{ display: 'flex', gap: '6px', marginTop: '3px' }}>
                                 {item.brand && <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#15803d', background: '#f0fdf4', padding: '1px 7px', borderRadius: '4px' }}>{item.brand}</span>}
-                                {item.car_make && <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>{item.car_make} {item.car_model}</span>}
+                                {item.car_make && <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>{item.car_make} {item.car_model}</span>}
                               </div>
                             </div>
                             <div style={{ textAlign: 'left' }}>
                               <div style={{ fontSize: '0.96rem', fontWeight: '900', color: '#0f172a' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</div>
-                              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>× {item.quantity}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>× {item.quantity}</div>
                             </div>
                           </div>
                         ))}
@@ -809,7 +809,7 @@ export default function AbandonedCartsAdmin() {
                             <div style={{ fontSize: '0.82rem', fontWeight: '800', color: '#15803d' }}>تم إرسال تذكير مع كود الخصم</div>
                             <div style={{ fontFamily: 'monospace', fontWeight: '900', fontSize: '0.95rem', color: '#0f172a', marginTop: '2px' }}>{cart.reminder_promo_code}</div>
                           </div>
-                          {cart.reminder_sent_at && <div style={{ marginRight: 'auto', fontSize: '0.78rem', color: '#94a3b8' }}>{formatExactTime(cart.reminder_sent_at).date}</div>}
+                          {cart.reminder_sent_at && <div style={{ marginRight: 'auto', fontSize: '0.78rem', color: '#6b7280' }}>{formatExactTime(cart.reminder_sent_at).date}</div>}
                         </div>
                       )}
                       <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
@@ -818,8 +818,8 @@ export default function AbandonedCartsAdmin() {
                           cart.recovered_at ? { label: 'الاسترجاع', value: formatExactTime(cart.recovered_at) } : null,
                         ].filter(Boolean).map((t: any, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 12px', background: '#fff', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
-                            <Clock size={12} color="#94a3b8" />
-                            <span style={{ fontSize: '0.84rem', color: '#64748b', fontWeight: '700' }}>{t.label}:</span>
+                            <Clock size={12} color="#6b7280" />
+                            <span style={{ fontSize: '0.84rem', color: '#6b7280', fontWeight: '700' }}>{t.label}:</span>
                             <span style={{ fontSize: '0.84rem', color: '#0f172a', fontWeight: '800' }}>{t.value.date} — {t.value.time}</span>
                           </div>
                         ))}

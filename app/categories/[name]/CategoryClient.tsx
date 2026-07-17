@@ -58,23 +58,23 @@ export default function SubCategoriesPage() {
   }, [categoryName]);
 
   return (
-    <div style={{ direction: 'rtl', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh', backgroundColor: '#161616' }}>
+    <div style={{ direction: 'rtl', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh', backgroundColor: '#f9fafb' }}>
 
       {/* Breadcrumbs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', color: '#9ca3af', fontSize: '0.9rem' }}>
-        <Link href="/" style={{ color: '#e50914', textDecoration: 'none', fontWeight: 'bold' }}>الرئيسية</Link>
+        <Link href="/" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 'bold' }}>الرئيسية</Link>
         <ChevronRight size={16} />
         <span style={{ fontWeight: '800' }}>{categoryName}</span>
       </div>
 
       <div style={{ marginBottom: '40px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '10px' }}>{categoryName}</h1>
-        <div style={{ width: '60px', height: '5px', background: '#e50914', borderRadius: '5px' }}></div>
+        <div style={{ width: '60px', height: '5px', background: '#22c55e', borderRadius: '5px' }}></div>
       </div>
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '100px' }}>
-          <Loader2 size={40} className="animate-spin" color="#e50914" />
+          <Loader2 size={40} className="animate-spin" color="#22c55e" />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: '15px' }}>
@@ -86,7 +86,7 @@ export default function SubCategoriesPage() {
             >
               <div className="sub-cat-card" style={{
                 position: 'relative', height: '140px', borderRadius: '20px',
-                overflow: 'hidden', backgroundColor: '#000', transition: '0.3s ease',
+                overflow: 'hidden', backgroundColor: '#ffffff', transition: '0.3s ease',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
               }}>
                 <img src={optimizeImageUrl(sub.image)} alt={sub.name}
@@ -109,12 +109,12 @@ export default function SubCategoriesPage() {
       )}
 
       {!loading && subCategories.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '100px 20px', background: '#1c1c1c', borderRadius: '20px', border: '1px solid #2a2a2a' }}>
-          <LayoutGrid size={60} color="#2a2a2a" style={{ marginBottom: '20px' }} />
+        <div style={{ textAlign: 'center', padding: '100px 20px', background: '#ffffff', borderRadius: '20px', border: '1px solid #e5e7eb' }}>
+          <LayoutGrid size={60} color="#e5e7eb" style={{ marginBottom: '20px' }} />
           <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '10px' }}>لا توجد فئات فرعية</h3>
-          <p style={{ color: '#888', marginBottom: '20px' }}>يمكنك تصفح جميع المنتجات في قسم {categoryName} مباشرة</p>
+          <p style={{ color: '#9ca3af', marginBottom: '20px' }}>يمكنك تصفح جميع المنتجات في قسم {categoryName} مباشرة</p>
           <Link href={`/store?category=${encodeURIComponent(categoryName)}`}
-            style={{ backgroundColor: '#e50914', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>
+            style={{ backgroundColor: '#22c55e', color: '#fff', padding: '12px 30px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>
             عرض المنتجات
           </Link>
         </div>

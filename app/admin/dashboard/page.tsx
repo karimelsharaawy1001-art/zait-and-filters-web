@@ -168,11 +168,11 @@ export default function AdminDashboard() {
     confirmed:  { text: 'مؤكد',    color: '#2563eb', bg: '#dbeafe' },
     shipped:    { text: 'شحن',     color: '#7c3aed', bg: '#ede9fe' },
     delivered:  { text: 'تم',      color: '#16a34a', bg: '#dcfce7' },
-    cancelled:  { text: 'ملغي',    color: '#dc2626', bg: '#fee2e2' },
+    cancelled:  { text: 'ملغي',    color: '#16a34a', bg: '#fee2e2' },
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '12px', color: '#64748b', fontFamily: "'Cairo', sans-serif" }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '12px', color: '#6b7280', fontFamily: "'Cairo', sans-serif" }}>
       <div style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#16a34a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       جاري تحميل الإحصائيات...
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -255,7 +255,7 @@ export default function AdminDashboard() {
       <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.4rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.3px' }}>لوحة التحكم</h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.78rem', margin: '3px 0 0', fontWeight: '600' }}>
+          <p style={{ color: '#6b7280', fontSize: '0.78rem', margin: '3px 0 0', fontWeight: '600' }}>
             {new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
@@ -274,51 +274,51 @@ export default function AdminDashboard() {
 
         {/* Total Revenue */}
         <div className="stat-card" style={{ animationDelay: '0ms', borderTop: '3px solid #16a34a' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إجمالي الإيرادات</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إجمالي الإيرادات</div>
           <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.ordersRevenue)}</div>
-          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.orders} طلب مكتمل</div>
+          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>{stats.orders} طلب مكتمل</div>
         </div>
 
         {/* Today Revenue */}
         <div className="stat-card" style={{ animationDelay: '60ms', borderTop: '3px solid #0ea5e9' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إيرادات اليوم</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>إيرادات اليوم</div>
           <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(stats.todayRevenue)}</div>
-          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.todayOrders} طلب مكتمل اليوم</div>
+          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>{stats.todayOrders} طلب مكتمل اليوم</div>
         </div>
 
         {/* Pending Orders */}
         <div className="stat-card" style={{ animationDelay: '120ms', borderTop: '3px solid #f59e0b' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>طلبات معلقة</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>طلبات معلقة</div>
           <div style={{ fontSize: '1.6rem', fontWeight: '900', color: stats.pendingOrders > 0 ? '#d97706' : '#0f172a', lineHeight: 1 }}>{stats.pendingOrders}</div>
           <Link href="/admin/orders" style={{ marginTop: '10px', display: 'block', fontSize: '0.75rem', color: '#f59e0b', fontWeight: '700', textDecoration: 'none' }}>معالجة الطلبات ←</Link>
         </div>
 
         {/* Abandoned Carts */}
-        <div className="stat-card" style={{ animationDelay: '180ms', borderTop: '3px solid #ef4444' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>سلات متروكة</div>
-          <div style={{ fontSize: '1.6rem', fontWeight: '900', color: stats.abandonedCarts > 0 ? '#ef4444' : '#0f172a', lineHeight: 1 }}>{stats.abandonedCarts}</div>
-          <Link href="/admin/abandoned-carts" style={{ marginTop: '10px', display: 'block', fontSize: '0.75rem', color: '#ef4444', fontWeight: '700', textDecoration: 'none' }}>متابعة ←</Link>
+        <div className="stat-card" style={{ animationDelay: '180ms', borderTop: '3px solid #16a34a' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>سلات متروكة</div>
+          <div style={{ fontSize: '1.6rem', fontWeight: '900', color: stats.abandonedCarts > 0 ? '#16a34a' : '#0f172a', lineHeight: 1 }}>{stats.abandonedCarts}</div>
+          <Link href="/admin/abandoned-carts" style={{ marginTop: '10px', display: 'block', fontSize: '0.75rem', color: '#16a34a', fontWeight: '700', textDecoration: 'none' }}>متابعة ←</Link>
         </div>
 
         {/* Products */}
         <div className="stat-card" style={{ animationDelay: '240ms', borderTop: '3px solid #8b5cf6' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>المنتجات</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>المنتجات</div>
           <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{stats.products}</div>
-          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{stats.activeProducts} منتج نشط</div>
+          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>{stats.activeProducts} منتج نشط</div>
         </div>
 
         {/* Messages */}
         <div className="stat-card" style={{ animationDelay: '300ms', borderTop: '3px solid #06b6d4' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>رسائل العملاء</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>رسائل العملاء</div>
           <div style={{ fontSize: '1.6rem', fontWeight: '900', color: stats.messages > 0 ? '#0891b2' : '#0f172a', lineHeight: 1 }}>{stats.messages}</div>
           <Link href="/admin/messages" style={{ marginTop: '10px', display: 'block', fontSize: '0.75rem', color: '#06b6d4', fontWeight: '700', textDecoration: 'none' }}>عرض الرسائل ←</Link>
         </div>
 
         {/* Users */}
-        <div className="stat-card" style={{ animationDelay: '360ms', borderTop: '3px solid #64748b' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>العملاء المسجلين</div>
+        <div className="stat-card" style={{ animationDelay: '360ms', borderTop: '3px solid #6b7280' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#6b7280', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>العملاء المسجلين</div>
           <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.6rem)', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>{stats.users}</div>
-          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>حساب مسجل</div>
+          <div style={{ marginTop: '10px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>حساب مسجل</div>
         </div>
 
       </div>
@@ -330,20 +330,20 @@ export default function AdminDashboard() {
           <Link href="/admin/orders" style={{ marginRight: 'auto', fontSize: '0.75rem', color: '#16a34a', fontWeight: '700', textDecoration: 'none' }}>عرض الكل ←</Link>
         </div>
         {recentOrders.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontSize: '0.85rem', textAlign: 'center', padding: '20px' }}>لا توجد طلبات بعد</p>
+          <p style={{ color: '#6b7280', fontSize: '0.85rem', textAlign: 'center', padding: '20px' }}>لا توجد طلبات بعد</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
                   {['رقم الطلب', 'العميل', 'المبلغ', 'الحالة', 'التاريخ'].map(h => (
-                    <th key={h} style={{ padding: '8px 12px', textAlign: 'right', color: '#64748b', fontWeight: '700', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '8px 12px', textAlign: 'right', color: '#6b7280', fontWeight: '700', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {recentOrders.map((order) => {
-                  const st = statusLabel[order.status] || { text: order.status, color: '#64748b', bg: '#f1f5f9' };
+                  const st = statusLabel[order.status] || { text: order.status, color: '#6b7280', bg: '#f1f5f9' };
                   return (
                     <tr key={order.id} className="table-row" style={{ borderBottom: '1px solid #f8fafc' }}>
                       <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
                       <td style={{ padding: '10px 12px' }}>
                         <span className="status-pill" style={{ background: st.bg, color: st.color }}>{st.text}</span>
                       </td>
-                      <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.75rem' }}>
+                      <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: '0.75rem' }}>
                         {new Date(order.created_at).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </td>
                     </tr>
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
           ))}
           <button onClick={() => supabase.auth.signOut()} style={{
             padding: '9px 18px', borderRadius: '9px', background: '#fff5f5',
-            color: '#ef4444', border: '1px solid #fecaca',
+            color: '#16a34a', border: '1px solid #dcfce7',
             fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer',
           }}>
             ⎋ تسجيل الخروج
@@ -400,18 +400,18 @@ export default function AdminDashboard() {
         <div className="section-title">🔐 إنشاء أدمن جديد</div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ flex: 1, minWidth: '200px' }}>
-            <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', fontWeight: '700', marginBottom: '5px' }}>البريد الإلكتروني</label>
+            <label style={{ display: 'block', fontSize: '0.72rem', color: '#6b7280', fontWeight: '700', marginBottom: '5px' }}>البريد الإلكتروني</label>
             <input className="input-field" type="email" placeholder="admin@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
           </div>
           <div style={{ flex: 1, minWidth: '200px' }}>
-            <label style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', fontWeight: '700', marginBottom: '5px' }}>كلمة المرور</label>
+            <label style={{ display: 'block', fontSize: '0.72rem', color: '#6b7280', fontWeight: '700', marginBottom: '5px' }}>كلمة المرور</label>
             <input className="input-field" type="password" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
           </div>
           <button className="btn-green" onClick={createAdmin} disabled={createLoading} style={{ flexShrink: 0, height: '38px' }}>
             {createLoading ? 'جاري الإنشاء...' : '+ إنشاء'}
           </button>
         </div>
-        {createError   && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '10px', fontWeight: '600' }}>{createError}</p>}
+        {createError   && <p style={{ color: '#16a34a', fontSize: '0.8rem', marginTop: '10px', fontWeight: '600' }}>{createError}</p>}
         {createSuccess && <p style={{ color: '#16a34a', fontSize: '0.8rem', marginTop: '10px', fontWeight: '600' }}>✅ {createSuccess}</p>}
       </div>
 

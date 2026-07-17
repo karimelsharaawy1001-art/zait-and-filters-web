@@ -52,17 +52,17 @@ function ConfirmModal({
     >
       <div
         style={{
-          backgroundColor: '#111',
-          border: '1px solid #ff4d4d44',
+          backgroundColor: '#e5e7eb',
+          border: '1px solid #22c55e44',
           borderRadius: '16px',
           padding: '32px',
           maxWidth: '420px',
           width: '90%',
           textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.06)',
         }}
       >
-        <AlertTriangle size={48} color="#ff4d4d" style={{ margin: '0 auto 16px' }} />
+        <AlertTriangle size={48} color="#22c55e" style={{ margin: '0 auto 16px' }} />
         <p
           style={{
             color: '#fff',
@@ -79,9 +79,9 @@ function ConfirmModal({
             onClick={onCancel}
             style={{
               padding: '12px 28px',
-              backgroundColor: '#1a1a1a',
-              color: '#aaa',
-              border: '1px solid #333',
+              backgroundColor: '#ffffff',
+              color: '#6b7280',
+              border: '1px solid #d1d5db',
               borderRadius: '10px',
               cursor: 'pointer',
               fontWeight: '700',
@@ -94,7 +94,7 @@ function ConfirmModal({
             onClick={onConfirm}
             style={{
               padding: '12px 28px',
-              backgroundColor: '#ff4d4d',
+              backgroundColor: '#22c55e',
               color: '#fff',
               border: 'none',
               borderRadius: '10px',
@@ -605,7 +605,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
   };
 
   const renderSortIcon = (column: string) => {
-    if (sortBy !== column) return <ArrowUpDown size={14} color="#444" style={{ marginRight: '4px', verticalAlign: 'middle' }} />;
+    if (sortBy !== column) return <ArrowUpDown size={14} color="#6b7280" style={{ marginRight: '4px', verticalAlign: 'middle' }} />;
     return sortOrder === 'asc'
       ? <ChevronUp size={14} color="#2ecc71" style={{ marginRight: '4px', verticalAlign: 'middle' }} />
       : <ChevronDown size={14} color="#2ecc71" style={{ marginRight: '4px', verticalAlign: 'middle' }} />;
@@ -641,7 +641,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
 
   return (
-    <div style={{ direction: 'rtl', color: '#fff', fontFamily: 'sans-serif' }}>
+    <div style={{ direction: 'rtl', color: '#1a1a1a', fontFamily: 'sans-serif' }}>
       <style>{`
         @media (max-width: 640px) {
           .prod-desktop-table { display: none !important; }
@@ -654,11 +654,11 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
         @media (min-width: 641px) {
           .prod-mobile-cards { display: none !important; }
         }
-        .prod-card { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-        .prod-card-selected { border-color: #ff4d4d55 !important; background: rgba(255,77,77,0.06) !important; }
+        .prod-card { background: #ffffff; border: 1px solid #f9fafb; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .prod-card-selected { border-color: #22c55e55 !important; background: rgba(34,197,94,0.06) !important; }
         .prod-card-row { display: flex; align-items: center; gap: 10px; }
-        .prod-card-actions { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #1e1e1e; padding-top: 10px; gap: 6px; }
-        .prod-action-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.65rem; color: #888; background: #111; border: 1px solid #222; border-radius: 8px; padding: 8px 4px; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+        .prod-card-actions { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #f9fafb; padding-top: 10px; gap: 6px; }
+        .prod-action-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.65rem; color: #9ca3af; background: #e5e7eb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 4px; cursor: pointer; text-decoration: none; transition: background 0.15s; }
         .prod-action-btn:active { background: #1a1a1a; }
       `}</style>
 
@@ -706,7 +706,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           <button
             onClick={exportToCSV}
             disabled={loading}
-            style={{ ...secondaryBtnStyle, backgroundColor: '#2ecc71', color: '#000' }}
+            style={{ ...secondaryBtnStyle, backgroundColor: '#2ecc71', color: '#1a1a1a' }}
           >
             <FileDown size={16} /> {loading ? 'جاري التحميل...' : 'تصدير الفلتر الحالي'}
           </button>
@@ -722,7 +722,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
           gap: '15px',
           marginBottom: '20px',
-          backgroundColor: '#0a0a0a',
+          backgroundColor: '#ffffff',
           padding: '20px',
           borderRadius: '12px',
         }}
@@ -889,15 +889,15 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
       {/* Bulk action bar */}
       {selectedIds.size > 0 && (
         <div style={bulkBarStyle}>
-          <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.95rem' }}>
+          <span style={{ color: '#1a1a1a', fontWeight: '700', fontSize: '0.95rem' }}>
             تم تحديد{' '}
-            <span style={{ color: '#ff4d4d', fontSize: '1.1rem' }}>{selectedIds.size}</span>{' '}
+            <span style={{ color: '#22c55e', fontSize: '1.1rem' }}>{selectedIds.size}</span>{' '}
             منتج
           </span>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button
               onClick={() => setSelectedIds(new Set())}
-              style={{ ...secondaryBtnStyle, color: '#aaa' }}
+              style={{ ...secondaryBtnStyle, color: '#6b7280' }}
             >
               <X size={15} /> إلغاء التحديد
             </button>
@@ -906,7 +906,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
               disabled={bulkDeleting}
               style={{
                 ...secondaryBtnStyle,
-                backgroundColor: '#ff4d4d',
+                backgroundColor: '#22c55e',
                 color: '#fff',
                 border: 'none',
               }}
@@ -923,16 +923,16 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
       <div
         className="prod-desktop-table"
         style={{
-          backgroundColor: '#0a0a0a',
+          backgroundColor: '#ffffff',
           borderRadius: '15px',
-          border: '1px solid #111',
+          border: '1px solid #e5e7eb',
           overflowX: 'auto',
           WebkitOverflowScrolling: 'touch' as any,
         }}
       >
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '800px' }}>
           <thead>
-            <tr style={{ backgroundColor: '#111', color: '#2ecc71' }}>
+            <tr style={{ backgroundColor: '#e5e7eb', color: '#2ecc71' }}>
               <th style={{ ...thStyle, width: '40px', textAlign: 'center' }}>
                 <button
                   onClick={toggleSelectAll}
@@ -948,7 +948,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   title={isAllSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل'}
                 >
                   {isAllSelected ? (
-                    <CheckSquare size={20} color="#ff4d4d" />
+                    <CheckSquare size={20} color="#22c55e" />
                   ) : isPartialSelected ? (
                     <Minus
                       size={20}
@@ -956,7 +956,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                       style={{ border: '2px solid #f1c40f', borderRadius: '4px' }}
                     />
                   ) : (
-                    <Square size={20} color="#444" />
+                    <Square size={20} color="#6b7280" />
                   )}
                 </button>
               </th>
@@ -987,7 +987,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   <tr
                     key={product.id}
                     style={{
-                      borderBottom: '1px solid #111',
+                      borderBottom: '1px solid #e5e7eb',
                       backgroundColor: isSelected
                         ? 'rgba(255, 77, 77, 0.08)'
                         : 'transparent',
@@ -1008,9 +1008,9 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                         }}
                       >
                         {isSelected ? (
-                          <CheckSquare size={18} color="#ff4d4d" />
+                          <CheckSquare size={18} color="#22c55e" />
                         ) : (
-                          <Square size={18} color="#444" />
+                          <Square size={18} color="#6b7280" />
                         )}
                       </button>
                     </td>
@@ -1024,8 +1024,8 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                           fontWeight: 'bold',
                           border: 'none',
                           cursor: 'pointer',
-                          backgroundColor: product.is_active ? '#2ecc7133' : '#333',
-                          color: product.is_active ? '#2ecc71' : '#888',
+                          backgroundColor: product.is_active ? '#2ecc7133' : '#d1d5db',
+                          color: product.is_active ? '#2ecc71' : '#9ca3af',
                         }}
                       >
                         {product.is_active ? 'Active' : 'Inactive'}
@@ -1035,7 +1035,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#ffffff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {product.image_url
                             ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             : <span style={{ fontSize: '1.2rem' }}>📦</span>
@@ -1098,7 +1098,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                               onClick={() => setEditingId(null)}
                               style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                             >
-                              <X size={16} color="#ff4d4d" />
+                              <X size={16} color="#22c55e" />
                             </button>
                           </div>
                         </div>
@@ -1107,7 +1107,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                           <div
                             style={{
                               fontSize: product.sale_price ? '0.8rem' : '1rem',
-                              color: product.sale_price ? '#888' : '#fff',
+                              color: product.sale_price ? '#9ca3af' : '#fff',
                               textDecoration: product.sale_price ? 'line-through' : 'none',
                             }}
                           >
@@ -1150,7 +1150,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                           title="حذف"
                         >
-                          <Trash2 size={18} color="#ff4d4d" />
+                          <Trash2 size={18} color="#22c55e" />
                         </button>
                       </div>
                     </td>
@@ -1180,20 +1180,20 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 0 }}
                 >
                   {isSelected
-                    ? <CheckSquare size={20} color="#ff4d4d" />
-                    : <Square size={20} color="#444" />}
+                    ? <CheckSquare size={20} color="#22c55e" />
+                    : <Square size={20} color="#6b7280" />}
                 </button>
-                <div style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#ffffff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {product.image_url
                     ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     : <span style={{ fontSize: '1.2rem' }}>📦</span>}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: '700', fontSize: '0.88rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</div>
+                  <div style={{ fontWeight: '700', fontSize: '0.88rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</div>
                   <div style={{ fontSize: '0.72rem', color: '#555', marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     {product.brand && <span style={{ color: '#2ecc71' }}>{product.brand}</span>}
                     {product.car_make && <span>• {product.car_make} {product.car_model}</span>}
-                    {product.car_model_year && <span style={{ color: '#888' }}>{product.car_model_year}</span>}
+                    {product.car_model_year && <span style={{ color: '#9ca3af' }}>{product.car_model_year}</span>}
                   </div>
                   {product.sku && (
                     <div style={{ fontSize: '0.68rem', color: '#2ecc71', fontFamily: 'monospace', marginTop: '2px' }}>SKU: {product.sku}</div>
@@ -1208,8 +1208,8 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   style={{
                     padding: '5px 12px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 'bold',
                     border: 'none', cursor: 'pointer',
-                    backgroundColor: product.is_active ? '#2ecc7133' : '#333',
-                    color: product.is_active ? '#2ecc71' : '#888',
+                    backgroundColor: product.is_active ? '#2ecc7133' : '#d1d5db',
+                    color: product.is_active ? '#2ecc71' : '#9ca3af',
                   }}
                 >
                   {product.is_active ? '● نشط' : '○ معطل'}
@@ -1231,18 +1231,18 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                       <Check size={16} color="#2ecc71" />
                     </button>
                     <button onClick={() => setEditingId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                      <X size={16} color="#ff4d4d" />
+                      <X size={16} color="#22c55e" />
                     </button>
                   </div>
                 ) : (
                   <div style={{ lineHeight: '1.2', textAlign: 'left' }}>
                     {product.sale_price ? (
                       <>
-                        <div style={{ fontSize: '0.72rem', color: '#888', textDecoration: 'line-through' }}>{product.regular_price} ج.م</div>
+                        <div style={{ fontSize: '0.72rem', color: '#9ca3af', textDecoration: 'line-through' }}>{product.regular_price} ج.م</div>
                         <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#2ecc71' }}>{product.sale_price} ج.م</div>
                       </>
                     ) : (
-                      <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#fff' }}>{product.regular_price} ج.م</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1a1a1a' }}>{product.regular_price} ج.م</div>
                     )}
                   </div>
                 )}
@@ -1265,9 +1265,9 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   <DollarSign size={16} color="#3b82f6" />
                   <span>السعر</span>
                 </button>
-                <button onClick={() => deleteProduct(product.id)} className="prod-action-btn" style={{ borderColor: '#ff4d4d33' }}>
-                  <Trash2 size={16} color="#ff4d4d" />
-                  <span style={{ color: '#ff4d4d' }}>حذف</span>
+                <button onClick={() => deleteProduct(product.id)} className="prod-action-btn" style={{ borderColor: '#22c55e33' }}>
+                  <Trash2 size={16} color="#22c55e" />
+                  <span style={{ color: '#22c55e' }}>حذف</span>
                 </button>
               </div>
             </div>
@@ -1310,10 +1310,10 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 
 
 const labelStyle = { display: 'block', fontSize: '0.8rem', color: '#555', marginBottom: '8px' };
-const filterInputStyle = { width: '100%', padding: '12px', backgroundColor: '#000', border: '1px solid #222', color: '#fff', borderRadius: '10px', outline: 'none', fontSize: '0.85rem' };
-const secondaryBtnStyle: any = { padding: '8px 15px', backgroundColor: '#111', color: '#888', border: '1px solid #222', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' };
+const filterInputStyle = { width: '100%', padding: '12px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb', color: '#1a1a1a', borderRadius: '10px', outline: 'none', fontSize: '0.85rem' };
+const secondaryBtnStyle: any = { padding: '8px 15px', backgroundColor: '#e5e7eb', color: '#9ca3af', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' };
 const thStyle: any = { padding: '18px 15px', fontSize: '0.9rem' };
-const tdStyle: any = { padding: '15px', color: '#bbb', fontSize: '0.85rem' };
-const miniInputStyle: any = { width: '80px', padding: '8px', backgroundColor: '#000', color: '#fff', border: '1px solid #333', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' };
-const pageBtnStyle: any = { padding: '10px 25px', backgroundColor: '#111', color: '#fff', border: '1px solid #222', borderRadius: '10px', cursor: 'pointer' };
-const bulkBarStyle: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a0a0a', border: '1px solid #ff4d4d44', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', gap: '10px', flexWrap: 'wrap' };
+const tdStyle: any = { padding: '15px', color: '#374151', fontSize: '0.85rem' };
+const miniInputStyle: any = { width: '80px', padding: '8px', backgroundColor: '#ffffff', color: '#1a1a1a', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' };
+const pageBtnStyle: any = { padding: '10px 25px', backgroundColor: '#e5e7eb', color: '#374151', border: '1px solid #e5e7eb', borderRadius: '10px', cursor: 'pointer' };
+const bulkBarStyle: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f0fdf4', border: '1px solid #22c55e44', borderRadius: '12px', padding: '12px 16px', marginBottom: '14px', gap: '10px', flexWrap: 'wrap' };

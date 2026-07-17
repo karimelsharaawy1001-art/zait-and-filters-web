@@ -299,15 +299,15 @@ export default function SaleOrderAdminPage() {
       `}</style>
 
       {/* ── Header ── */}
-      <div style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)', padding: '24px 28px' }}>
+      <div style={{ background: 'linear-gradient(135deg, #f9fafb 0%, #f0fdf4 100%)', padding: '24px 28px' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'linear-gradient(135deg, #ff4d4d, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'linear-gradient(135deg, #22c55e, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Tags size={22} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontSize: '1.4rem', fontWeight: '900', margin: 0, color: '#fff' }}>ترتيب منتجات العروض</h1>
-              <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', margin: '3px 0 0', fontWeight: '600' }}>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: '900', margin: 0, color: '#1a1a1a' }}>ترتيب منتجات العروض</h1>
+              <p style={{ fontSize: '0.78rem', color: 'rgba(0,0,0,0.2)', margin: '3px 0 0', fontWeight: '600' }}>
                 {products.length} منتج بتخفيض
                 {searchQuery && ` • ${filteredProducts.length} نتيجة`}
               </p>
@@ -315,17 +315,17 @@ export default function SaleOrderAdminPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button className="top-btn" onClick={sortByDiscount}
-              style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
+              style={{ background: 'rgba(0,0,0,0.05)', color: '#374151', border: '1px solid #e5e7eb' }}>
               <Percent size={14} /> ترتيب بالخصم
             </button>
             {isDirty && (
               <button className="top-btn" onClick={resetOrder}
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                style={{ background: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.08)' }}>
                 <RotateCcw size={14} /> تراجع
               </button>
             )}
             <button className="top-btn" onClick={saveOrder} disabled={saving || !isDirty}
-              style={{ background: isDirty ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.12)', color: '#fff', border: 'none', boxShadow: isDirty ? '0 4px 14px rgba(34,197,94,0.4)' : 'none' }}>
+              style={{ background: isDirty ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(0,0,0,0.06)', color: isDirty ? '#fff' : '#9ca3af', border: 'none', boxShadow: isDirty ? '0 4px 14px rgba(34,197,94,0.4)' : 'none' }}>
               {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />}
               {saving ? 'جاري الحفظ...' : 'حفظ الترتيب'}
             </button>
@@ -338,10 +338,10 @@ export default function SaleOrderAdminPage() {
         <div style={{ position: 'relative' }}>
           <input className="search-bar" type="text" placeholder="ابحث باسم المنتج، الماركة، السيارة، الفئة..."
             value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-          <Search size={17} color="#aaa" style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+          <Search size={17} color="#6b7280" style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')}
-              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', background: '#f3f4f6', border: 'none', borderRadius: '6px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#888' }}>
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', background: '#f3f4f6', border: 'none', borderRadius: '6px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#9ca3af' }}>
               <X size={13} />
             </button>
           )}
@@ -362,7 +362,7 @@ export default function SaleOrderAdminPage() {
         )}
 
         {searchQuery && filteredProducts.length === 0 && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '11px', padding: '12px 14px', textAlign: 'center', color: '#dc2626', fontWeight: '700', fontSize: '0.85rem' }}>
+          <div style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '11px', padding: '12px 14px', textAlign: 'center', color: '#16a34a', fontWeight: '700', fontSize: '0.85rem' }}>
             لا توجد نتائج لـ "{searchQuery}"
           </div>
         )}
@@ -371,7 +371,7 @@ export default function SaleOrderAdminPage() {
       {/* ── Column headers ── */}
       {pagedProducts.length > 0 && (
         <div style={{ maxWidth: '960px', margin: '14px auto 0', padding: '0 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px', color: '#bbb', fontSize: '0.7rem', fontWeight: '800', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 14px', color: '#374151', fontSize: '0.7rem', fontWeight: '800', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             <div style={{ width: '34px', textAlign: 'center' }}>رقم</div>
             <div style={{ width: '18px' }} />
             <div style={{ width: '56px' }} />
@@ -428,7 +428,7 @@ export default function SaleOrderAdminPage() {
                 <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: '800', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {product.name}
                 </p>
-                <p style={{ margin: '3px 0 0', fontSize: '0.73rem', color: '#999', fontWeight: '600' }}>
+                <p style={{ margin: '3px 0 0', fontSize: '0.73rem', color: '#6b7280', fontWeight: '600' }}>
                   {[product.brand, product.car_make, product.car_model, product.category].filter(Boolean).join(' · ')}
                 </p>
               </div>
@@ -436,13 +436,13 @@ export default function SaleOrderAdminPage() {
               <div style={{ textAlign: 'left', flexShrink: 0, minWidth: '90px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
                   {product.regular_price > product.sale_price && (
-                    <span style={{ fontSize: '0.7rem', color: '#ccc', textDecoration: 'line-through' }}>{product.regular_price} ج.م</span>
+                    <span style={{ fontSize: '0.7rem', color: '#9ca3af', textDecoration: 'line-through' }}>{product.regular_price} ج.م</span>
                   )}
                   <span style={{ fontSize: '0.9rem', fontWeight: '900', color: '#1a1a1a' }}>{product.sale_price} ج.م</span>
                 </div>
                 {disc > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
-                    <span style={{ background: 'linear-gradient(135deg,#ff4d4d,#f97316)', color: '#fff', fontSize: '0.68rem', fontWeight: '900', padding: '2px 7px', borderRadius: '5px' }}>
+                    <span style={{ background: 'linear-gradient(135deg,#22c55e,#f97316)', color: '#fff', fontSize: '0.68rem', fontWeight: '900', padding: '2px 7px', borderRadius: '5px' }}>
                       -{disc}%
                     </span>
                   </div>
@@ -450,7 +450,7 @@ export default function SaleOrderAdminPage() {
               </div>
 
               <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-                <label style={{ fontSize: '0.62rem', color: '#bbb', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <label style={{ fontSize: '0.62rem', color: '#374151', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '2px' }}>
                   <Hash size={9} /> موضع
                 </label>
                 <input
@@ -471,9 +471,9 @@ export default function SaleOrderAdminPage() {
         })}
 
         {products.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '20px', color: '#999' }}>
+          <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '20px', color: '#6b7280' }}>
             <Tags size={56} style={{ opacity: 0.25, marginBottom: '14px' }} />
-            <h3 style={{ fontWeight: '900', fontSize: '1.2rem', color: '#ccc', margin: '0 0 8px' }}>لا توجد منتجات بعروض حالياً</h3>
+            <h3 style={{ fontWeight: '900', fontSize: '1.2rem', color: '#9ca3af', margin: '0 0 8px' }}>لا توجد منتجات بعروض حالياً</h3>
             <p style={{ fontSize: '0.85rem' }}>أضف سعر مخفّض لأي منتج وسيظهر هنا</p>
           </div>
         )}
@@ -483,7 +483,7 @@ export default function SaleOrderAdminPage() {
       {totalPages > 1 && (
         <div style={{ maxWidth: '960px', margin: '16px auto 100px', padding: '0 20px' }}>
           <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #f0f0f0', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600' }}>
+            <span style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '600' }}>
               صفحة <strong style={{ color: '#1a1a1a' }}>{currentPage}</strong> من <strong style={{ color: '#1a1a1a' }}>{totalPages}</strong>
               {' '}· عرض <strong style={{ color: '#22c55e' }}>{(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredProducts.length)}</strong> من <strong style={{ color: '#1a1a1a' }}>{filteredProducts.length}</strong> منتج
             </span>
@@ -525,12 +525,12 @@ export default function SaleOrderAdminPage() {
 
       {/* ── Sticky save bar ── */}
       {isDirty && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(20,20,20,0.97)', backdropFilter: 'blur(14px)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem', fontWeight: '700' }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(14px)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1000, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+          <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '0.85rem', fontWeight: '700' }}>
             🔄 لديك تغييرات غير محفوظة
           </span>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={resetOrder} style={{ padding: '9px 16px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '0.83rem' }}>
+            <button onClick={resetOrder} style={{ padding: '9px 16px', borderRadius: '9px', border: '1px solid #e5e7eb', background: '#f3f4f6', color: '#374151', fontWeight: '700', cursor: 'pointer', fontSize: '0.83rem' }}>
               تراجع
             </button>
             <button onClick={saveOrder} disabled={saving}

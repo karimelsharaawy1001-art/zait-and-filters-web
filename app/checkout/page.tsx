@@ -393,7 +393,7 @@ export default function CheckoutPage() {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#1c1c1c',
+        backgroundColor: '#ffffff',
         logging: false,
       });
 
@@ -601,7 +601,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!isReady || shippingRates.length === 0) return <div style={loaderStyle}><Loader2 className="animate-spin" size={40} color="#b91c1c" /> جاري تجهيز الطلب...</div>;
+  if (!isReady || shippingRates.length === 0) return <div style={loaderStyle}><Loader2 className="animate-spin" size={40} color="#15803d" /> جاري تجهيز الطلب...</div>;
 
   // ── ORDER SUCCESS SCREEN with Invoice ─────────────────────────────────────
   if (completedOrderId) {
@@ -619,7 +619,7 @@ export default function CheckoutPage() {
           @media (max-width: 640px) {
             .invoice-header-inner { flex-direction: column !important; gap: 12px !important; }
             .invoice-meta-grid { grid-template-columns: 1fr !important; }
-            .invoice-meta-cell { border-right: none !important; border-bottom: 1px solid #242424; }
+            .invoice-meta-cell { border-right: none !important; border-bottom: 1px solid #f3f4f6; }
             .invoice-meta-cell:last-child { border-bottom: none !important; }
             .invoice-address-grid { grid-template-columns: 1fr !important; }
             .invoice-table-header { display: none !important; }
@@ -627,7 +627,7 @@ export default function CheckoutPage() {
             .invoice-table-row > div { text-align: right !important; }
             .invoice-table-qty { display: inline-flex; margin-top: 4px; }
             .invoice-table-unit { display: none !important; }
-            .invoice-table-total { font-weight: 900; color: #b91c1c !important; }
+            .invoice-table-total { font-weight: 900; color: #15803d !important; }
             .invoice-summary-wrap { justify-content: flex-start !important; }
             .invoice-summary-inner { width: 100% !important; }
             .invoice-footer-inner { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; text-align: right !important; }
@@ -639,30 +639,30 @@ export default function CheckoutPage() {
         `}} />
 
         <div style={{
-          background: 'linear-gradient(135deg, #2a2a2a, #7f1d1d)',
+          background: 'linear-gradient(135deg, #e5e7eb, #166534)',
           borderRadius: '20px', padding: '24px 20px', textAlign: 'center',
           marginBottom: '20px', color: '#fff',
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎉</div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '6px' }}>تم تسجيل طلبك بنجاح!</h1>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', margin: 0 }}>
-            رقم الطلب: <span style={{ color: '#e50914', fontWeight: '900' }}>#{orderNum}</span>
+          <p style={{ color: 'rgba(0,0,0,0.06)', fontSize: '0.9rem', margin: 0 }}>
+            رقم الطلب: <span style={{ color: '#22c55e', fontWeight: '900' }}>#{orderNum}</span>
           </p>
         </div>
 
         {['instapay', 'wallets'].includes(paymentMethod) && (
           <div style={{
-            background: '#2a0f10',
-            border: '1px solid #7f1d1d',
+            background: '#f0fdf4',
+            border: '1px solid #166534',
             borderRadius: '14px',
             padding: '16px 20px',
             marginBottom: '20px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f87171', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#15803d', marginBottom: '6px' }}>
               ⏳ قيد المراجعة
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#f87171', lineHeight: '1.7' }}>
+            <div style={{ fontSize: '0.82rem', color: '#15803d', lineHeight: '1.7' }}>
               سيتم مراجعة عملية الدفع خلال <strong>24 ساعة</strong>. بعد تأكيد الدفع، سيتم تحديث حالة الطلب وإعلامك.
             </div>
           </div>
@@ -677,7 +677,7 @@ export default function CheckoutPage() {
               flex: 1, minWidth: '200px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
               padding: '14px 20px',
-              background: isDownloadingPdf ? '#ccc' : 'linear-gradient(135deg, #e50914, #dc2626)',
+              background: isDownloadingPdf ? '#9ca3af' : 'linear-gradient(135deg, #22c55e, #16a34a)',
               color: '#fff', border: 'none', borderRadius: '14px',
               fontWeight: '800', fontSize: '0.92rem',
               cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
@@ -695,13 +695,13 @@ export default function CheckoutPage() {
               flex: 1, minWidth: '200px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
               padding: '14px 20px',
-              background: '#1c1c1c',
-              color: '#fff', borderRadius: '14px',
+              background: '#ffffff',
+              color: '#1a1a1a', borderRadius: '14px',
               fontWeight: '800', fontSize: '0.92rem',
               textDecoration: 'none',
             }}
           >
-            <FileText size={18} color="#e50914" />
+            <FileText size={18} color="#22c55e" />
             عرض ORDER في صفحة جديدة
             <ExternalLink size={14} style={{ opacity: 0.6 }} />
           </Link>
@@ -711,8 +711,8 @@ export default function CheckoutPage() {
             style={{
               flex: 1, minWidth: '160px',
               padding: '14px 20px',
-              background: '#1c1c1c', color: '#f5f5f5',
-              border: '1.5px solid #2a2a2a', borderRadius: '14px',
+              background: '#ffffff', color: '#1a1a1a',
+              border: '1.5px solid #e5e7eb', borderRadius: '14px',
               fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer',
             }}
           >
@@ -724,17 +724,17 @@ export default function CheckoutPage() {
         <div
           id="order-invoice-preview"
           style={{
-            backgroundColor: '#1c1c1c',
+            backgroundColor: '#ffffff',
             borderRadius: '20px',
             overflow: 'hidden',
             boxShadow: '0 10px 40px rgba(0,0,0,0.10)',
-            border: '1px solid #242424',
+            border: '1px solid #f3f4f6',
             width: '100%',
           }}
         >
           {/* ── Invoice Header ── */}
           <div style={{
-            background: 'linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 60%, #0f4c2a 100%)',
+            background: 'linear-gradient(135deg, #e5e7eb 0%, #6b7280 60%, #0f4c2a 100%)',
             padding: '28px 20px', position: 'relative', overflow: 'hidden',
           }}>
             <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.07)', pointerEvents: 'none' }} />
@@ -743,15 +743,15 @@ export default function CheckoutPage() {
             <div className="invoice-header-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
               <div>
                 <div style={{ fontSize: '1.6rem', fontWeight: '900', fontStyle: 'italic', color: '#fff', letterSpacing: '-1px', marginBottom: '4px' }}>
-                  ZAIT <span style={{ color: '#e50914' }}>& FILTERS</span>
+                  ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', fontWeight: '600', letterSpacing: '2px' }}>
                   AUTO PARTS · قطع غيار
                 </div>
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#e50914', letterSpacing: '-1px', lineHeight: 1 }}>ORDER</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
+                <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#22c55e', letterSpacing: '-1px', lineHeight: 1 }}>ORDER</div>
+                <div style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.78rem', fontWeight: '700', marginTop: '4px', letterSpacing: '1px' }}>#{orderNum}</div>
               </div>
             </div>
             {/* Status badge */}
@@ -761,23 +761,23 @@ export default function CheckoutPage() {
                 backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
                 padding: '5px 12px', borderRadius: '20px',
               }}>
-                <CheckCircle size={13} color="#e50914" />
-                <span style={{ color: '#e50914', fontSize: '0.75rem', fontWeight: '800' }}>تم تأكيد الطلب. يتم تجهيز الطلب في خلال 24 ساعة. و يتم التسليم في خلال 2-5أيام عمل</span>
+                <CheckCircle size={13} color="#22c55e" />
+                <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: '800' }}>تم تأكيد الطلب. يتم تجهيز الطلب في خلال 24 ساعة. و يتم التسليم في خلال 2-5أيام عمل</span>
               </div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{orderDate}</span>
+              <span style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.75rem' }}>{orderDate}</span>
             </div>
           </div>
 
           {/* ── Order Meta Row ── */}
-          <div className="invoice-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #242424' }}>
+          <div className="invoice-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #f3f4f6' }}>
             {[
               { label: 'رقم الطلب', value: `#${orderNum}` },
               { label: 'تاريخ الطلب', value: orderDate },
               { label: 'عدد المنتجات', value: `${completedOrderItems.length} منتج` },
             ].map((item, i) => (
-              <div key={i} className="invoice-meta-cell" style={{ padding: '16px 18px', borderRight: i < 2 ? '1px solid #242424' : 'none' }}>
-                <div style={{ fontSize: '0.66rem', color: '#aaa', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5' }}>{item.value}</div>
+              <div key={i} className="invoice-meta-cell" style={{ padding: '16px 18px', borderRight: i < 2 ? '1px solid #f3f4f6' : 'none' }}>
+                <div style={{ fontSize: '0.66rem', color: '#6b7280', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' }}>{item.label}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a' }}>{item.value}</div>
               </div>
             ))}
           </div>
@@ -787,18 +787,18 @@ export default function CheckoutPage() {
 
             {/* Customer + Address Grid */}
             <div className="invoice-address-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
-              <div style={{ backgroundColor: '#161616', borderRadius: '14px', padding: '18px', border: '1px solid #242424' }}>
-                <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>بيانات العميل</div>
-                <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#f5f5f5', marginBottom: '6px' }}>{customerInfo.name}</div>
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '18px', border: '1px solid #f3f4f6' }}>
+                <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>بيانات العميل</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '6px' }}>{customerInfo.name}</div>
                 <div style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '600', direction: 'ltr', marginBottom: '4px' }}>{customerInfo.phone}</div>
-                {customerInfo.email && <div style={{ fontSize: '0.78rem', color: '#888', wordBreak: 'break-all' }}>{customerInfo.email}</div>}
+                {customerInfo.email && <div style={{ fontSize: '0.78rem', color: '#9ca3af', wordBreak: 'break-all' }}>{customerInfo.email}</div>}
               </div>
-              <div style={{ backgroundColor: '#161616', borderRadius: '14px', padding: '18px', border: '1px solid #242424' }}>
-                <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>عنوان التوصيل</div>
-                <div style={{ fontSize: '0.82rem', color: '#f5f5f5', fontWeight: '700', lineHeight: '1.5', marginBottom: '6px' }}>{customerInfo.address}</div>
-                <div style={{ fontSize: '0.78rem', color: '#e50914', fontWeight: '700' }}>{selectedCity?.city_name}</div>
-                <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #2a2a2a' }}>
-                  طريقة الدفع: <span style={{ fontWeight: '800', color: '#f5f5f5' }}>
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '14px', padding: '18px', border: '1px solid #f3f4f6' }}>
+                <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>عنوان التوصيل</div>
+                <div style={{ fontSize: '0.82rem', color: '#1a1a1a', fontWeight: '700', lineHeight: '1.5', marginBottom: '6px' }}>{customerInfo.address}</div>
+                <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700' }}>{selectedCity?.city_name}</div>
+                <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e7eb' }}>
+                  طريقة الدفع: <span style={{ fontWeight: '800', color: '#1a1a1a' }}>
                     {paymentMethod === 'card_installments' ? 'بطاقة / تقسيط' : paymentMethod === 'instapay' ? 'InstaPay' : paymentMethod === 'cash' ? 'الدفع عند الاستلام' : 'محفظة إلكترونية'}
                     {expressShipping && <span style={{ marginRight: '6px', color: '#f59e0b', fontSize: '0.68rem' }}>⚡ شحن سريع 48 ساعة</span>}
                   </span>
@@ -808,66 +808,66 @@ export default function CheckoutPage() {
 
             {/* Products Table */}
             <div style={{ marginBottom: '22px' }}>
-              <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#888', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
+              <div style={{ fontSize: '0.66rem', fontWeight: '900', color: '#9ca3af', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>تفاصيل المنتجات</div>
               {/* Table header — hidden on mobile via CSS class */}
-              <div className="invoice-table-header" style={{ backgroundColor: '#1c1c1c', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
+              <div className="invoice-table-header" style={{ backgroundColor: '#ffffff', borderRadius: '10px 10px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr' }}>
                 {['المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي'].map((h, i) => (
-                  <div key={i} style={{ fontSize: '0.66rem', fontWeight: '800', color: '#94a3b8', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
+                  <div key={i} style={{ fontSize: '0.66rem', fontWeight: '800', color: '#6b7280', textAlign: i === 0 ? 'right' : 'center', textTransform: 'uppercase' }}>{h}</div>
                 ))}
               </div>
               {completedOrderItems.map((item: any, i: number) => (
                 <div key={item.id} className="invoice-table-row" style={{
                   display: 'grid', gridTemplateColumns: '2.5fr 0.7fr 1fr 1fr',
-                  padding: '12px 16px', backgroundColor: i % 2 === 0 ? '#fff' : '#161616',
-                  borderBottom: '1px solid #242424', borderRight: '1px solid #242424', borderLeft: '1px solid #242424',
+                  padding: '12px 16px', backgroundColor: i % 2 === 0 ? '#fff' : '#f9fafb',
+                  borderBottom: '1px solid #f3f4f6', borderRight: '1px solid #f3f4f6', borderLeft: '1px solid #f3f4f6',
                   alignItems: 'center',
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f5f5f5' }}>{item.name}</div>
-                    {item.brand && <div style={{ fontSize: '0.7rem', color: '#e50914', fontWeight: '700' }}>{item.brand}</div>}
+                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1a1a' }}>{item.name}</div>
+                    {item.brand && <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '700' }}>{item.brand}</div>}
                     {/* On mobile: show qty + total inline under name */}
                     <div style={{ display: 'none' }} className="invoice-table-qty">
-                      <span style={{ backgroundColor: '#1a0d0d', color: '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800', marginLeft: '8px' }}>×{item.quantity}</span>
-                      <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#f87171' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</span>
+                      <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800', marginLeft: '8px' }}>×{item.quantity}</span>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#15803d' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</span>
                     </div>
                   </div>
                   <div className="invoice-table-qty" style={{ textAlign: 'center' }}>
-                    <span style={{ backgroundColor: '#1a0d0d', color: '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span>
+                    <span style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '800' }}>×{item.quantity}</span>
                   </div>
-                  <div className="invoice-table-unit" style={{ textAlign: 'center', fontSize: '0.83rem', fontWeight: '700', color: '#cbd5e1' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
-                  <div className="invoice-table-total" style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: '900', color: '#f5f5f5' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
+                  <div className="invoice-table-unit" style={{ textAlign: 'center', fontSize: '0.83rem', fontWeight: '700', color: '#374151' }}>{parseFloat(item.price).toLocaleString('ar-EG')} ج.م</div>
+                  <div className="invoice-table-total" style={{ textAlign: 'center', fontSize: '0.88rem', fontWeight: '900', color: '#1a1a1a' }}>{(parseFloat(item.price) * item.quantity).toLocaleString('ar-EG')} ج.م</div>
                 </div>
               ))}
-              <div style={{ height: '4px', backgroundColor: '#1c1c1c', borderRadius: '0 0 10px 10px' }} />
+              <div style={{ height: '4px', backgroundColor: '#ffffff', borderRadius: '0 0 10px 10px' }} />
             </div>
 
             {/* Totals Summary */}
             <div className="invoice-summary-wrap" style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <div className="invoice-summary-inner" style={{ width: '270px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #2a2a2a', fontSize: '0.84rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e7eb', fontSize: '0.84rem' }}>
                   <span style={{ color: '#9ca3af', fontWeight: '700' }}>المجموع الجزئي</span>
                   <span style={{ fontWeight: '800' }}>{completedSubtotal.toFixed(2)} ج.م</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #2a2a2a', fontSize: '0.84rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e7eb', fontSize: '0.84rem' }}>
                   <span style={{ color: '#9ca3af', fontWeight: '700' }}>الشحن</span>
                   {appliedPromoType === 'free_shipping'
-                    ? <span style={{ color: '#e50914', fontWeight: '800' }}>مجاني 🚚</span>
+                    ? <span style={{ color: '#22c55e', fontWeight: '800' }}>مجاني 🚚</span>
                     : <span style={{ fontWeight: '800' }}>{shipping.toFixed(2)} ج.م</span>
                   }
                 </div>
                 {discount > 0 && appliedPromoType !== 'free_shipping' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #2a2a2a', fontSize: '0.84rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px dashed #e5e7eb', fontSize: '0.84rem' }}>
                     <span style={{ color: '#9ca3af', fontWeight: '700' }}>الخصم</span>
-                    <span style={{ color: '#ef4444', fontWeight: '800' }}>- {discount.toFixed(2)} ج.م</span>
+                    <span style={{ color: '#16a34a', fontWeight: '800' }}>- {discount.toFixed(2)} ج.م</span>
                   </div>
                 )}
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   marginTop: '12px', padding: '14px 16px',
-                  background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #e5e7eb, #6b7280)', borderRadius: '12px',
                 }}>
-                  <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.8rem', fontWeight: '700' }}>الإجمالي الكلي</span>
-                  <span style={{ color: '#e50914', fontSize: '1.25rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
+                  <span style={{ color: 'rgba(0,0,0,0.35)', fontSize: '0.8rem', fontWeight: '700' }}>الإجمالي الكلي</span>
+                  <span style={{ color: '#22c55e', fontSize: '1.25rem', fontWeight: '900' }}>{completedFinalTotal.toFixed(2)} ج.م</span>
                 </div>
               </div>
             </div>
@@ -875,24 +875,24 @@ export default function CheckoutPage() {
 
           {/* ── Invoice Footer — FIXED for mobile ── */}
           <div style={{
-            background: 'linear-gradient(135deg, #2a2a2a, #3a3a3a)',
+            background: 'linear-gradient(135deg, #e5e7eb, #6b7280)',
             padding: '20px', /* was 24px 44px — caused overflow */
           }}>
             <div className="invoice-footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div>
                 <div style={{ fontSize: '0.95rem', fontWeight: '900', fontStyle: 'italic', color: '#fff' }}>
-                  ZAIT <span style={{ color: '#e50914' }}>& FILTERS</span>
+                  ZAIT <span style={{ color: '#22c55e' }}>& FILTERS</span>
                 </div>
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.68rem', marginTop: '3px' }}>zaitandfilters.com</div>
+                <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.68rem', marginTop: '3px' }}>zaitandfilters.com</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ color: '#e50914', fontSize: '0.76rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.66rem', marginTop: '2px' }}>Thank you for your order</div>
+                <div style={{ color: '#22c55e', fontSize: '0.76rem', fontWeight: '800' }}>شكراً لثقتكم بنا</div>
+                <div style={{ color: 'rgba(0,0,0,0.15)', fontSize: '0.66rem', marginTop: '2px' }}>Thank you for your order</div>
               </div>
               <div className="invoice-footer-badge" style={{
                 backgroundColor: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)',
                 borderRadius: '8px', padding: '6px 12px',
-                color: '#e50914', fontSize: '0.7rem', fontWeight: '800', letterSpacing: '1px',
+                color: '#22c55e', fontSize: '0.7rem', fontWeight: '800', letterSpacing: '1px',
                 whiteSpace: 'nowrap',
               }}>
                 ORDER #{orderNum}
@@ -910,12 +910,12 @@ export default function CheckoutPage() {
       <style dangerouslySetInnerHTML={{ __html: `
         * { box-sizing: border-box; }
         .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(21,128,61,0.45) !important; }
-        .action-hover:hover { background: #000 !important; transform: translateY(-1px); }
-        .upload-hover:hover { background: #1a0d0d !important; border-color: #b91c1c !important; }
-        .promo-btn:hover:not(:disabled) { background: #2a2a2a !important; color: #fff !important; }
-        .co-input:focus { border-color: #e50914 !important; box-shadow: 0 0 0 3px rgba(34,197,94,0.12) !important; outline: none; }
-        .pay-card-label:hover { border-color: #e50914 !important; box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important; }
-        .co-section { background:#1c1c1c; border-radius:20px; border:1px solid #242424; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+        .action-hover:hover { background: #1a1a1a !important; transform: translateY(-1px); }
+        .upload-hover:hover { background: #f0fdf4 !important; border-color: #15803d !important; }
+        .promo-btn:hover:not(:disabled) { background: #e5e7eb !important; color: #1a1a1a !important; }
+        .co-input:focus { border-color: #22c55e !important; box-shadow: 0 0 0 3px rgba(34,197,94,0.12) !important; outline: none; }
+        .pay-card-label:hover { border-color: #22c55e !important; box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important; }
+        .co-section { background:#ffffff; border-radius:20px; border:1px solid #f3f4f6; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
         @media(max-width:768px){
           .co-section { padding:18px 16px; border-radius:16px; margin-bottom:12px; }
           .co-layout { grid-template-columns: 1fr !important; }
@@ -926,12 +926,12 @@ export default function CheckoutPage() {
 
       {/* ── Header ── */}
       <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#1a0d0d', border: '1px solid #7f1d1d', borderRadius: '20px', padding: '6px 16px', marginBottom: '12px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e50914', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#f87171' }}>آمن ومشفر 100%</span>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #166534', borderRadius: '20px', padding: '6px 16px', marginBottom: '12px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulseDot 2s ease-in-out infinite' }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#15803d' }}>آمن ومشفر 100%</span>
         </div>
-        <h1 style={{ fontSize: 'clamp(1.5rem,5vw,2.2rem)', fontWeight: '900', color: '#f5f5f5', margin: 0, letterSpacing: '-0.5px' }}>إتمام الطلب</h1>
-        <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '6px', fontWeight: '600' }}>خطوة واحدة وطلبك في طريقه إليك</p>
+        <h1 style={{ fontSize: 'clamp(1.5rem,5vw,2.2rem)', fontWeight: '900', color: '#1a1a1a', margin: 0, letterSpacing: '-0.5px' }}>إتمام الطلب</h1>
+        <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '6px', fontWeight: '600' }}>خطوة واحدة وطلبك في طريقه إليك</p>
         <style>{`@keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }`}</style>
       </div>
 
@@ -952,24 +952,24 @@ export default function CheckoutPage() {
                         <span style={{ fontWeight: '900', whiteSpace: 'nowrap' }}>{(parseFloat(item.price) * item.quantity).toFixed(2)} ج.م</span>
                       </div>
                       <div style={detailsGrid}>
-                        <div style={detailItem}><Tags size={11} color="#b91c1c" /> <span>البراند: <b>{item.brand}</b></span></div>
-                        <div style={detailItem}><Settings2 size={11} color="#b91c1c" /> <span>لسيارة: <b>{item.car_make} {item.car_model}</b></span></div>
-                        {item.car_model_year && <div style={detailItem}><Calendar size={11} color="#b91c1c" /> <span>سنة الموديل: <b>{item.car_model_year}</b></span></div>}
-                        <div style={detailItem}><Globe size={11} color="#b91c1c" /> <span>بلد المنشأ: <b>{country}</b></span></div>
+                        <div style={detailItem}><Tags size={11} color="#15803d" /> <span>البراند: <b>{item.brand}</b></span></div>
+                        <div style={detailItem}><Settings2 size={11} color="#15803d" /> <span>لسيارة: <b>{item.car_make} {item.car_model}</b></span></div>
+                        {item.car_model_year && <div style={detailItem}><Calendar size={11} color="#15803d" /> <span>سنة الموديل: <b>{item.car_model_year}</b></span></div>}
+                        <div style={detailItem}><Globe size={11} color="#15803d" /> <span>بلد المنشأ: <b>{country}</b></span></div>
                       </div>
                       {/* Qty stepper + remove */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', background: '#161616', border: '1.5px solid #2a2a2a', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', background: '#f9fafb', border: '1.5px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
                           <button type="button" onClick={() => addToCart(item, 1)}
-                            style={{ width: '30px', height: '30px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '1rem', fontWeight: '900' }}>+</button>
-                          <span style={{ width: '32px', textAlign: 'center', fontWeight: '900', fontSize: '0.9rem', color: '#f5f5f5' }}>{item.quantity}</span>
+                            style={{ width: '30px', height: '30px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '1rem', fontWeight: '900' }}>+</button>
+                          <span style={{ width: '32px', textAlign: 'center', fontWeight: '900', fontSize: '0.9rem', color: '#1a1a1a' }}>{item.quantity}</span>
                           <button type="button" onClick={() => item.quantity > 1 && removeFromCart(item.id, true)}
-                            style={{ width: '30px', height: '30px', border: 'none', background: 'none', cursor: item.quantity > 1 ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.quantity > 1 ? '#94a3b8' : '#cbd5e1', fontSize: '1rem', fontWeight: '900' }}>−</button>
+                            style={{ width: '30px', height: '30px', border: 'none', background: 'none', cursor: item.quantity > 1 ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.quantity > 1 ? '#6b7280' : '#374151', fontSize: '1rem', fontWeight: '900' }}>−</button>
                         </div>
                         <button type="button" onClick={() => removeFromCart(item.id)}
-                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '0.72rem', fontWeight: '700', padding: '4px 6px', borderRadius: '6px', transition: 'all 0.15s' }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.background = '#2a0f10'; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#94a3b8'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}>
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '0.72rem', fontWeight: '700', padding: '4px 6px', borderRadius: '6px', transition: 'all 0.15s' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#16a34a'; (e.currentTarget as HTMLButtonElement).style.background = '#f0fdf4'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#6b7280'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}>
                           حذف
                         </button>
                       </div>
@@ -982,16 +982,16 @@ export default function CheckoutPage() {
 
           {/* ── Wallet Section ── */}
           {walletBalance > 0 && (
-            <div style={{ marginBottom: '15px', padding: '15px', background: '#1c1c1c', borderRadius: '20px', border: '1px solid #2a0f10' }}>
+            <div style={{ marginBottom: '15px', padding: '15px', background: '#ffffff', borderRadius: '20px', border: '1px solid #f0fdf4' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <label style={{ ...lab, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Wallet size={14} color="#b91c1c" /> رصيد محفظتك
+                  <Wallet size={14} color="#15803d" /> رصيد محفظتك
                 </label>
-                <span style={{ background: '#1a0d0d', color: '#f87171', fontWeight: '900', fontSize: '0.92rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #2a0f10' }}>
+                <span style={{ background: '#f0fdf4', color: '#15803d', fontWeight: '900', fontSize: '0.92rem', padding: '4px 12px', borderRadius: '10px', border: '1px solid #f0fdf4' }}>
                   {walletBalance.toFixed(2)} ج.م
                 </span>
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '10px' }}>
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '10px' }}>
                 يمكنك استخدام حتى 75% من قيمة الطلب كخصم من محفظتك
               </div>
               {!walletApplied ? (
@@ -999,22 +999,22 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={applyWallet}
                   disabled={walletLoading}
-                  style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg, #b91c1c, #991b1b)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.88rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  style={{ width: '100%', padding: '10px', background: 'linear-gradient(135deg, #15803d, #14532d)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '0.88rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                   {walletLoading ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
                   {walletLoading ? 'جاري التحقق...' : 'استخدام رصيد المحفظة'}
                 </button>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#1a0d0d', padding: '10px 14px', borderRadius: '12px', border: '1px solid #7f1d1d' }}>
-                  <span style={{ color: '#f87171', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
-                  <button type="button" onClick={removeWallet} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}>إلغاء</button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', padding: '10px 14px', borderRadius: '12px', border: '1px solid #166534' }}>
+                  <span style={{ color: '#15803d', fontWeight: '800', fontSize: '0.85rem' }}>✅ تم خصم {walletDiscount.toFixed(2)} ج.م من المحفظة</span>
+                  <button type="button" onClick={removeWallet} style={{ background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}>إلغاء</button>
                 </div>
               )}
             </div>
           )}
 
           <div style={promoWrapper}>
-            <label style={lab}><Ticket size={14} color="#b91c1c" /> هل لديك كود خصم أو Promoter Code؟</label>
+            <label style={lab}><Ticket size={14} color="#15803d" /> هل لديك كود خصم أو Promoter Code؟</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
               <input placeholder="ادخل الكود هنا" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} style={{ ...inp, marginBottom: 0, flex: 1 }} disabled={!!appliedPromo} />
               <button type="button" onClick={applyPromoCode} disabled={promoLoading || !!appliedPromo || !promoCode} className="promo-btn" style={promoBtnStyle}>
@@ -1036,7 +1036,7 @@ export default function CheckoutPage() {
                     setAffiliateMarketerId(null);
                     setPromoCode('');
                   }}
-                  style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '700', flexShrink: 0, padding: '2px 6px' }}
+                  style={{ background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '700', flexShrink: 0, padding: '2px 6px' }}
                 >
                   إلغاء
                 </button>
@@ -1047,11 +1047,11 @@ export default function CheckoutPage() {
             <div style={rowPrice}><span>إجمالي المنتجات:</span><span>{subtotal.toFixed(2)} ج.م</span></div>
             <div style={rowPrice}>
               <span>الشحن ({expressShipping ? 'سريع 48 ساعة' : selectedCity?.city_name}):</span>
-              <span style={{ textDecoration: appliedPromoType === 'free_shipping' ? 'line-through' : 'none', color: appliedPromoType === 'free_shipping' ? '#999' : expressShipping ? '#f59e0b' : 'inherit' }}>
+              <span style={{ textDecoration: appliedPromoType === 'free_shipping' ? 'line-through' : 'none', color: appliedPromoType === 'free_shipping' ? '#6b7280' : expressShipping ? '#f59e0b' : 'inherit' }}>
                 {expressShipping ? `${EXPRESS_COST}` : (selectedCity?.price || 0).toFixed(2)} ج.م
               </span>
             </div>
-            {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#e50914', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
+            {appliedPromoType === 'free_shipping' && <div style={{ ...rowPrice, color: '#22c55e', fontWeight: 'bold' }}><span>خصم الشحن المجاني:</span><span>-{(selectedCity?.price || 0).toFixed(2)} ج.م</span></div>}
             {discountAmount > 0 && (
               <div style={{ ...rowPrice, color: '#e74c3c', fontWeight: 'bold' }}>
                 <span>{appliedPromoType === 'affiliate_percentage' ? 'خصم Promoter Code:' : 'خصم كود الخصم:'}</span>
@@ -1059,7 +1059,7 @@ export default function CheckoutPage() {
               </div>
             )}
             {walletDiscount > 0 && (
-              <div style={{ ...rowPrice, color: '#f87171', fontWeight: 'bold' }}>
+              <div style={{ ...rowPrice, color: '#15803d', fontWeight: 'bold' }}>
                 <span>💰 خصم المحفظة:</span>
                 <span>-{walletDiscount.toFixed(2)} ج.م</span>
               </div>
@@ -1074,19 +1074,19 @@ export default function CheckoutPage() {
 
             {/* Cashback notice — hidden when a promo code is active or paying cash on delivery */}
             {appliedPromo ? (
-              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#2a0f10', borderRadius: '10px', border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.76rem', color: '#dc2626', fontWeight: '700' }}>
+              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: '700' }}>
                   ❌ لن تحصل على كاش باك لأنك استخدمت كود خصم
                 </span>
               </div>
             ) : paymentMethod === 'cash' ? (
-              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#2a0f10', borderRadius: '10px', border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.76rem', color: '#dc2626', fontWeight: '700' }}>
+              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: '700' }}>
                   ❌ لن تحصل على كاش باك مع الدفع عند الاستلام
                 </span>
               </div>
             ) : (
-              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#1c1c1c', borderRadius: '10px', border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ marginTop: '10px', padding: '8px 12px', background: '#ffffff', borderRadius: '10px', border: '1px solid #166534', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.76rem', color: '#fbbf24', fontWeight: '700' }}>🎁 كاش باك ستحصل عليه بعد تسليم الطلب</span>
                 <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#d97706' }}>+{(subtotal * cashbackPct / 100).toFixed(2)} ج.م</span>
               </div>
@@ -1129,18 +1129,18 @@ export default function CheckoutPage() {
                 <label onClick={() => setExpressShipping(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
-                  border: !expressShipping ? '2px solid #b91c1c' : '1px solid #e0e0e0',
-                  background: !expressShipping ? '#1a0d0d' : '#161616',
+                  border: !expressShipping ? '2px solid #15803d' : '1px solid #e0e0e0',
+                  background: !expressShipping ? '#f0fdf4' : '#f9fafb',
                   transition: 'all 0.2s',
                 }}>
-                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${!expressShipping ? '#b91c1c' : '#ccc'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {!expressShipping && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#b91c1c' }} />}
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${!expressShipping ? '#15803d' : '#9ca3af'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {!expressShipping && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#15803d' }} />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#f5f5f5' }}>شحن عادي</div>
-                    <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>توصيل خلال 2-5 أيام عمل</div>
+                    <div style={{ fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' }}>شحن عادي</div>
+                    <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px' }}>توصيل خلال 2-5 أيام عمل</div>
                   </div>
-                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#f87171' }}>{(selectedCity?.price || 0).toFixed(0)} ج.م</div>
+                  <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#15803d' }}>{(selectedCity?.price || 0).toFixed(0)} ج.م</div>
                 </label>
 
                 {/* Express shipping */}
@@ -1148,19 +1148,19 @@ export default function CheckoutPage() {
                   display: 'flex', alignItems: 'flex-start', gap: '12px',
                   padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
                   border: expressShipping ? '2px solid #f59e0b' : '1px solid #e0e0e0',
-                  background: expressShipping ? '#1c1c1c' : '#161616',
+                  background: expressShipping ? '#ffffff' : '#f9fafb',
                   transition: 'all 0.2s',
                 }}>
-                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${expressShipping ? '#f59e0b' : '#ccc'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${expressShipping ? '#f59e0b' : '#9ca3af'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
                     {expressShipping && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f59e0b' }} />}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: '800', fontSize: '0.88rem', color: '#f5f5f5' }}>شحن سريع خلال 48 ساعة</span>
+                      <span style={{ fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' }}>شحن سريع خلال 48 ساعة</span>
                       <span style={{ background: '#f59e0b', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 7px', borderRadius: '6px' }}>داخل القاهرة والجيزة</span>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '3px' }}>توصيل سريع خلال 48 ساعة من تأكيد الطلب</div>
-                    <div style={{ marginTop: '6px', padding: '7px 10px', background: '#242424', borderRadius: '8px', border: '1px solid #7f1d1d', fontSize: '0.72rem', color: '#fbbf24', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '3px' }}>توصيل سريع خلال 48 ساعة من تأكيد الطلب</div>
+                    <div style={{ marginTop: '6px', padding: '7px 10px', background: '#f3f4f6', borderRadius: '8px', border: '1px solid #166534', fontSize: '0.72rem', color: '#fbbf24', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                       ⚠️ الشحن السريع يقبل فقط: <strong>InstaPay</strong> و <strong>المحافظ الإلكترونية</strong>
                     </div>
                   </div>
@@ -1186,7 +1186,7 @@ export default function CheckoutPage() {
                 <div style={payCardInner}>
                   <div style={payHeader}>
                     <div style={paymentMethod === 'instapay' ? payIconWrapperActive : payIconWrapper}>
-                      <SmartphoneNfc size={18} color={paymentMethod === 'instapay' ? '#b91c1c' : '#888'} />
+                      <SmartphoneNfc size={18} color={paymentMethod === 'instapay' ? '#15803d' : '#9ca3af'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
                       <span style={payTitle}>InstaPay — انستا باي</span>
@@ -1214,7 +1214,7 @@ export default function CheckoutPage() {
                 <div style={payCardInner}>
                   <div style={payHeader}>
                     <div style={paymentMethod === 'card_installments' ? payIconWrapperActive : payIconWrapper}>
-                      <CreditCard size={18} color={paymentMethod === 'card_installments' ? '#b91c1c' : '#888'} />
+                      <CreditCard size={18} color={paymentMethod === 'card_installments' ? '#15803d' : '#9ca3af'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
                       <span style={payTitle}>بطاقات بنكية و شركات التقسيط</span>
@@ -1232,7 +1232,7 @@ export default function CheckoutPage() {
                 <div style={payCardInner}>
                   <div style={payHeader}>
                     <div style={paymentMethod === 'wallets' ? payIconWrapperActive : payIconWrapper}>
-                      <Wallet size={18} color={paymentMethod === 'wallets' ? '#b91c1c' : '#888'} />
+                      <Wallet size={18} color={paymentMethod === 'wallets' ? '#15803d' : '#9ca3af'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
                       <span style={payTitle}>محافظ إلكترونية </span>
@@ -1246,9 +1246,9 @@ export default function CheckoutPage() {
                   </div>
                   {paymentMethod === 'wallets' && (
                     <div style={payDetailsBox}>
-                      <div style={{ padding: '10px 14px', background: '#161616', borderRadius: '10px', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600' }}>رقم التحويل</span>
-                        <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#f5f5f5', letterSpacing: '0.5px', direction: 'ltr' }}>01023862436</span>
+                      <div style={{ padding: '10px 14px', background: '#f9fafb', borderRadius: '10px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>رقم التحويل</span>
+                        <span style={{ fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a', letterSpacing: '0.5px', direction: 'ltr' }}>01023862436</span>
                       </div>
                       <label htmlFor="u-cash" className="upload-hover" style={uploadArea}><Upload size={14}/> {screenshot ? '✅ تم اختيار الإثبات' : 'رفع إثبات التحويل'}</label>
                       <input id="u-cash" type="file" accept="image/*" onChange={handleFileUpload} style={{display:'none'}}/>
@@ -1264,7 +1264,7 @@ export default function CheckoutPage() {
                 <div style={payCardInner}>
                   <div style={payHeader}>
                     <div style={paymentMethod === 'cash' ? payIconWrapperActive : payIconWrapper}>
-                      <Truck size={18} color={paymentMethod === 'cash' ? '#b91c1c' : '#888'} />
+                      <Truck size={18} color={paymentMethod === 'cash' ? '#15803d' : '#9ca3af'} />
                     </div>
                     <div style={{ ...payTextContent, flex: 1 }}>
                       <span style={payTitle}>الدفع عند الاستلام</span>
@@ -1273,8 +1273,8 @@ export default function CheckoutPage() {
                   </div>
                   {paymentMethod === 'cash' && (
                     <div style={payDetailsBox}>
-                      <div style={{ padding: '10px 14px', background: '#1a0d0d', borderRadius: '10px', border: '1px solid #7f1d1d' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#f87171', fontWeight: '700', lineHeight: '1.6' }}>سيتم تحصيل قيمة الطلب نقداً عند استلامه. لا حاجة لرفع أي إثبات دفع.</span>
+                      <div style={{ padding: '10px 14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #166534' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: '700', lineHeight: '1.6' }}>سيتم تحصيل قيمة الطلب نقداً عند استلامه. لا حاجة لرفع أي إثبات دفع.</span>
                       </div>
                     </div>
                   )}
@@ -1282,10 +1282,10 @@ export default function CheckoutPage() {
               </label>
               )}
               {codBanned && (
-                <div style={{ padding: '14px 16px', background: '#1a0d0d', borderRadius: '14px', border: '1.5px solid #7f1d1d', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <AlertCircle size={20} color="#f87171" style={{ flexShrink: 0 }} />
+                <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: '14px', border: '1.5px solid #166534', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <AlertCircle size={20} color="#15803d" style={{ flexShrink: 0 }} />
                   <div>
-                    <div style={{ fontSize: '0.88rem', color: '#f87171', fontWeight: '800' }}>الدفع عند الاستلام غير متاح لك</div>
+                    <div style={{ fontSize: '0.88rem', color: '#15803d', fontWeight: '800' }}>الدفع عند الاستلام غير متاح لك</div>
                     <div style={{ fontSize: '0.76rem', color: '#9ca3b8', fontWeight: '600', marginTop: '2px' }}>يرجى استخدام طريقة دفع أخرى (InstaPay، بطاقة بنكية، أو محافظ إلكترونية)</div>
                   </div>
                 </div>
@@ -1305,7 +1305,7 @@ export default function CheckoutPage() {
               { icon: '🚚', text: 'توصيل سريع' },
               { icon: '✅', text: 'قطع أصلية مضمونة' },
             ].map((b, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '700' }}>
                 <span>{b.icon}</span>{b.text}
               </div>
             ))}
@@ -1320,29 +1320,29 @@ export default function CheckoutPage() {
 const container: any = { padding: '20px 16px 48px', maxWidth: '1100px', margin: '0 auto', direction: 'rtl', boxSizing: 'border-box', width: '100%' };
 const title: any = { marginBottom: '28px', fontWeight: '900', textAlign: 'center', fontSize: 'clamp(1.4rem,5vw,2rem)' };
 const layoutGrid: any = { display: 'grid', gridTemplateColumns: '1fr 420px', gap: '24px', alignItems: 'start' };
-const sectionTitle: any = { marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1rem', fontWeight: '900', color: '#f5f5f5', paddingBottom: '14px', borderBottom: '1.5px solid #242424' };
-const formSide: any = { background: '#1c1c1c', borderRadius: '24px', border: '1px solid #242424', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', padding: '28px' };
-const summarySide: any = { background: '#1c1c1c', borderRadius: '24px', border: '1px solid #242424', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', padding: '24px', position: 'sticky' as const, top: '90px' };
-const inp: any = { width: '100%', height: '52px', padding: '0 16px', borderRadius: '14px', border: '1.5px solid #2a2a2a', marginBottom: '0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box', fontFamily: 'inherit', background: '#161616', color: '#f5f5f5', transition: 'border-color 0.15s, box-shadow 0.15s' };
-const lab: any = { display: 'block', marginBottom: '7px', fontWeight: '700', fontSize: '0.85rem', color: '#94a3b8' };
+const sectionTitle: any = { marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1rem', fontWeight: '900', color: '#1a1a1a', paddingBottom: '14px', borderBottom: '1.5px solid #f3f4f6' };
+const formSide: any = { background: '#ffffff', borderRadius: '24px', border: '1px solid #f3f4f6', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', padding: '28px' };
+const summarySide: any = { background: '#ffffff', borderRadius: '24px', border: '1px solid #f3f4f6', boxShadow: '0 4px 24px rgba(0,0,0,0.05)', padding: '24px', position: 'sticky' as const, top: '90px' };
+const inp: any = { width: '100%', height: '52px', padding: '0 16px', borderRadius: '14px', border: '1.5px solid #e5e7eb', marginBottom: '0', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box', fontFamily: 'inherit', background: '#f9fafb', color: '#1a1a1a', transition: 'border-color 0.15s, box-shadow 0.15s' };
+const lab: any = { display: 'block', marginBottom: '7px', fontWeight: '700', fontSize: '0.85rem', color: '#6b7280' };
 const inputGroup: any = { marginBottom: '16px' };
-const cartItem: any = { padding: '12px 0', borderBottom: '1px solid #242424', marginBottom: '0' };
-const imageBox: any = { width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', background: '#161616', border: '1px solid #242424', flexShrink: 0 };
+const cartItem: any = { padding: '12px 0', borderBottom: '1px solid #f3f4f6', marginBottom: '0' };
+const imageBox: any = { width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', background: '#f9fafb', border: '1px solid #f3f4f6', flexShrink: 0 };
 const imgFluid: any = { width: '100%', height: '100%', objectFit: 'cover' };
-const totalBox: any = { background: '#161616', padding: '16px', borderRadius: '16px', marginTop: '12px', border: '1px solid #242424' };
-const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.88rem', gap: '8px', color: '#64748b' };
-const finalRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '900', fontSize: 'clamp(1.1rem,4vw,1.3rem)', color: '#f5f5f5', borderTop: '1.5px solid #2a2a2a', paddingTop: '12px', marginTop: '8px' };
-const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg,#e50914 0%,#dc2626 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.2s', boxShadow: '0 8px 24px rgba(34,197,94,0.35)', letterSpacing: '0.3px' };
-const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '10px', color: '#f87171', fontWeight: 'bold' };
+const totalBox: any = { background: '#f9fafb', padding: '16px', borderRadius: '16px', marginTop: '12px', border: '1px solid #f3f4f6' };
+const rowPrice: any = { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.88rem', gap: '8px', color: '#6b7280' };
+const finalRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '900', fontSize: 'clamp(1.1rem,4vw,1.3rem)', color: '#1a1a1a', borderTop: '1.5px solid #e5e7eb', paddingTop: '12px', marginTop: '8px' };
+const btnStyle: any = { width: '100%', padding: '18px', background: 'linear-gradient(135deg,#22c55e 0%,#16a34a 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: '900', cursor: 'pointer', fontSize: '1.05rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'all 0.2s', boxShadow: '0 8px 24px rgba(34,197,94,0.35)', letterSpacing: '0.3px' };
+const loaderStyle: any = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: '10px', color: '#15803d', fontWeight: 'bold' };
 const itemsList: any = { maxHeight: '360px', overflowY: 'auto' };
 const detailsGrid = { display: 'flex', flexDirection: 'column' as const, gap: '2px', marginTop: '6px' };
-const detailItem = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#94a3b8' };
+const detailItem = { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#6b7280' };
 const paymentContainer: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const paymentCard = (isActive: boolean): any => ({
   display: 'block',
   borderRadius: '16px',
-  border: isActive ? '2px solid #e50914' : '1.5px solid #2a2a2a',
-  background: isActive ? '#1a0d0d' : '#161616',
+  border: isActive ? '2px solid #22c55e' : '1.5px solid #e5e7eb',
+  background: isActive ? '#f0fdf4' : '#f9fafb',
   cursor: 'pointer',
   transition: 'all 0.18s',
   boxShadow: isActive ? '0 4px 20px rgba(34,197,94,0.15)' : 'none',
@@ -1350,22 +1350,22 @@ const paymentCard = (isActive: boolean): any => ({
 });
 const payCardInner: any = { display: 'flex', flexDirection: 'column', gap: '4px', padding: '16px' };
 const payHeader: any = { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' };
-const payIconWrapper: any = { width: '42px', height: '42px', borderRadius: '12px', background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #2a2a2a', flexShrink: 0 };
-const payIconWrapperActive: any = { width: '42px', height: '42px', borderRadius: '12px', background: '#1a0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #7f1d1d', flexShrink: 0 };
+const payIconWrapper: any = { width: '42px', height: '42px', borderRadius: '12px', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e5e7eb', flexShrink: 0 };
+const payIconWrapperActive: any = { width: '42px', height: '42px', borderRadius: '12px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #166534', flexShrink: 0 };
 const payTextContent: any = { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 };
-const payTitle: any = { fontWeight: '800', fontSize: '0.9rem', color: '#f5f5f5' };
-const paySubTitle: any = { fontSize: '0.72rem', color: '#94a3b8', fontWeight: '600' };
+const payTitle: any = { fontWeight: '800', fontSize: '0.9rem', color: '#1a1a1a' };
+const paySubTitle: any = { fontSize: '0.72rem', color: '#6b7280', fontWeight: '600' };
 const hideRadio: any = { display: 'none' };
-const payDetailsBox: any = { marginTop: '10px', padding: '12px', background: '#1c1c1c', borderRadius: '12px', border: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column', gap: '10px' };
-const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#1c1c1c', color: '#fff', padding: '14px 16px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.92rem', fontWeight: '800', transition: '0.2s', minHeight: '52px' };
-const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #e50914', color: '#f87171', padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.2s', minHeight: '52px', background: '#161616' };
-const promoWrapper: any = { marginTop: '16px', padding: '16px', background: '#161616', borderRadius: '16px', border: '1px solid #242424', marginBottom: '16px' };
-const promoBtnStyle: any = { padding: '0 18px', height: '52px', background: '#1c1c1c', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', transition: '0.2s', fontSize: '0.88rem', color: '#fff', whiteSpace: 'nowrap', fontFamily: 'inherit' };
-const promoSuccessText: any = { fontSize: '0.8rem', color: '#f87171', marginTop: '10px', fontWeight: '800' };
+const payDetailsBox: any = { marginTop: '10px', padding: '12px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '10px' };
+const actionBtnLink: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#ffffff', color: '#15803d', padding: '14px 16px', borderRadius: '12px', textDecoration: 'none', fontSize: '0.92rem', fontWeight: '800', transition: '0.2s', minHeight: '52px', border: '1px solid #e5e7eb' };
+const uploadArea: any = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: '1.5px dashed #22c55e', color: '#15803d', padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: '800', transition: '0.2s', minHeight: '52px', background: '#f9fafb' };
+const promoWrapper: any = { marginTop: '16px', padding: '16px', background: '#f9fafb', borderRadius: '16px', border: '1px solid #f3f4f6', marginBottom: '16px' };
+const promoBtnStyle: any = { padding: '0 18px', height: '52px', background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', fontWeight: '800', transition: '0.2s', fontSize: '0.88rem', color: '#15803d', whiteSpace: 'nowrap', fontFamily: 'inherit' };
+const promoSuccessText: any = { fontSize: '0.8rem', color: '#15803d', marginTop: '10px', fontWeight: '800' };
 const logosGrid: any = { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px', paddingRight: '54px' };
-const miniLogoImg: any = { height: '28px', width: 'auto', borderRadius: '8px', border: '1px solid #242424', padding: '2px 4px', background: '#1c1c1c' };
+const miniLogoImg: any = { height: '28px', width: 'auto', borderRadius: '8px', border: '1px solid #f3f4f6', padding: '2px 4px', background: '#ffffff' };
 const cardOptionsGrid: any = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px', paddingRight: '54px' };
-const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid #2a2a2a', whiteSpace: 'nowrap', background: '#1c1c1c', color: '#94a3b8' };
-const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#2a0f10', color: '#f87171', whiteSpace: 'nowrap', border: '1px solid #7f1d1d' };
-const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#242424', color: '#fbbf24', whiteSpace: 'nowrap', border: '1px solid #7f1d1d' };
-const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#242424', color: '#64748b', whiteSpace: 'nowrap', border: '1px solid #2a2a2a' };
+const cardOptionBadge: any = { display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '700', border: '1px solid #e5e7eb', whiteSpace: 'nowrap', background: '#ffffff', color: '#6b7280' };
+const payBadgeGreen: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#f0fdf4', color: '#15803d', whiteSpace: 'nowrap', border: '1px solid #166534' };
+const payBadgeAmber: any = { fontSize: '0.65rem', fontWeight: '800', padding: '3px 9px', borderRadius: '20px', background: '#f3f4f6', color: '#fbbf24', whiteSpace: 'nowrap', border: '1px solid #166534' };
+const payBadgeGray: any = { fontSize: '0.65rem', fontWeight: '700', padding: '3px 9px', borderRadius: '20px', background: '#f3f4f6', color: '#6b7280', whiteSpace: 'nowrap', border: '1px solid #e5e7eb' };

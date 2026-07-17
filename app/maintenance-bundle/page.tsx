@@ -40,65 +40,65 @@ const CATEGORY_STYLES: Record<string, {
   icon: React.ReactNode;
 }> = {
   'زيوت موتور': {
-    bg: '#1c1c1c', bgDisabled: '#fafaf5',
-    border: '#7f1d1d', borderActive: '#f59e0b',
+    bg: '#ffffff', bgDisabled: '#fafaf5',
+    border: '#166534', borderActive: '#f59e0b',
     iconBg: '#f59e0b', iconColor: '#fff',
-    badge: '#242424', badgeText: '#fbbf24',
-    itemBg: '#fffdf0', itemBorder: '#7f1d1d',
-    addBtnBorder: '#f59e0b', addBtnColor: '#fbbf24', addBtnHover: '#242424',
-    priceBg: '#242424',
+    badge: '#f3f4f6', badgeText: '#fbbf24',
+    itemBg: '#fffdf0', itemBorder: '#166534',
+    addBtnBorder: '#f59e0b', addBtnColor: '#fbbf24', addBtnHover: '#f3f4f6',
+    priceBg: '#f3f4f6',
     icon: <Droplets size={16} color="#fff" />,
   },
   'زيوت فرامل': {
-    bg: '#2a0f10', bgDisabled: '#fdf5f5',
-    border: '#7f1d1d', borderActive: '#ef4444',
-    iconBg: '#ef4444', iconColor: '#fff',
-    badge: '#2a0f10', badgeText: '#991b1b',
-    itemBg: '#fff5f5', itemBorder: '#7f1d1d',
-    addBtnBorder: '#ef4444', addBtnColor: '#b91c1c', addBtnHover: '#2a0f10',
-    priceBg: '#2a0f10',
+    bg: '#f0fdf4', bgDisabled: '#fdf5f5',
+    border: '#166534', borderActive: '#16a34a',
+    iconBg: '#16a34a', iconColor: '#fff',
+    badge: '#f0fdf4', badgeText: '#14532d',
+    itemBg: '#fff5f5', itemBorder: '#166534',
+    addBtnBorder: '#16a34a', addBtnColor: '#15803d', addBtnHover: '#f0fdf4',
+    priceBg: '#f0fdf4',
     icon: <Flame size={16} color="#fff" />,
   },
   'زيوت فتيس و دبرياج و باور': {
-    bg: '#161616', bgDisabled: '#f5fafd',
-    border: '#2a2a2a', borderActive: '#0ea5e9',
+    bg: '#f9fafb', bgDisabled: '#f5fafd',
+    border: '#e5e7eb', borderActive: '#0ea5e9',
     iconBg: '#0ea5e9', iconColor: '#fff',
     badge: '#e0f2fe', badgeText: '#0c4a6e',
-    itemBg: '#161616', itemBorder: '#2a2a2a',
+    itemBg: '#f9fafb', itemBorder: '#e5e7eb',
     addBtnBorder: '#0ea5e9', addBtnColor: '#0369a1', addBtnHover: '#e0f2fe',
     priceBg: '#e0f2fe',
     icon: <Settings size={16} color="#fff" />,
   },
   'فلاتر': {
-    bg: '#1a0d0d', bgDisabled: '#f5fdf7',
-    border: '#7f1d1d', borderActive: '#e50914',
-    iconBg: '#e50914', iconColor: '#fff',
-    badge: '#2a0f10', badgeText: '#7f1d1d',
-    itemBg: '#1a0d0d', itemBorder: '#7f1d1d',
-    addBtnBorder: '#e50914', addBtnColor: '#b91c1c', addBtnHover: '#2a0f10',
-    priceBg: '#2a0f10',
+    bg: '#f0fdf4', bgDisabled: '#f5fdf7',
+    border: '#166534', borderActive: '#22c55e',
+    iconBg: '#22c55e', iconColor: '#fff',
+    badge: '#f0fdf4', badgeText: '#166534',
+    itemBg: '#f0fdf4', itemBorder: '#166534',
+    addBtnBorder: '#22c55e', addBtnColor: '#15803d', addBtnHover: '#f0fdf4',
+    priceBg: '#f0fdf4',
     icon: <Filter size={16} color="#fff" />,
   },
   'بوجيهات و سلوك بوجيهات و موبينة': {
-    bg: '#242424', bgDisabled: '#fdf8ff',
+    bg: '#f3f4f6', bgDisabled: '#fdf8ff',
     border: '#e9d5ff', borderActive: '#8b5cf6',
     iconBg: '#8b5cf6', iconColor: '#fff',
-    badge: '#242424', badgeText: '#4c1d95',
-    itemBg: '#242424', itemBorder: '#e9d5ff',
-    addBtnBorder: '#8b5cf6', addBtnColor: '#a78bfa', addBtnHover: '#242424',
-    priceBg: '#242424',
+    badge: '#f3f4f6', badgeText: '#4c1d95',
+    itemBg: '#f3f4f6', itemBorder: '#e9d5ff',
+    addBtnBorder: '#8b5cf6', addBtnColor: '#a78bfa', addBtnHover: '#f3f4f6',
+    priceBg: '#f3f4f6',
     icon: <Zap size={16} color="#fff" />,
   },
 };
 
 const DEFAULT_STYLE = {
-  bg: '#fff', bgDisabled: '#1c1c1c',
-  border: '#2a2a2a', borderActive: '#e50914',
-  iconBg: '#aaa', iconColor: '#fff',
-  badge: '#1c1c1c', badgeText: '#3a3a3a',
-  itemBg: '#161616', itemBorder: '#2a2a2a',
-  addBtnBorder: '#e50914', addBtnColor: '#dc2626', addBtnHover: '#1a0d0d',
-  priceBg: '#1a0d0d',
+  bg: '#fff', bgDisabled: '#ffffff',
+  border: '#e5e7eb', borderActive: '#22c55e',
+  iconBg: '#6b7280', iconColor: '#fff',
+  badge: '#ffffff', badgeText: '#6b7280',
+  itemBg: '#f9fafb', itemBorder: '#e5e7eb',
+  addBtnBorder: '#22c55e', addBtnColor: '#16a34a', addBtnHover: '#f0fdf4',
+  priceBg: '#f0fdf4',
   icon: <Wrench size={16} color="#fff" />,
 };
 
@@ -371,17 +371,17 @@ export default function MaintenanceBundlePage() {
       ...base,
       minHeight: '44px',
       borderRadius: '10px',
-      border: '1px solid #2a2a2a',
+      border: '1px solid #e5e7eb',
       fontSize: '0.85rem',
       direction: 'rtl',
-      background: '#1c1c1c',
+      background: '#ffffff',
       cursor: 'pointer', // ✅ shows pointer cursor since it's click-only now
     }),
     menu: (base: any) => ({ ...base, zIndex: 9999, direction: 'rtl' }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? '#1a0d0d' : '#fff',
-      color: '#f5f5f5',
+      backgroundColor: state.isFocused ? '#f0fdf4' : '#fff',
+      color: '#1a1a1a',
       fontSize: '0.85rem',
       cursor: 'pointer',
     }),
@@ -452,7 +452,7 @@ export default function MaintenanceBundlePage() {
       <div
         className="bundle-header"
         style={{
-          background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+          background: 'linear-gradient(135deg, #f9fafb 0%, #f0fdf4 100%)',
           padding: '50px 20px',
           textAlign: 'center',
           marginBottom: '28px',
@@ -462,7 +462,7 @@ export default function MaintenanceBundlePage() {
           className="bundle-header-icon"
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            background: '#e50914', borderRadius: '18px', padding: '14px', marginBottom: '16px',
+            background: '#22c55e', borderRadius: '18px', padding: '14px', marginBottom: '16px',
           }}
         >
           <Wrench size={32} color="#fff" />
@@ -470,7 +470,7 @@ export default function MaintenanceBundlePage() {
         <h1 style={{ color: '#fff', fontSize: '2rem', fontWeight: '900', marginBottom: '10px', lineHeight: 1.3 }}>
           باقة الصيانة الذكية
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
+        <p style={{ color: 'rgba(0,0,0,0.06)', fontSize: '1rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
           اختر سيارتك وخصص باقة الصيانة المناسبة — واحصل على خصم {DISCOUNT}% على السعر الإجمالي
         </p>
       </div>
@@ -481,12 +481,12 @@ export default function MaintenanceBundlePage() {
         <div
           className="car-selector-card"
           style={{
-            background: '#1c1c1c', borderRadius: '18px', padding: '22px',
+            background: '#ffffff', borderRadius: '18px', padding: '22px',
             marginBottom: '22px', boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
           }}
         >
           <h2 style={{ fontWeight: '900', fontSize: '1.1rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Car size={20} color="#e50914" />
+            <Car size={20} color="#22c55e" />
             اختر سيارتك
           </h2>
           <div className="car-selector-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
@@ -522,7 +522,7 @@ export default function MaintenanceBundlePage() {
             <div>
               <label style={{ display: 'block', fontWeight: '700', fontSize: '0.8rem', marginBottom: '5px', color: '#9ca3af' }}>
                 سنة الصنع{' '}
-                <span style={{ color: '#aaa', fontWeight: '500', fontSize: '0.75rem' }}>(اختياري)</span>
+                <span style={{ color: '#6b7280', fontWeight: '500', fontSize: '0.75rem' }}>(اختياري)</span>
               </label>
               <Select
                 instanceId="bundle-year"
@@ -550,7 +550,7 @@ export default function MaintenanceBundlePage() {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <h2 className="section-title" style={{ fontWeight: '900', fontSize: '1.1rem' }}>🛠️ محتويات الباقة</h2>
-                <div className="selected-count-badge" style={{ background: '#1a0d0d', color: '#dc2626', padding: '5px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: '800' }}>
+                <div className="selected-count-badge" style={{ background: '#f0fdf4', color: '#16a34a', padding: '5px 12px', borderRadius: '10px', fontSize: '0.82rem', fontWeight: '800' }}>
                   {allSelectedProducts.length} منتج مختار
                 </div>
               </div>
@@ -570,7 +570,7 @@ export default function MaintenanceBundlePage() {
                         borderRadius: '14px',
                         border: slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
                           ? `2px solid ${cs.borderActive}`
-                          : `1.5px solid ${slot.isIncluded ? cs.border : '#2a2a2a'}`,
+                          : `1.5px solid ${slot.isIncluded ? cs.border : '#e5e7eb'}`,
                         padding: '18px',
                         opacity: slot.isIncluded ? 1 : 0.55,
                         transition: 'all 0.2s',
@@ -587,7 +587,7 @@ export default function MaintenanceBundlePage() {
                             boxShadow: `0 3px 10px ${cs.iconBg}55`,
                           }}>
                             {slot.loading
-                              ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} />
+                              ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(0,0,0,0.15)', borderTopColor: '#fff', animation: 'spin 0.8s linear infinite' }} />
                               : slot.isIncluded && slot.items.some((i: any) => i.selectedProduct)
                                 ? <CheckCircle2 size={16} color="#fff" />
                                 : cs.icon
@@ -599,7 +599,7 @@ export default function MaintenanceBundlePage() {
                           {!slot.loading && (
                             <span style={{
                               flexShrink: 0, fontSize: '0.72rem', fontWeight: '700',
-                              background: slot.availableProducts.length === 0 ? '#1c1c1c' : cs.badge,
+                              background: slot.availableProducts.length === 0 ? '#ffffff' : cs.badge,
                               color: slot.availableProducts.length === 0 ? '#f97316' : cs.badgeText,
                               padding: '2px 8px', borderRadius: '20px',
                             }}>
@@ -612,8 +612,8 @@ export default function MaintenanceBundlePage() {
                           className="slot-toggle-btn"
                           style={{
                             flexShrink: 0, marginRight: '8px',
-                            background: slot.isIncluded ? '#2a0f10' : '#1a0d0d',
-                            color: slot.isIncluded ? '#dc2626' : '#dc2626',
+                            background: slot.isIncluded ? '#f0fdf4' : '#f0fdf4',
+                            color: slot.isIncluded ? '#16a34a' : '#16a34a',
                             border: 'none', borderRadius: '8px',
                             padding: '6px 10px', cursor: 'pointer',
                             fontWeight: '700', fontSize: '0.78rem',
@@ -655,7 +655,7 @@ export default function MaintenanceBundlePage() {
                                     <button
                                       onClick={() => removeItem(slotIdx, itemIdx)}
                                       style={{
-                                        background: '#2a0f10', color: '#dc2626',
+                                        background: '#f0fdf4', color: '#16a34a',
                                         border: 'none', borderRadius: '6px',
                                         width: '26px', height: '26px',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -740,8 +740,8 @@ export default function MaintenanceBundlePage() {
                                     borderRadius: '8px',
                                     padding: '8px 12px',
                                   }}>
-                                    <span style={{ fontSize: '0.76rem', color: '#888' }}>السعر:</span>
-                                    <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '0.8rem' }}>
+                                    <span style={{ fontSize: '0.76rem', color: '#9ca3af' }}>السعر:</span>
+                                    <span style={{ textDecoration: 'line-through', color: '#374151', fontSize: '0.8rem' }}>
                                       {item.selectedProduct.sale_price > 0 ? item.selectedProduct.sale_price : item.selectedProduct.regular_price} ج.م
                                     </span>
                                     <span style={{ color: cs.iconBg, fontWeight: '900', fontSize: '1rem' }}>
@@ -752,7 +752,7 @@ export default function MaintenanceBundlePage() {
                                         (1 - DISCOUNT / 100)
                                       ).toFixed(0)} ج.م
                                     </span>
-                                    <span style={{ background: '#242424', color: '#854d0e', padding: '2px 7px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800' }}>
+                                    <span style={{ background: '#f3f4f6', color: '#854d0e', padding: '2px 7px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800' }}>
                                       خصم {DISCOUNT}%
                                     </span>
                                   </div>
@@ -798,23 +798,23 @@ export default function MaintenanceBundlePage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="summary-bar"
                   style={{
-                    background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+                    background: 'linear-gradient(135deg, #f9fafb 0%, #f0fdf4 100%)',
                     borderRadius: '18px', padding: '20px 24px',
                     position: 'sticky', bottom: '16px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
                   }}
                 >
                   <div className="summary-bar-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
                     <div>
-                      <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.82rem', marginBottom: '4px' }}>
+                      <p style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.82rem', marginBottom: '4px' }}>
                         إجمالي الباقة ({allSelectedProducts.length} منتج)
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span className="summary-price" style={{ fontSize: '1.8rem', fontWeight: '900', color: '#e50914' }}>
+                        <span className="summary-price" style={{ fontSize: '1.8rem', fontWeight: '900', color: '#22c55e' }}>
                           {totalDiscounted.toFixed(0)} ج.م
                         </span>
                         <div>
-                          <span style={{ textDecoration: 'line-through', color: 'rgba(255,255,255,0.35)', fontSize: '0.95rem', display: 'block' }}>
+                          <span style={{ textDecoration: 'line-through', color: 'rgba(0,0,0,0.15)', fontSize: '0.95rem', display: 'block' }}>
                             {totalOriginal.toFixed(0)} ج.م
                           </span>
                           <span style={{ color: '#fbbf24', fontWeight: '800', fontSize: '0.82rem' }}>
@@ -825,7 +825,7 @@ export default function MaintenanceBundlePage() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                       {!canAddToCart && (
-                        <p className="summary-alert" style={{ color: '#f87171', fontSize: '0.78rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <p className="summary-alert" style={{ color: '#15803d', fontSize: '0.78rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           <AlertCircle size={13} />
                           اختر منتجين على الأقل للحصول على الخصم
                         </p>
@@ -836,7 +836,7 @@ export default function MaintenanceBundlePage() {
                         disabled={!canAddToCart}
                         style={{
                           padding: '14px 28px',
-                          background: canAddToCart ? 'linear-gradient(135deg, #e50914 0%, #dc2626 100%)' : '#555',
+                          background: canAddToCart ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : '#555',
                           color: '#fff', border: 'none', borderRadius: '12px',
                           fontWeight: '900', fontSize: '0.95rem',
                           cursor: canAddToCart ? 'pointer' : 'not-allowed',
@@ -858,12 +858,12 @@ export default function MaintenanceBundlePage() {
 
         {/* EMPTY STATE */}
         {!carSelected && (
-          <div className="empty-state" style={{ textAlign: 'center', padding: '50px 20px', color: '#aaa' }}>
+          <div className="empty-state" style={{ textAlign: 'center', padding: '50px 20px', color: '#6b7280' }}>
             <Car size={64} color="#e0e0e0" style={{ margin: '0 auto 16px' }} />
-            <p style={{ fontWeight: '800', fontSize: '1.05rem', color: '#888', marginBottom: '8px' }}>
+            <p style={{ fontWeight: '800', fontSize: '1.05rem', color: '#9ca3af', marginBottom: '8px' }}>
               اختر ماركة وموديل سيارتك أولاً
             </p>
-            <p style={{ fontSize: '0.88rem', color: '#bbb', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.6 }}>
               السنة اختيارية — ستظهر المنتجات المتوفرة لسيارتك تلقائياً
             </p>
           </div>

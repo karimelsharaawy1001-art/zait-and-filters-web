@@ -132,8 +132,8 @@ export default function AdminLayoutClient({ children }: Props) {
         }
 
         @keyframes badgePulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
-          50%      { box-shadow: 0 0 0 4px rgba(220,38,38,0); }
+          0%,100% { box-shadow: 0 0 0 0 rgba(22,163,74,0.5); }
+          50%      { box-shadow: 0 0 0 4px rgba(22,163,74,0); }
         }
         @keyframes slideIn  { from { opacity:0; transform:translateX(4px); } to { opacity:1; transform:translateX(0); } }
         @keyframes slideUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
@@ -151,7 +151,7 @@ export default function AdminLayoutClient({ children }: Props) {
           display: flex; align-items: center; gap: 9px;
           padding: 7px 9px; border-radius: 8px;
           text-decoration: none; font-size: 0.8rem; font-weight: 600;
-          color: #64748b; transition: background 0.12s, color 0.12s;
+          color: #6b7280; transition: background 0.12s, color 0.12s;
           position: relative; overflow: visible; white-space: nowrap;
           margin-bottom: 1px; font-family: 'Cairo', sans-serif;
         }
@@ -162,7 +162,7 @@ export default function AdminLayoutClient({ children }: Props) {
 
         .badge {
           min-width: 17px; height: 17px; padding: 0 5px;
-          background: #dc2626; color: #fff; border-radius: 8px;
+          background: #16a34a; color: #fff; border-radius: 8px;
           font-size: 0.6rem; font-weight: 900;
           display: flex; align-items: center; justify-content: center;
           margin-right: auto; flex-shrink: 0;
@@ -170,12 +170,12 @@ export default function AdminLayoutClient({ children }: Props) {
         }
         .dot-badge {
           position: absolute; top: -2px; right: -2px;
-          width: 6px; height: 6px; background: #dc2626; border-radius: 50%;
+          width: 6px; height: 6px; background: #16a34a; border-radius: 50%;
           animation: dotPulse 2s ease-in-out infinite; border: 1.5px solid #fff;
         }
         .section-label {
           font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
-          color: #94a3b8; text-transform: uppercase; padding: 12px 9px 4px;
+          color: #6b7280; text-transform: uppercase; padding: 12px 9px 4px;
           font-family: 'Cairo', sans-serif;
         }
         .tooltip-wrap {
@@ -192,21 +192,21 @@ export default function AdminLayoutClient({ children }: Props) {
         .collapse-btn {
           width: 22px; height: 22px; background: #f8fafc;
           border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer;
-          color: #94a3b8; font-size: 0.6rem;
+          color: #6b7280; font-size: 0.6rem;
           display: flex; align-items: center; justify-content: center;
           transition: all 0.12s; flex-shrink: 0;
         }
         .collapse-btn:hover { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
 
         .logout-btn {
-          width: 100%; padding: 8px; background: transparent; color: #94a3b8;
+          width: 100%; padding: 8px; background: transparent; color: #6b7280;
           border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;
           font-size: 0.78rem; font-weight: 700;
           display: flex; align-items: center; justify-content: center; gap: 7px;
           transition: all 0.12s; font-family: 'Cairo', sans-serif;
           overflow: hidden; white-space: nowrap;
         }
-        .logout-btn:hover { background: #fff5f5; color: #ef4444; border-color: #fecaca; }
+        .logout-btn:hover { background: #fff5f5; color: #16a34a; border-color: #dcfce7; }
         .divider { height: 1px; background: #f1f5f9; margin: 8px 0; }
 
         /* ── Mobile bottom tab bar ─────────────────────────────────────────
@@ -226,7 +226,7 @@ export default function AdminLayoutClient({ children }: Props) {
         .bottom-tab {
           display: flex; flex-direction: column; align-items: center;
           justify-content: center; gap: 2px; flex: 1;
-          text-decoration: none; color: #94a3b8;
+          text-decoration: none; color: #6b7280;
           font-family: 'Cairo', sans-serif; font-size: 0.58rem; font-weight: 700;
           padding: 4px 2px; cursor: pointer; background: none; border: none;
           position: relative; transition: color 0.15s; border: none;
@@ -236,7 +236,7 @@ export default function AdminLayoutClient({ children }: Props) {
         .tab-badge {
           position: absolute; top: 4px; right: calc(50% - 20px);
           min-width: 16px; height: 16px; padding: 0 4px;
-          background: #dc2626; color: #fff; border-radius: 8px;
+          background: #16a34a; color: #fff; border-radius: 8px;
           font-size: 0.52rem; font-weight: 900;
           display: flex; align-items: center; justify-content: center;
           border: 2px solid #fff;
@@ -246,7 +246,7 @@ export default function AdminLayoutClient({ children }: Props) {
         /* ── Mobile drawer ── */
         .mobile-overlay {
           display: none; position: fixed; inset: 0; z-index: 99997;
-          background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+          background: rgba(0,0,0,0.06); backdrop-filter: blur(2px);
         }
         .mobile-drawer {
           position: fixed; bottom: 60px; left: 0; right: 0; z-index: 99998;
@@ -270,7 +270,7 @@ export default function AdminLayoutClient({ children }: Props) {
         .drawer-nav-item:hover  { background: #f0fdf4; color: #15803d; }
         .drawer-nav-item.active { background: #dcfce7; color: #15803d; font-weight: 700; }
         .drawer-section-label {
-          font-size: 0.65rem; font-weight: 700; color: #94a3b8;
+          font-size: 0.65rem; font-weight: 700; color: #6b7280;
           letter-spacing: 0.08em; text-transform: uppercase;
           padding: 12px 14px 4px; font-family: 'Cairo', sans-serif;
         }
@@ -337,7 +337,7 @@ export default function AdminLayoutClient({ children }: Props) {
           {!collapsed && (
             <div style={{ animation: 'slideIn 0.2s ease', minWidth: 0 }}>
               <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.88rem', letterSpacing: '1.5px', fontStyle: 'italic', lineHeight: 1 }}>ZAIT & FILTERS</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.6rem', marginTop: '3px', fontWeight: '600' }}>لوحة الإدارة</div>
+              <div style={{ color: '#6b7280', fontSize: '0.6rem', marginTop: '3px', fontWeight: '600' }}>لوحة الإدارة</div>
             </div>
           )}
           <button className="collapse-btn" onClick={() => setCollapsed(c => !c)} title={collapsed ? 'توسيع' : 'طي'}>
@@ -388,12 +388,12 @@ export default function AdminLayoutClient({ children }: Props) {
         <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '0.92rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px' }}>
           ZAIT & FILTERS
           {totalBadges > 0 && (
-            <span style={{ background: '#dc2626', color: '#fff', borderRadius: '8px', fontSize: '0.58rem', fontWeight: '900', padding: '2px 7px', animation: 'badgePulse 2.5s ease-in-out infinite' }}>
+            <span style={{ background: '#16a34a', color: '#fff', borderRadius: '8px', fontSize: '0.58rem', fontWeight: '900', padding: '2px 7px', animation: 'badgePulse 2.5s ease-in-out infinite' }}>
               {totalBadges}
             </span>
           )}
         </div>
-        <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600' }}>لوحة الإدارة</div>
+        <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600' }}>لوحة الإدارة</div>
       </div>
 
       {/* ══ MOBILE DRAWER ════════════════════════════════════════════════════ */}
@@ -406,7 +406,7 @@ export default function AdminLayoutClient({ children }: Props) {
               <span style={{ fontFamily: "'Cairo', sans-serif", fontWeight: '900', color: '#16a34a', fontSize: '0.92rem', fontStyle: 'italic' }}>ZAIT & FILTERS</span>
               <button
                 onClick={() => supabase.auth.signOut()}
-                style={{ background: '#fff5f5', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontSize: '0.8rem', fontWeight: '700' }}
+                style={{ background: '#fff5f5', color: '#16a34a', border: '1px solid #dcfce7', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontFamily: "'Cairo', sans-serif", fontSize: '0.8rem', fontWeight: '700' }}
               >
                 ⎋ خروج
               </button>
@@ -422,7 +422,7 @@ export default function AdminLayoutClient({ children }: Props) {
                       <span style={{ fontSize: '1.1rem', width: '24px', textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
                       <span style={{ flex: 1 }}>{item.name}</span>
                       {hasBadge && (
-                        <span style={{ background: '#dc2626', color: '#fff', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '900', padding: '2px 8px', animation: 'badgePulse 2.5s ease-in-out infinite' }}>
+                        <span style={{ background: '#16a34a', color: '#fff', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '900', padding: '2px 8px', animation: 'badgePulse 2.5s ease-in-out infinite' }}>
                           {item.badge > 99 ? '99+' : item.badge}
                         </span>
                       )}

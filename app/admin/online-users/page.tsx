@@ -165,10 +165,10 @@ export default function OnlineUsersPage() {
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#1e293b' }}>المتابعة الحية</h1>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8' }}>تتبع زوار المتجر في الوقت الفعلي</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>تتبع زوار المتجر في الوقت الفعلي</p>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: '#64748b' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 13, color: '#6b7280' }}>
           <RefreshCw size={14} style={{ animation: 'spin 2s linear infinite' }} />
           <span>تحديث تلقائي</span>
         </div>
@@ -190,7 +190,7 @@ export default function OnlineUsersPage() {
             style={{
               padding: '6px 16px', borderRadius: 20, border: '1px solid #e2e8f0',
               background: filter === f.key ? '#dcfce7' : '#fff',
-              color: filter === f.key ? '#15803d' : '#64748b',
+              color: filter === f.key ? '#15803d' : '#6b7280',
               fontWeight: filter === f.key ? 700 : 600, fontSize: 13,
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
               fontFamily: "'Cairo', sans-serif", transition: 'all 0.15s',
@@ -199,14 +199,14 @@ export default function OnlineUsersPage() {
             {f.label}
             <span style={{
               background: filter === f.key ? '#15803d' : '#e2e8f0',
-              color: filter === f.key ? '#fff' : '#64748b',
+              color: filter === f.key ? '#fff' : '#6b7280',
               borderRadius: 10, padding: '0 7px', fontSize: 11, fontWeight: 700,
             }}>{f.count}</span>
           </button>
         ))}
         <div style={{ flex: 1 }} />
         <div style={{ position: 'relative' }}>
-          <Search size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+          <Search size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
           <input
             placeholder="بحث..."
             value={search}
@@ -218,7 +218,7 @@ export default function OnlineUsersPage() {
             }}
           />
           {search && (
-            <button onClick={() => setSearch('')} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0 }}>
+            <button onClick={() => setSearch('')} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}>
               <X size={14} />
             </button>
           )}
@@ -227,14 +227,14 @@ export default function OnlineUsersPage() {
 
       {/* Loading */}
       {loading && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
           <div style={{ fontSize: 14 }}>جاري التحميل...</div>
         </div>
       )}
 
       {/* Empty state */}
       {!loading && filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
           <Wifi size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>لا يوجد زوار نشطين</div>
           <div style={{ fontSize: 13 }}>سيتم تحديث القائمة تلقائياً عند دخول زوار جدد</div>
@@ -276,20 +276,20 @@ export default function OnlineUsersPage() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         flexShrink: 0,
                       }}>
-                        {hasUser ? <User size={14} color="#15803d" /> : <Globe size={14} color="#94a3b8" />}
+                        {hasUser ? <User size={14} color="#15803d" /> : <Globe size={14} color="#6b7280" />}
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {s.user_name || 'زائر'}
                         </div>
-                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{timeAgo(s.last_active_at)}</div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{timeAgo(s.last_active_at)}</div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {s.device_type === 'mobile' ? <Smartphone size={13} color="#64748b" /> : <Monitor size={13} color="#64748b" />}
+                      {s.device_type === 'mobile' ? <Smartphone size={13} color="#6b7280" /> : <Monitor size={13} color="#6b7280" />}
                       <div style={{
                         width: 8, height: 8, borderRadius: '50%',
-                        background: isActive ? '#22c55e' : '#cbd5e1',
+                        background: isActive ? '#22c55e' : '#374151',
                         flexShrink: 0,
                       }} />
                     </div>
@@ -324,12 +324,12 @@ export default function OnlineUsersPage() {
                   {/* Duration + last active */}
                   <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <Clock size={12} color="#94a3b8" />
-                      <span style={{ fontSize: 11, color: '#94a3b8' }}>{sessionDuration(s.started_at)}</span>
+                      <Clock size={12} color="#6b7280" />
+                      <span style={{ fontSize: 11, color: '#6b7280' }}>{sessionDuration(s.started_at)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: isActive ? '#22c55e' : '#cbd5e1' }} />
-                      <span style={{ fontSize: 11, color: '#94a3b8' }}>{timeAgo(s.last_active_at)}</span>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: isActive ? '#22c55e' : '#374151' }} />
+                      <span style={{ fontSize: 11, color: '#6b7280' }}>{timeAgo(s.last_active_at)}</span>
                     </div>
                   </div>
 
@@ -342,10 +342,10 @@ export default function OnlineUsersPage() {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <ShoppingCart size={14} color={hasCart ? '#d97706' : '#cbd5e1'} />
+                        <ShoppingCart size={14} color={hasCart ? '#d97706' : '#374151'} />
                         <span style={{
                           fontSize: 12, fontWeight: hasCart ? 700 : 500,
-                          color: hasCart ? '#92400e' : '#94a3b8',
+                          color: hasCart ? '#92400e' : '#6b7280',
                         }}>
                           {hasCart
                             ? `${s.cart_items_count} ${s.cart_items_count > 10 ? 'قطعة' : s.cart_items_count > 1 ? 'قطع' : 'قطعة'}`
@@ -385,13 +385,13 @@ export default function OnlineUsersPage() {
                   {(s.user_name || s.user_email || s.user_phone) && (
                     <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {s.user_email && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#6b7280', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>
                           <Mail size={10} />
                           {s.user_email}
                         </span>
                       )}
                       {s.user_phone && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#6b7280', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>
                           <Phone size={10} />
                           {s.user_phone}
                         </span>
@@ -413,12 +413,12 @@ export default function OnlineUsersPage() {
                   padding: '6px 14px', borderRadius: 8, border: '1px solid #e2e8f0',
                   background: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer',
                   opacity: page === 1 ? 0.5 : 1, fontFamily: "'Cairo', sans-serif",
-                  display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#64748b',
+                  display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#6b7280',
                 }}
               >
                 <ChevronRight size={14} /> السابق
               </button>
-              <span style={{ fontSize: 12, color: '#64748b' }}>{page} / {totalPages}</span>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>{page} / {totalPages}</span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
@@ -426,7 +426,7 @@ export default function OnlineUsersPage() {
                   padding: '6px 14px', borderRadius: 8, border: '1px solid #e2e8f0',
                   background: '#fff', cursor: page === totalPages ? 'not-allowed' : 'pointer',
                   opacity: page === totalPages ? 0.5 : 1, fontFamily: "'Cairo', sans-serif",
-                  display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#64748b',
+                  display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#6b7280',
                 }}
               >
                 التالي <ChevronLeft size={14} />
@@ -440,7 +440,7 @@ export default function OnlineUsersPage() {
       {selectedSession && (
         <div
           style={{
-            position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.4)',
+            position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.06)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             backdropFilter: 'blur(2px)', padding: 20,
           }}
@@ -459,7 +459,7 @@ export default function OnlineUsersPage() {
                 <Eye size={20} color="#16a34a" />
                 <h2 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1e293b' }}>تفاصيل الزائر</h2>
               </div>
-              <button onClick={() => setSelectedSession(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 4 }}>
+              <button onClick={() => setSelectedSession(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}>
                 <X size={18} />
               </button>
             </div>
@@ -471,14 +471,14 @@ export default function OnlineUsersPage() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, color: '#1e293b' }}>{selectedSession.user_name || 'زائر'}</div>
-                  <div style={{ fontSize: 12, color: '#94a3b8' }}>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>
                     {selectedSession.user_email || selectedSession.user_phone ? `${selectedSession.user_email} ${selectedSession.user_phone ? `· ${selectedSession.user_phone}` : ''}` : 'معلومات غير متوفرة'}
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <InfoBox label="الحالة" value={new Date(selectedSession.last_active_at).getTime() > now - 120000 ? 'نشط' : 'غير نشط'} color={new Date(selectedSession.last_active_at).getTime() > now - 120000 ? '#15803d' : '#94a3b8'} />
+                <InfoBox label="الحالة" value={new Date(selectedSession.last_active_at).getTime() > now - 120000 ? 'نشط' : 'غير نشط'} color={new Date(selectedSession.last_active_at).getTime() > now - 120000 ? '#15803d' : '#6b7280'} />
                 <InfoBox label="الجهاز" value={selectedSession.device_type === 'mobile' ? 'جوال' : 'كمبيوتر'} />
                 <InfoBox label="مدة الجلسة" value={sessionDuration(selectedSession.started_at)} />
                 <InfoBox label="آخر نشاط" value={timeAgo(selectedSession.last_active_at)} />
@@ -494,14 +494,14 @@ export default function OnlineUsersPage() {
                     {selectedSession.page_title || (() => { const p = pageLabel(selectedSession.current_page); return p.detail; })()}
                   </div>
                 )}
-                <div style={{ fontSize: 11, color: '#64748b', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all' }}>
+                <div style={{ fontSize: 11, color: '#6b7280', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all' }}>
                   {formatPagePath(selectedSession.current_page)}
                 </div>
               </div>
 
               {selectedSession.referrer && (
                 <div style={{ padding: 12, background: '#f8fafc', borderRadius: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 4 }}>المصدر</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 4 }}>المصدر</div>
                   <div style={{ fontSize: 12, color: '#475569', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all' }}>
                     {selectedSession.referrer}
                   </div>
@@ -563,7 +563,7 @@ export default function OnlineUsersPage() {
               style={{
                 width: '100%', marginTop: 20, padding: '10px', borderRadius: 10,
                 border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer',
-                fontSize: 13, fontWeight: 700, color: '#64748b',
+                fontSize: 13, fontWeight: 700, color: '#6b7280',
                 fontFamily: "'Cairo', sans-serif", transition: 'background 0.12s',
               }}
             >
@@ -579,7 +579,7 @@ export default function OnlineUsersPage() {
 function InfoBox({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div style={{ padding: '10px 12px', background: '#f8fafc', borderRadius: 10 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 13, fontWeight: 700, color: color || '#1e293b' }}>{value}</div>
     </div>
   );

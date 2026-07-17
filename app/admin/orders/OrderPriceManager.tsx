@@ -61,7 +61,7 @@ export default function OrderPriceManager({ order }: { order: any }) {
       <h3 style={{ margin: '0 0 4px', color: '#1a1a1a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
         <Tag size={18} color="#f59e0b" /> تغيير الأسعار وإخطار العميل
       </h3>
-      <p style={{ color: '#888', fontSize: '0.78rem', margin: '0 0 14px' }}>
+      <p style={{ color: '#9ca3af', fontSize: '0.78rem', margin: '0 0 14px' }}>
         أدخل السعر الجديد للمنتجات التي تغيّر سعرها، ثم أخطر العميل عبر واتساب أو حدّث السعر على الموقع.
       </p>
 
@@ -73,9 +73,9 @@ export default function OrderPriceManager({ order }: { order: any }) {
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', background: '#f9fafb', border: '1px solid #f0f0f0', borderRadius: '10px', padding: '8px 12px' }}>
               <div style={{ flex: 1, minWidth: '140px' }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</div>
-                <div style={{ fontSize: '0.72rem', color: '#888' }}>
+                <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
                   السعر الحالي: <strong style={{ color: '#15803d' }}>{old.toFixed(0)} ج.م</strong>
-                  {!it.id && <span style={{ color: '#dc2626', marginRight: 6 }}>· غير مرتبط بصفحة منتج</span>}
+                  {!it.id && <span style={{ color: '#16a34a', marginRight: 6 }}>· غير مرتبط بصفحة منتج</span>}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -88,7 +88,7 @@ export default function OrderPriceManager({ order }: { order: any }) {
                   onChange={e => setNewPrices(p => ({ ...p, [key]: e.target.value }))}
                   style={{ width: '90px', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none' }}
                 />
-                <span style={{ fontSize: '0.75rem', color: '#888' }}>ج.م</span>
+                <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>ج.م</span>
               </div>
             </div>
           );

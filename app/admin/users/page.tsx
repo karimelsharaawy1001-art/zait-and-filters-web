@@ -76,7 +76,7 @@ export default async function AdminUsersPage() {
       <h1 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '6px', color: '#1a1a1a' }}>
         👤 إدارة المشرفين (Admins)
       </h1>
-      <p style={{ color: '#888', fontSize: '0.85rem', marginBottom: '20px' }}>
+      <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '20px' }}>
         أضف مشرفاً جديداً عن طريق بريده الإلكتروني (يجب أن يكون لديه حساب مسجّل على الموقع).
       </p>
 

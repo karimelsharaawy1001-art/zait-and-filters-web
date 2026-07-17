@@ -23,7 +23,7 @@ export default function ScrollProgress() {
         left: 0,
         right: 0,
         height: '3px',
-        background: 'linear-gradient(90deg, #e50914 0%, #dc2626 50%, #b91c1c 100%)',
+        background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #15803d 100%)',
         transformOrigin: '0%',
         transform: `scaleX(${scrollProgress / 100})`,
         zIndex: 9999,
