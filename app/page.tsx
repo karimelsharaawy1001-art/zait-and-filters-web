@@ -1583,11 +1583,11 @@ export default function HomePage() {
 }
 
 // Styles
-const fullPageLoaderStyle: any = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#ffffff 0%,#f0fdf4 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
+const fullPageLoaderStyle: any = { position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '0 16px', boxSizing: 'border-box' };
 const brandNameText: any = { fontSize: 'clamp(2.2rem,8vw,4rem)', fontWeight: '900', fontStyle: 'italic', letterSpacing: '-2px', marginBottom: '20px', lineHeight: '1', textTransform: 'uppercase', filter: 'drop-shadow(0 10px 30px rgba(34,197,94,0.4))' };
 const mainHeadline: any = { color: '#fff', fontWeight: '900', fontSize: 'clamp(1.6rem,6vw,3.5rem)', marginBottom: '16px', letterSpacing: '-1px', lineHeight: '1.2', textShadow: '0 4px 20px rgba(34,197,94,0.3)' };
 const tagline: any = { color: '#a0a0a0', fontSize: 'clamp(0.9rem,3vw,1.5rem)', fontWeight: '600', marginBottom: '36px', lineHeight: '1.7' };
-const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', overflow: 'hidden', marginBottom: '32px' };
+const loadingBarContainer: any = { width: '100%', height: '5px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '10px', overflow: 'hidden', marginBottom: '32px' };
 const loadingBar: any = { height: '100%', background: 'linear-gradient(90deg,#22c55e 0%,#16a34a 50%,#22c55e 100%)', borderRadius: '10px' };
 const messageContainer: any = { marginBottom: '28px', minHeight: '35px' };
 const messageText: any = { fontSize: '1.1rem', fontWeight: '700', color: '#fff' };
