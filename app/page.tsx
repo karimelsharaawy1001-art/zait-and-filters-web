@@ -209,7 +209,7 @@ function GooglePlayBanner() {
           <div style={{ color: '#fff', fontWeight: '800', fontSize: '0.9rem', lineHeight: '1.35' }}>
             حمّل تطبيق Zait &amp; Filters الآن
           </div>
-          <div style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.72rem', fontWeight: '600', marginTop: '1px' }}>
+          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem', fontWeight: '600', marginTop: '1px' }}>
             تسوق أسرع · عروض حصرية · إشعارات فورية
           </div>
         </div>
@@ -239,10 +239,10 @@ function GooglePlayBanner() {
           aria-label="إغلاق"
           style={{
             flexShrink: 0,
-            background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.08)',
+            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
             borderRadius: '8px', width: '30px', height: '30px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(0,0,0,0.2)', fontSize: '0.85rem',
+            cursor: 'pointer', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem',
           }}
         >✕</button>
 
