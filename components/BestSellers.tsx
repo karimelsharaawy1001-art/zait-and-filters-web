@@ -138,4 +138,4 @@ const brandText: any = { color: '#1a1a1a', fontSize: '0.75rem', fontWeight: 'bol
 const prodName: any = { fontSize: '0.95rem', fontWeight: '800', margin: '8px 0', height: '40px', overflow: 'hidden', color: '#6b7280' };
 const priceRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' };
 const priceText: any = { fontSize: '1.1rem', fontWeight: '900', color: '#1a1a1a' };
-const cartBtn: any = { background: '#22c55e', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };
+const cartBtn: any = { background: '#0f172a', color: '#fff', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer' };

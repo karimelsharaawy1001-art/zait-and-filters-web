@@ -1855,7 +1855,7 @@ setBrandsOptions(brandsOpts);
                                   <>
                                     <button
                                       onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }}
-                                      style={{ width: '100%', padding: '11px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
+                                      style={{ width: '100%', padding: '11px', backgroundColor: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', transition: '0.2s' }}
                                     >
                                       <ShoppingCart size={16} /> أضف إلى السلة
                                     </button>
@@ -1994,7 +1994,7 @@ setBrandsOptions(brandsOpts);
                               ) : (
                                 <button
                                   onClick={(e) => { e.preventDefault(); addToCart({ ...product, price }, 1); toast.success('تمت الإضافة'); }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer' }}>
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.82rem', cursor: 'pointer' }}>
                                   <ShoppingCart size={14} /> أضف للسلة
                                 </button>
                               )}
