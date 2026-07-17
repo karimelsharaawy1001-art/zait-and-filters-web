@@ -1438,26 +1438,18 @@ export default function HomePage() {
                     justify-content: center;
                     gap: 14px;
                     aspect-ratio: 3/4;
-                    transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease;
+                    background: linear-gradient(145deg, #05141f, #0d2a40);
+                    transition: transform 0.22s cubic-bezier(.34,1.28,.64,1), box-shadow 0.22s ease, background 0.25s ease;
                     box-shadow: 0 4px 14px rgba(0,0,0,0.22);
                     cursor: pointer;
                     position: relative;
                     overflow: hidden;
                   }
-                  .make-card::after {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: rgba(255,255,255,0);
-                    transition: background 0.2s;
-                  }
                   .make-card:hover {
                     transform: translateY(-6px) scale(1.035);
-                    box-shadow: 0 18px 40px rgba(22,163,74,0.35);
-                    outline: 2.5px solid #16a34a;
-                  }
-                  .make-card:hover::after {
-                    background: rgba(22,163,74,0.12);
+                    box-shadow: 0 18px 40px rgba(34,197,94,0.45);
+                    outline: 2.5px solid #22c55e;
+                    background: linear-gradient(145deg, #22c55e, #16a34a);
                   }
                   .make-card-logo-wrap {
                     width: 80%;
@@ -1541,10 +1533,10 @@ export default function HomePage() {
                       { make: 'MERCEDES',   ar: 'مرسيدس',     bg: 'linear-gradient(145deg,#d1d5db,#555)' },
                       { make: 'FORD',       ar: 'فورد',       bg: 'linear-gradient(145deg,#003178,#001e50)' },
                       { make: 'JEEP',       ar: 'جيب',        bg: 'linear-gradient(145deg,#2d5016,#1a2e0a)' },
-                    ] as { make: string; ar: string; bg: string }[]).map(({ make, ar, bg }) => {
+                    ] as { make: string; ar: string; bg: string }[]).map(({ make, ar }) => {
                       const logoUrl = makesOptions.find((m: any) => m.value?.toUpperCase() === make)?.logo || null;
                       return (
-                        <Link key={make} href={`/cars/${make.toLowerCase()}`} className="make-card" style={{ background: bg }}>
+                        <Link key={make} href={`/cars/${make.toLowerCase()}`} className="make-card">
                           <div className="make-card-logo-wrap">
                             {logoUrl
                               ? <img src={optimizeImageUrl(logoUrl)} alt={ar} loading="lazy" />
