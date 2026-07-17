@@ -2,7 +2,7 @@
 import './globals.css'
 import ProfessionalNavbar from '@/components/Navbar'
 import ProfessionalFooter from '@/components/Footer' 
-import { Zain } from 'next/font/google'
+import { Almarai } from 'next/font/google'
 import { CartProvider } from '@/context/CartContext'
 import CartDrawer from '@/components/CartDrawer'
 import { Toaster } from 'react-hot-toast'
@@ -20,9 +20,9 @@ import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 import ChatWidget from '@/components/ChatWidget'
 import StorefrontShell from '@/components/StorefrontShell'
 
-const zain = Zain({
-  subsets: ['arabic', 'latin'],
-  weight: ['300', '400', '700'],
+const almarai = Almarai({
+  subsets: ['arabic'],
+  weight: ['300', '400', '700', '800'],
   // 'optional' = use font if cached/fast; otherwise keep fallback — eliminates font-swap CLS
   display: 'optional',
   preload: true,
@@ -176,7 +176,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         )}
       </head>
-      <body className={zain.className}>
+      <body className={almarai.className}>
 
         <SplashScreen />
 
