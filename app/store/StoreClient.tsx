@@ -1460,7 +1460,7 @@ setBrandsOptions(brandsOpts);
 
           /* ── List view ── */
           .products-list { display: flex; flex-direction: column; gap: 12px; }
-          .list-card { display: flex; background: #1a1a1a; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
+          .list-card { display: flex; background: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; position: relative; }
           .list-card:hover { box-shadow: 0 16px 36px rgba(34,197,94,0.22); transform: translateY(-2px); }
           .list-card-img { width: 130px; min-width: 130px; height: 130px; object-fit: cover; background: #f9fafb; flex-shrink: 0; }
           .list-card-img img { width: 100%; height: 100%; object-fit: cover; }
@@ -1958,8 +1958,8 @@ setBrandsOptions(brandsOpts);
 
                             {/* Compat + year */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#15803d', fontWeight: '700', background: '#f0fdf4', border: '1px solid #166534', borderRadius: '10px', padding: '2px 8px' }}>
-                                <Car size={10} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#1a1a1a', fontWeight: '700', background: '#f0fdf4', border: '1px solid #166534', borderRadius: '10px', padding: '2px 8px' }}>
+                                <Car size={10} color="#16a34a" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{compatText}</span>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: '#9ca3af', fontWeight: '700', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '2px 8px' }}>
                                 <Calendar size={10} color="#22c55e" /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{year || 'الكل'}</span>
