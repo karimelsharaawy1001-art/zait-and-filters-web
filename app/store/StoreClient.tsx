@@ -1547,34 +1547,34 @@ setBrandsOptions(brandsOpts);
             >
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
-                  border: '1px solid #f3f4f6',
+                  background: 'linear-gradient(135deg, #052e16 0%, #14532d 55%, #166534 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
                   borderRadius: '30px',
                   padding: isDesktop ? '40px' : '25px',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(0,0,0,0.04)',
+                  boxShadow: '0 24px 70px rgba(5,46,22,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
                 }}
               >
                 <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(34,197,94,0.14) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
                 <div style={{ display: 'grid', gridTemplateColumns: carHeroImage && isDesktop ? '1.5fr 1fr' : '1fr', gap: '40px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'flex-start' }}>
-                      <CheckCircle2 size={20} color="#22c55e" />
-                      <span style={{ color: '#374151', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
+                      <CheckCircle2 size={20} color="#4ade80" />
+                      <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>تم تحديد مواصفات السيارة</span>
                     </div>
-                    <h1 style={{ color: '#1a1a1a', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
-                      قطع غيار <span style={{ color: '#22c55e' }}>{heroMakeLabel}</span> الأصلية
+                    <h1 style={{ color: '#ffffff', fontSize: isDesktop ? '2.8rem' : '1.8rem', fontWeight: '900', marginBottom: '16px', lineHeight: '1.2', letterSpacing: '-1px' }}>
+                      قطع غيار <span style={{ color: '#86efac' }}>{heroMakeLabel}</span> الأصلية
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.2)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.12)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.22)' }}>
                         <Car size={18} color="#22c55e" />
-                        <span style={{ color: '#1a1a1a', fontSize: '1.1rem', fontWeight: '800' }}>{heroMakeLabel} {heroModelLabel}</span>
+                        <span style={{ color: '#ffffff', fontSize: '1.1rem', fontWeight: '800' }}>{heroMakeLabel} {heroModelLabel}</span>
                       </div>
                       {heroYear && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(28,28,28,0.88)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.2)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.12)', padding: '10px 20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.22)' }}>
                           <Calendar size={18} color="#22c55e" />
-                          <span style={{ color: '#1a1a1a', fontSize: '1.1rem', fontWeight: '700' }}>{heroYear}</span>
+                          <span style={{ color: '#ffffff', fontSize: '1.1rem', fontWeight: '700' }}>{heroYear}</span>
                         </div>
                       )}
                     </div>
