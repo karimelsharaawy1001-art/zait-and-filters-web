@@ -910,9 +910,9 @@ export default function CheckoutPage() {
       <style dangerouslySetInnerHTML={{ __html: `
         * { box-sizing: border-box; }
         .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(21,128,61,0.45) !important; }
-        .action-hover:hover { background: #1a1a1a !important; transform: translateY(-1px); }
+        .action-hover:hover { background: #16a34a !important; transform: translateY(-1px); }
         .upload-hover:hover { background: #f0fdf4 !important; border-color: #15803d !important; }
-        .promo-btn:hover:not(:disabled) { background: #e5e7eb !important; color: #1a1a1a !important; }
+        .promo-btn:hover:not(:disabled) { background: #f0fdf4 !important; color: #16a34a !important; border-color: #22c55e !important; }
         .co-input:focus { border-color: #22c55e !important; box-shadow: 0 0 0 3px rgba(34,197,94,0.12) !important; outline: none; }
         .pay-card-label:hover { border-color: #22c55e !important; box-shadow: 0 4px 20px rgba(34,197,94,0.12) !important; }
         .co-section { background:#ffffff; border-radius:20px; border:1px solid #f3f4f6; padding:24px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }

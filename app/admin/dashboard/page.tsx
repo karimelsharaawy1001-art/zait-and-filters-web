@@ -242,7 +242,7 @@ export default function AdminDashboard() {
         }
         .btn-green:hover { opacity: 0.9; }
         .btn-green:disabled { opacity: 0.5; cursor: not-allowed; }
-        .table-row:hover { background: #f8fafc; }
+        .table-row:hover { background: #f0fdf4; }
         .status-pill {
           padding: 3px 10px;
           border-radius: 20px;

@@ -70,7 +70,7 @@ export default function CartPage() {
         .item-unit-price { font-size: 0.72rem; color: #6b7280; font-weight: 600; }
         .qty-stepper { display: flex; align-items: center; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
         .qty-btn { width: 36px; height: 36px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #6b7280; transition: background 0.15s; }
-        .qty-btn:hover { background: #f3f4f6; color: #1a1a1a; }
+        .qty-btn:hover { background: #f0fdf4; color: #16a34a; }
         .qty-val { width: 36px; text-align: center; font-weight: 900; font-size: 0.95rem; color: #1a1a1a; }
         .del-btn { display: flex; align-items: center; gap: 4px; border: none; background: none; cursor: pointer; color: #6b7280; font-size: 0.75rem; font-weight: 700; padding: 6px 8px; border-radius: 8px; transition: all 0.15s; }
         .del-btn:hover { color: #16a34a; background: #f0fdf4; }
@@ -80,7 +80,7 @@ export default function CartPage() {
         .checkout-link { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; background: linear-gradient(135deg,#22c55e,#16a34a); color: #fff; text-decoration: none; border-radius: 16px; font-weight: 900; font-size: 1rem; margin-top: 16px; box-shadow: 0 8px 24px rgba(34,197,94,0.35); transition: all 0.2s; letter-spacing: 0.3px; }
         .checkout-link:hover { box-shadow: 0 12px 32px rgba(34,197,94,0.5); transform: translateY(-1px); }
         .continue-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; background: #f9fafb; color: #6b7280; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 0.88rem; margin-top: 10px; border: 1px solid #e5e7eb; transition: all 0.15s; }
-        .continue-link:hover { background: #f3f4f6; color: #1a1a1a; }
+        .continue-link:hover { background: #f0fdf4; color: #16a34a; border-color: #22c55e; }
         .trust-row { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f3f4f6; }
         .trust-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #6b7280; font-weight: 700; }
         @media(max-width:768px){

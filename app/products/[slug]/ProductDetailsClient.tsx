@@ -433,11 +433,11 @@ export default function ProductDetailsClient({ initialProduct, productId }: { in
         .pdp-info { display: flex; flex-direction: column; gap: 22px; }
         .pdp-btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color: #fff; border: none; border-radius: 16px; font-weight: 900; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 24px rgba(34,197,94,0.35); font-family: inherit; transition: all 0.2s; letter-spacing: 0.3px; text-decoration: none; }
         .pdp-btn-primary:hover { box-shadow: 0 12px 32px rgba(34,197,94,0.5); transform: translateY(-2px); }
-        .pdp-btn-secondary { width: 100%; padding: 15px; background: #e5e7eb; color: #fff; border: none; border-radius: 16px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: all 0.2s; }
-        .pdp-btn-secondary:hover { background: #6b7280; transform: translateY(-1px); }
+        .pdp-btn-secondary { width: 100%; padding: 15px; background: #f0fdf4; color: #16a34a; border: 1.5px solid #22c55e; border-radius: 16px; font-weight: 800; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: all 0.2s; }
+        .pdp-btn-secondary:hover { background: #22c55e; color: #fff; transform: translateY(-1px); }
         .pdp-stepper { display: flex; align-items: center; gap: 0; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 14px; overflow: hidden; }
         .pdp-step-btn { width: 44px; height: 48px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #6b7280; transition: background 0.15s; }
-        .pdp-step-btn:hover { background: #f3f4f6; color: #1a1a1a; }
+        .pdp-step-btn:hover { background: #f0fdf4; color: #16a34a; }
         .pdp-qty { font-size: 1.1rem; font-weight: 900; color: '#1a1a1a'; min-width: 36px; text-align: center; }
         .pdp-trust-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 12px; font-size: 0.85rem; color: #6b7280; font-weight: '700'; }
         @keyframes spin { to { transform: rotate(360deg); } }

@@ -852,8 +852,8 @@ export default function HomePage() {
           .card-save { font-size:0.68rem; font-weight:800; color:#fff; background:#16a34a; border-radius:6px; padding:2px 7px; white-space:nowrap; }
           .card-btn-buy { width:100%; padding:13px; background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color:#fff; border:none; border-radius:12px; font-weight:900; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; box-shadow:0 6px 20px rgba(34,197,94,0.35); letter-spacing:0.2px; }
           .card-btn-buy:hover { background:linear-gradient(135deg,#16a34a 0%,#15803d 100%); box-shadow:0 10px 28px rgba(34,197,94,0.5); transform:translateY(-1px); }
-          .card-btn-cart { width:100%; padding:11px; background:#e5e7eb; color:#374151; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:background 0.2s; }
-          .card-btn-cart:hover { background:#6b7280; }
+          .card-btn-cart { width:100%; padding:11px; background:#f0fdf4; color:#16a34a; border:1.5px solid #22c55e; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; transition:all 0.2s; }
+          .card-btn-cart:hover { background:#22c55e; color:#fff; }
 
           @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           .marquee-inner   { display: flex; width: max-content; animation: marquee 35s linear infinite; }

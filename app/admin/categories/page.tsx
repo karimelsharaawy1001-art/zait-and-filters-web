@@ -305,13 +305,13 @@ export default function CategoriesPage() {
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
         .ib { background: none; border: none; cursor: pointer; padding: 4px 5px; border-radius: 6px; display: inline-flex; align-items: center; transition: background 0.1s; }
-        .ib:hover { background: #f1f5f9; }
+        .ib:hover { background: #f0fdf4; }
         .ib.red:hover { background: #fee2e2; }
         .ib.green:hover { background: #dcfce7; }
         .ib.blue:hover { background: #dbeafe; }
 
         .cat-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.1s; }
-        .cat-row:hover { background: #f8fafc; }
+        .cat-row:hover { background: #f0fdf4; }
         .sub-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-bottom: 1px solid #f8fafc; transition: background 0.1s; }
         .sub-row:hover { background: #f0fdf4; }
 

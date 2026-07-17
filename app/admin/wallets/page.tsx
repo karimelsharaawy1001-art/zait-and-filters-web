@@ -364,7 +364,7 @@ export default function AdminWalletsPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .wlt-row { transition: background 0.12s; }
-        .wlt-row:hover { background: #f8fafc !important; }
+        .wlt-row:hover { background: #f0fdf4 !important; }
         .wlt-btn { transition: all 0.12s; border: none; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; border-radius: 9px; }
         .wlt-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
 
