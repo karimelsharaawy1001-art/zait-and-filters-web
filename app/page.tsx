@@ -1453,10 +1453,11 @@ export default function HomePage() {
                   }
                   .make-card:hover {
                     transform: translateY(-6px) scale(1.035);
-                    box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+                    box-shadow: 0 18px 40px rgba(22,163,74,0.35);
+                    outline: 2.5px solid #16a34a;
                   }
                   .make-card:hover::after {
-                    background: rgba(255,255,255,0);
+                    background: rgba(22,163,74,0.12);
                   }
                   .make-card-logo-wrap {
                     width: 80%;
