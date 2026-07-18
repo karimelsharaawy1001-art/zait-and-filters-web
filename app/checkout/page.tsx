@@ -193,17 +193,69 @@ export default function CheckoutPage() {
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
   const trackAbandonedCart = async () => {
-    if (!customerInfo.email || cart.length === 0) return;
+    const email = customerInfo.email?.trim();
+    const phone = customerInfo.phone?.trim();
+    // Capture as soon as the customer starts filling in contact info —
+    // either an email OR a phone is enough (guest carts are matched by phone).
+    if ((!email && !phone) || cart.length === 0) return;
     try {
-      await supabase.from('abandoned_carts').upsert({
-        email: customerInfo.email,
-        customer_name: customerInfo.name,
-        customer_phone: customerInfo.phone,
-        cart_items: cart,
-        total_price: finalTotal,
-        status: 'abandoned',
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'email' });
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Persistent session id — same key the global AbandonedCartTracker uses.
+      let sessionId = localStorage.getItem('zf_session_id');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID?.() || `zf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('zf_session_id', sessionId);
+      }
+
+      const cartSubtotal = cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0);
+      const detailedCartItems = cart.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        price: parseFloat(item.price),
+        quantity: item.quantity,
+        brand: item.brand || 'غير محدد',
+        car_make: item.car_make || item.make || 'غير محدد',
+        car_model: item.car_model || item.model || 'غير محدد',
+        car_model_year: item.car_model_year || item.year || item.model_year || 'غير محدد',
+        image_url: item.image_url || item.image || '',
+        country_origin: item.country_origin || item.country_of_origin || 'أصلي',
+        category: item.category || '',
+        part_number: item.part_number || '',
+        line_total: parseFloat(item.price) * item.quantity,
+      }));
+
+      const contact = {
+        customer_email: email || user?.email || '',
+        customer_name: customerInfo.name || '',
+        customer_phone: phone || '',
+        cart_items: detailedCartItems,
+        cart_subtotal: cartSubtotal,
+        cart_total: cartSubtotal,
+        last_activity_at: new Date().toISOString(),
+      };
+
+      // Update this session's existing (non-recovered) cart, else create it.
+      const { data: existing } = await supabase
+        .from('abandoned_carts')
+        .select('id')
+        .eq(user ? 'user_id' : 'session_id', user ? user.id : sessionId)
+        .eq('recovered', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from('abandoned_carts').update(contact).eq('id', existing.id);
+      } else {
+        await supabase.from('abandoned_carts').insert([{
+          user_id: user?.id || null,
+          session_id: sessionId,
+          ...contact,
+          page_url: typeof window !== 'undefined' ? window.location.href : '',
+          device_type: /Mobile|Android|iPhone|iPad|iPod/.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }]);
+      }
     } catch (err) {
       console.error("Tracking abandoned cart failed:", err);
     }
