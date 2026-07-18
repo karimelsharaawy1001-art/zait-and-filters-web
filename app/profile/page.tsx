@@ -8,7 +8,7 @@ import {
   Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
   ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
   CarFront, Wallet, Truck, ExternalLink, LinkIcon, Copy, Check,
-  Undo2, RotateCcw, X, AlertCircle, CheckSquare, Square
+  Undo2, RotateCcw, X, AlertCircle, CheckSquare, Square, Hash, Tag
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { optimizeImageUrl } from '@/lib/images';
@@ -24,6 +24,9 @@ const EGYPT_POST_TRACKING_URL = 'https://egyptpost.gov.eg/ar-EG//Home/EServices/
 function buildTrackingUrl(trackingNumber: string): string {
   return `${EGYPT_POST_TRACKING_URL}?barcode=${encodeURIComponent(trackingNumber.trim())}`;
 }
+
+const COD_FEE = 20;
+const egp = (n: any) => `${Number(n || 0).toLocaleString('ar-EG')} ج.م`;
 
 // ── Payment status config ─────────────────────────────────────────────────────
 const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
@@ -683,26 +686,60 @@ export default function ProfilePage() {
                         </div>
 
                         {/* ── Order Body (expanded) ── */}
-                        {isExpanded && (
+                        {isExpanded && (() => {
+                          const items: any[] = Array.isArray(order.items) ? order.items : [];
+                          const subtotal = items.reduce((s: number, i: any) => s + (parseFloat(i.price) || 0) * (i.quantity || 0), 0);
+                          const shipping = parseFloat(order.shipping_cost) || 0;
+                          const discount = parseFloat(order.discount_applied) || 0;
+                          const wallet = parseFloat(order.wallet_discount) || 0;
+                          const codFee = order.payment_method === 'cash' ? COD_FEE : 0;
+                          const addressLine = [order.city, order.customer_address].filter(Boolean).join(' - ');
+                          return (
                           <div style={orderBody}>
-                            {/* Payment method */}
-                            {order.payment_method && (
-                              <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <CreditCard size={12} color="#6b7280" />
-                                طريقة الدفع: <strong style={{ color: '#9ca3af' }}>{paymentMethodLabel(order.payment_method)}</strong>
-                              </div>
-                            )}
+                            {/* Order number */}
+                            <div style={detailChip}>
+                              <Hash size={12} color="#16a34a" />
+                              <span>رقم الطلب: <strong style={{ color: '#1a1a1a' }}>#{order.id?.slice(0, 8).toUpperCase()}</strong></span>
+                            </div>
+
+                            {/* Delivery info */}
+                            <div style={detailSection}>
+                              <div style={detailSectionTitle}><MapPin size={13} color="#16a34a" /> بيانات التوصيل</div>
+                              {(order.customer_name || profile.full_name) && <div style={detailRow}><User size={13} color="#9ca3af" /><span>{order.customer_name || profile.full_name}</span></div>}
+                              {(order.customer_phone || profile.phone_number) && <div style={detailRow}><Phone size={13} color="#9ca3af" /><span dir="ltr">{order.customer_phone || profile.phone_number}</span></div>}
+                              {addressLine && <div style={detailRow}><MapPin size={13} color="#9ca3af" /><span>{addressLine}</span></div>}
+                              {order.shipping_type && <div style={detailRow}><Truck size={13} color="#9ca3af" /><span>{order.shipping_type === 'express' ? 'شحن سريع (Express)' : 'شحن عادي'}</span></div>}
+                            </div>
+
+                            {/* Payment method + promo */}
+                            <div style={detailSection}>
+                              <div style={detailSectionTitle}><CreditCard size={13} color="#16a34a" /> الدفع</div>
+                              {order.payment_method && <div style={detailRow}><CreditCard size={13} color="#9ca3af" /><span>طريقة الدفع: <strong style={{ color: '#1a1a1a' }}>{paymentMethodLabel(order.payment_method)}</strong></span></div>}
+                              {order.promo_code && <div style={detailRow}><Tag size={13} color="#9ca3af" /><span>كود الخصم: <strong style={{ color: '#1a1a1a' }}>{order.promo_code}</strong></span></div>}
+                            </div>
 
                             {/* Product items */}
-                            {order.items?.map((item: any, i: number) => (
+                            <div style={detailSectionTitle}><Package size={13} color="#16a34a" /> المنتجات ({items.length})</div>
+                            {items.map((item: any, i: number) => (
                               <div key={i} style={miniItemRow}>
                                 <img src={optimizeImageUrl(item.image || item.image_url || '/api/placeholder/40/40')} alt="" style={miniItemImg} />
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={miniItemName}>{item.name} <span style={{ color: '#22c55e' }}>×{item.quantity}</span></div>
+                                  <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: '2px' }}>{egp(item.price)} للقطعة</div>
                                 </div>
-                                <div style={miniItemPrice}>{parseFloat(item.price) * item.quantity} ج.م</div>
+                                <div style={miniItemPrice}>{egp((parseFloat(item.price) || 0) * (item.quantity || 0))}</div>
                               </div>
                             ))}
+
+                            {/* Price breakdown */}
+                            <div style={{ ...detailSection, marginTop: '4px' }}>
+                              <div style={priceLine}><span>المجموع الفرعي</span><span>{egp(subtotal)}</span></div>
+                              <div style={priceLine}><span>الشحن</span><span>{shipping === 0 ? 'مجاني 🚚' : egp(shipping)}</span></div>
+                              {discount > 0 && <div style={{ ...priceLine, color: '#16a34a' }}><span>الخصم</span><span>− {egp(discount)}</span></div>}
+                              {wallet > 0 && <div style={{ ...priceLine, color: '#16a34a' }}><span>خصم المحفظة</span><span>− {egp(wallet)}</span></div>}
+                              {codFee > 0 && <div style={priceLine}><span>رسوم الدفع عند الاستلام</span><span>{egp(codFee)}</span></div>}
+                              <div style={priceTotalLine}><span>الإجمالي</span><span>{egp(order.total_price)}</span></div>
+                            </div>
 
                             {/* ── Return Request Button (only for delivered orders) ── */}
                             {order.status === 'delivered' && (
@@ -728,7 +765,8 @@ export default function ProfilePage() {
                             {/* ── Tracking Banner ── */}
                             <CustomerTrackingBanner order={order} />
                           </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     );
                   })}
@@ -942,8 +980,14 @@ const priceText: any = { fontSize: '0.95rem', fontWeight: '900', color: '#1a1a1a
 const orderBody: any = { padding: '12px 15px', background: '#f9fafb', borderTop: '1px solid #ffffff' };
 const miniItemRow: any = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' };
 const miniItemImg: any = { width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover' as const, flexShrink: 0 };
-const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#1a1a1a' };
-const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#1a1a1a', whiteSpace: 'nowrap' };
+const miniItemName: any = { fontSize: '0.8rem', fontWeight: '700', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const miniItemPrice: any = { fontSize: '0.8rem', fontWeight: '800', color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 };
+const detailChip: any = { display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '6px 12px', fontSize: '0.78rem', color: '#374151', fontWeight: '700', marginBottom: '12px' };
+const detailSection: any = { background: '#ffffff', border: '1px solid #f3f4f6', borderRadius: '12px', padding: '12px', marginBottom: '12px' };
+const detailSectionTitle: any = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: '900', color: '#1a1a1a', marginBottom: '10px' };
+const detailRow: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#374151', fontWeight: '600', marginBottom: '7px', flexWrap: 'wrap' as const, wordBreak: 'break-word' as const };
+const priceLine: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#374151', fontWeight: '600', marginBottom: '7px' };
+const priceTotalLine: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.95rem', color: '#16a34a', fontWeight: '900', borderTop: '1px dashed #e5e7eb', paddingTop: '10px', marginTop: '3px' };
 const compactForm: any = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputLabel: any = { fontSize: '0.78rem', fontWeight: '700', color: '#9ca3af', marginBottom: '-4px' };
 const compactInp: any = { width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f3f4f6', background: '#f9fafb', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const };
