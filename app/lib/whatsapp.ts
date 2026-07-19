@@ -130,32 +130,19 @@ export function orderConfirmationMessage(order: any): string {
     bank_transfer: 'تحويل بنكي',
   };
 
-  const itemsList = items
-    .map(i => `• ${i.quantity || 1}x ${i.name || 'منتج'} — ${(fmt(i.price) * (i.quantity || 1)).toFixed(0)} ج.م`)
-    .join('\n');
-
-  const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
-  const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
   const total = parseFloat(order.total_price || 0);
+  const itemCount = items.reduce((s, i) => s + (i.quantity || 1), 0);
 
+  // Keep the pre-filled message short and free of special chars — long or
+  // symbol-heavy text makes WhatsApp Web open to a blank/black screen.
   const lines = [
     `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
-    '',
     'تشرفنا بطلبك من زيت أند فلترز',
-    '',
-    'تفاصيل الطلب:',
-    `رقم الطلب: #${shortId}`,
+    `رقم الطلب: ${shortId}`,
     date ? `التاريخ: ${date}` : '',
-    `العنوان: ${order.city || ''}${order.city && order.customer_address ? ' - ' : ''}${order.customer_address || ''}`,
-    '',
-    'المنتجات:',
-    itemsList || '(بدون منتجات)',
-    '',
-    `الشحن: ${shipping === 0 ? 'مجاني' : `${fmt(shipping)} ج.م`}`,
+    itemCount ? `عدد المنتجات: ${itemCount}` : '',
     `الاجمالي: ${fmt(total)} ج.م`,
     `الدفع: ${paymentLabels[order.payment_method] || order.payment_method || 'غير محدد'}`,
-    discount > 0 ? `الخصم: -${fmt(discount)} ج.م` : '',
-    '',
     'ممكن تاكيد الطلب عشان نبدا التجهيز؟',
   ];
 
