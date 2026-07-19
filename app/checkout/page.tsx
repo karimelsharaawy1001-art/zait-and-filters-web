@@ -1161,7 +1161,7 @@ export default function CheckoutPage() {
           </div>
           <div style={inputGroup}>
             <label style={lab}>رقم الموبايل</label>
-            <input value={customerInfo.phone} onChange={(e) => { setCustomerInfo({...customerInfo, phone: e.target.value}); localStorage.setItem('checkout_phone', e.target.value); }} onBlur={(e) => { trackAbandonedCart(); checkCodBan(e.target.value); }} required className="co-input" style={inp} />
+            <input type="tel" inputMode="numeric" autoComplete="tel" maxLength={11} placeholder="01xxxxxxxxx" value={customerInfo.phone} onChange={(e) => { const v = e.target.value.replace(/\D/g, ''); setCustomerInfo({...customerInfo, phone: v}); localStorage.setItem('checkout_phone', v); }} onBlur={(e) => { trackAbandonedCart(); checkCodBan(e.target.value); }} required className="co-input" style={inp} />
           </div>
           <div style={inputGroup}>
             <label style={lab}><Mail size={14} /> البريد الإلكتروني</label>
