@@ -510,14 +510,16 @@ function ExpandedOrderRow({
           <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '4px' }}>{order.customer_name}</div>
           <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}><Phone size={12} color="#22c55e" /> {order.customer_phone}</div>
           <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={12} color="#22c55e" /> {order.city} — {order.customer_address}</div>
-          {order.whatsapp_reactivation_requested && order.new_whatsapp_number && (
+          {order.new_whatsapp_number && (
             <div style={{ marginTop: '8px', background: '#f0fdf4', border: '1.5px solid #16a34a', borderRadius: '10px', padding: '8px 10px' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: '900', color: '#14532d', marginBottom: '3px' }}>🟢 رقم واتساب جديد من العميل</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: '900', color: '#14532d', marginBottom: '3px' }}>🟢 رقم واتساب من العميل</div>
               <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#166534', direction: 'ltr', textAlign: 'right' }}>
                 {order.new_whatsapp_number}
                 <a href={`https://wa.me/2${String(order.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline', fontSize: '0.78rem' }}>فتح واتساب</a>
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#9ca3af', fontWeight: '600', marginTop: '3px' }}>غيّر حالة الشحن من "ملغي" إلى "جديد" أو "تجهيز" لإعادة تفعيل الطلب</div>
+              {order.whatsapp_reactivation_requested && (
+                <div style={{ fontSize: '0.68rem', color: '#9ca3af', fontWeight: '600', marginTop: '3px' }}>غيّر حالة الشحن من "ملغي" إلى "جديد" أو "تجهيز" لإعادة تفعيل الطلب</div>
+              )}
             </div>
           )}
         </div>
@@ -1787,18 +1789,18 @@ export default function AdminOrders() {
 
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18} /> بيانات العميل والتوصيل</h3>
-                {selectedOrder.whatsapp_reactivation_requested && (
+                {selectedOrder.new_whatsapp_number && (
                   <div style={{ background: '#f0fdf4', border: '2px solid #16a34a', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                     <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🟢</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '900', fontSize: '0.92rem', color: '#14532d', marginBottom: '3px' }}>العميل أدخل رقم واتساب جديد — جاهز لإعادة التفعيل</div>
+                      <div style={{ fontWeight: '900', fontSize: '0.92rem', color: '#14532d', marginBottom: '3px' }}>رقم واتساب من العميل</div>
                       <div style={{ fontSize: '0.9rem', color: '#166534', fontWeight: '700', direction: 'ltr', textAlign: 'right' }}>
                         📱 {selectedOrder.new_whatsapp_number}
-                        {selectedOrder.new_whatsapp_number && (
-                          <a href={`https://wa.me/2${String(selectedOrder.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline' }}>فتح واتساب</a>
-                        )}
+                        <a href={`https://wa.me/2${String(selectedOrder.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline' }}>فتح واتساب</a>
                       </div>
-                      <div style={{ fontSize: '0.74rem', color: '#9ca3af', fontWeight: '600', marginTop: '4px' }}>غيّر حالة الطلب إلى "جديد" أو "تجهيز" لإعادة تفعيله</div>
+                      {selectedOrder.whatsapp_reactivation_requested && (
+                        <div style={{ fontSize: '0.74rem', color: '#9ca3af', fontWeight: '600', marginTop: '4px' }}>غيّر حالة الطلب إلى "جديد" أو "تجهيز" لإعادة تفعيله</div>
+                      )}
                     </div>
                   </div>
                 )}
