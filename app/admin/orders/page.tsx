@@ -510,6 +510,16 @@ function ExpandedOrderRow({
           <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '4px' }}>{order.customer_name}</div>
           <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}><Phone size={12} color="#22c55e" /> {order.customer_phone}</div>
           <div style={{ fontSize: '0.8rem', color: '#555', display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={12} color="#22c55e" /> {order.city} — {order.customer_address}</div>
+          {order.whatsapp_reactivation_requested && order.new_whatsapp_number && (
+            <div style={{ marginTop: '8px', background: '#f0fdf4', border: '1.5px solid #16a34a', borderRadius: '10px', padding: '8px 10px' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '900', color: '#14532d', marginBottom: '3px' }}>🟢 رقم واتساب جديد من العميل</div>
+              <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#166534', direction: 'ltr', textAlign: 'right' }}>
+                {order.new_whatsapp_number}
+                <a href={`https://wa.me/2${String(order.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline', fontSize: '0.78rem' }}>فتح واتساب</a>
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#9ca3af', fontWeight: '600', marginTop: '3px' }}>غيّر حالة الشحن من "ملغي" إلى "جديد" أو "تجهيز" لإعادة تفعيل الطلب</div>
+            </div>
+          )}
         </div>
         <div style={{ flex: '1 1 180px', background: '#fff', borderRadius: '12px', padding: '12px 16px', border: '1px solid #e8f5e9' }}>
           <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#9ca3af', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>تفاصيل الطلب</div>
