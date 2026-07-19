@@ -49,7 +49,7 @@ export function waLink(phone: string, name?: string, message?: string): string |
   if (!digits) return null;
   let text = `ازيك يا أ. ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
   if (message) text += `:\n«${message}»`;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
 }
 
 export function orderWhatsAppLink(order: any): string | null {
@@ -57,7 +57,7 @@ export function orderWhatsAppLink(order: any): string | null {
   if (!digits) return null;
   let text = orderConfirmationMessage(order);
   if (text.length > 1500) text = text.slice(0, 1500) + '...';
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
 }
 
 // WhatsApp link telling the customer their ordered item is out of stock and
@@ -79,7 +79,7 @@ export function outOfStockWhatsAppLink(order: any): string | null {
   ].filter(Boolean);
   let text = lines.join('\n');
   if (text.length > 1500) text = text.slice(0, 1500) + '...';
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
 }
 
 // WhatsApp link notifying the customer that some product prices changed,
@@ -106,7 +106,7 @@ export function priceChangeWhatsAppLink(
   ];
   let text = lines.join('\n');
   if (text.length > 1500) text = text.slice(0, 1500) + '...';
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return `https://api.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
 }
 
 function fmt(n: any): number {

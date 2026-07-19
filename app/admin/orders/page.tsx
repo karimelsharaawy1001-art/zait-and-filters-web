@@ -1760,7 +1760,7 @@ export default function AdminOrders() {
                       <div style={{ fontSize: '0.9rem', color: '#166534', fontWeight: '700', direction: 'ltr', textAlign: 'right' }}>
                         📱 {selectedOrder.new_whatsapp_number}
                         {selectedOrder.new_whatsapp_number && (
-                          <a href={`https://wa.me/2${String(selectedOrder.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline' }}>فتح واتساب</a>
+                          <a href={`https://api.whatsapp.com/send?phone=2${String(selectedOrder.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline' }}>فتح واتساب</a>
                         )}
                       </div>
                       <div style={{ fontSize: '0.74rem', color: '#9ca3af', fontWeight: '600', marginTop: '4px' }}>غيّر حالة الطلب إلى "جديد" أو "تجهيز" لإعادة تفعيله</div>
