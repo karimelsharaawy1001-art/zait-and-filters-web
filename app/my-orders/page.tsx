@@ -4,11 +4,64 @@ import { supabase } from '@/app/lib/supabase';
 import {
   Search, Package, Clock, CheckCircle, Truck, XCircle,
   MapPin, User, Phone, CreditCard, Tag, Hash, Calendar,
-  Banknote, Smartphone, Wallet, ImageIcon, Loader2, AlertCircle
+  Banknote, Smartphone, Wallet, ImageIcon, Loader2, AlertCircle, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const COD_FEE = 20;
+
+// ── WhatsApp reactivation box (shown on orders cancelled for "no WhatsApp") ──
+function WhatsappReactivation({ order, phone }: { order: any; phone: string }) {
+  const [num, setNum] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState<boolean>(!!order.whatsapp_reactivation_requested);
+
+  async function submit() {
+    const clean = num.replace(/\D/g, '');
+    if (clean.length < 11) return toast.error('يرجى إدخال رقم واتساب صحيح');
+    setSending(true);
+    try {
+      const res = await fetch('/api/orders/whatsapp-reactivation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, phone, newNumber: num }),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) return toast.error(result.error || 'حدث خطأ، حاول لاحقًا');
+      setDone(true);
+      toast.success('تم إرسال الرقم، سنراجع طلبك لإعادة تفعيله');
+    } catch {
+      toast.error('حدث خطأ، حاول لاحقًا');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div style={reactBox}>
+      <div style={reactTitle}><MessageCircle size={16} color="#16a34a" /> إعادة تفعيل الطلب</div>
+      <p style={reactText}>تم إلغاء هذا الطلب لعدم توفّر رقم واتساب للتواصل معك. أدخل رقم واتساب صحيح لإعادة تفعيل طلبك.</p>
+      {done ? (
+        <div style={reactDone}><CheckCircle size={16} color="#16a34a" /> تم استلام رقمك الجديد{order.new_whatsapp_number ? ` (${order.new_whatsapp_number})` : ''} — طلبك قيد المراجعة لإعادة التفعيل.</div>
+      ) : (
+        <div style={reactForm}>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="01xxxxxxxxx"
+            value={num}
+            onChange={(e) => setNum(e.target.value)}
+            maxLength={13}
+            style={reactInput}
+          />
+          <button onClick={submit} disabled={sending} style={reactBtn}>
+            {sending ? <Loader2 className="animate-spin" size={16} /> : 'إرسال'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Helpers ──────────────────────────────────────────────
 const orderRef = (id: string) => (id ? id.slice(0, 8).toUpperCase() : '');
@@ -178,6 +231,10 @@ export default function MyOrdersPage() {
                     <span style={totalLabel}>الإجمالي النهائي</span>
                     <span style={totalAmount}>{egp(order.total_price)}</span>
                   </div>
+
+                  {order.status === 'cancelled' && order.cancel_reason === 'no_whatsapp' && (
+                    <WhatsappReactivation order={order} phone={phone} />
+                  )}
                 </div>
               );
             })}
@@ -219,3 +276,10 @@ const totalLabel: any = { color: '#6b7280', fontWeight: 'bold' };
 const totalAmount: any = { fontSize: '1.5rem', fontWeight: '900', color: '#16a34a' };
 const emptyState: any = { textAlign: 'center', padding: '50px', color: '#6b7280' };
 const centerStyle: any = { display: 'flex', justifyContent: 'center', padding: '50px' };
+const reactBox: any = { marginTop: '16px', background: '#f0fdf4', border: '2px solid #16a34a', borderRadius: '16px', padding: '16px' };
+const reactTitle: any = { display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.92rem', fontWeight: '900', color: '#14532d', marginBottom: '8px' };
+const reactText: any = { fontSize: '0.82rem', color: '#166534', fontWeight: '600', lineHeight: '1.6', margin: '0 0 12px' };
+const reactForm: any = { display: 'flex', gap: '8px', flexWrap: 'wrap' as const };
+const reactInput: any = { flex: 1, minWidth: '140px', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #bbf7d0', fontSize: '1rem', outline: 'none', direction: 'ltr' as const, textAlign: 'center' as const };
+const reactBtn: any = { background: '#16a34a', color: '#fff', border: 'none', padding: '0 26px', borderRadius: '12px', cursor: 'pointer', fontWeight: '900', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '90px' };
+const reactDone: any = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#14532d', fontWeight: '800', background: '#dcfce7', borderRadius: '12px', padding: '12px 14px' };

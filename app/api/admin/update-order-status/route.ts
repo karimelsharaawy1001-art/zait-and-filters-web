@@ -10,7 +10,7 @@ function makeAdmin() {
 
 export async function POST(req: Request) {
   try {
-    const { orderId, newStatus, forceCashback, banCod } = await req.json();
+    const { orderId, newStatus, forceCashback, banCod, cancelReason } = await req.json();
 
     if (!orderId || !newStatus) {
       return NextResponse.json({ error: 'orderId and newStatus are required' }, { status: 400 });
@@ -25,6 +25,21 @@ export async function POST(req: Request) {
         .update({ status: newStatus })
         .eq('id', orderId);
       if (orderError) throw orderError;
+
+      // Optional cancellation/reactivation metadata — never block the status change
+      // if the columns aren't present yet (migration 013).
+      const meta: Record<string, any> = {};
+      if (newStatus === 'cancelled') {
+        if (cancelReason) meta.cancel_reason = cancelReason;
+      } else {
+        // Reactivating (moving out of cancelled) clears the reason + reactivation flag
+        meta.cancel_reason = null;
+        meta.whatsapp_reactivation_requested = false;
+      }
+      if (Object.keys(meta).length) {
+        const { error: metaErr } = await db.from('orders').update(meta).eq('id', orderId);
+        if (metaErr) console.warn('order metadata update skipped:', metaErr.message);
+      }
     }
 
     if (newStatus === 'delivered' || forceCashback) {

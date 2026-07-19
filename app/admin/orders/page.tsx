@@ -658,6 +658,7 @@ export default function AdminOrders() {
   const [showAddItem, setShowAddItem] = useState(false);
   const [cancelConfirmOrderId, setCancelConfirmOrderId] = useState<string | null>(null);
   const [banCodOnCancel, setBanCodOnCancel] = useState(false);
+  const [noWhatsappOnCancel, setNoWhatsappOnCancel] = useState(false);
   const [partBrands, setPartBrands] = useState<any[]>([]);
   const [carMakes, setCarMakes] = useState<string[]>([]);
   const [carModels, setCarModels] = useState<string[]>([]);
@@ -752,17 +753,20 @@ export default function AdminOrders() {
     if (data) setCustomerAddresses(data);
   }
 
-  async function updateOrderStatus(orderId: string, newStatus: string, banCod = false) {
+  async function updateOrderStatus(orderId: string, newStatus: string, banCod = false, cancelReason?: string) {
     try {
       const res = await fetch('/api/admin/update-order-status', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, newStatus, banCod: banCod || undefined }),
+        body: JSON.stringify({ orderId, newStatus, banCod: banCod || undefined, cancelReason: cancelReason || undefined }),
       });
       const result = await res.json();
       if (!res.ok || result.error) { toast.error('فشل التحديث: ' + (result.error || 'خطأ غير معروف')); return; }
       toast.success(newStatus === 'delivered' ? 'تم تحديث حالة الطلب — Commission will be released after 14 days! ✅' : 'تم تحديث حالة الطلب ✅');
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-      if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
+      const patch: any = { status: newStatus };
+      if (newStatus === 'cancelled') patch.cancel_reason = cancelReason || null;
+      else { patch.cancel_reason = null; patch.whatsapp_reactivation_requested = false; }
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...patch } : o));
+      if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, ...patch }));
     } catch (err: any) { toast.error('فشل التحديث: ' + err.message); }
   }
 
@@ -770,6 +774,7 @@ export default function AdminOrders() {
     if (newStatus === 'cancelled') {
       setCancelConfirmOrderId(orderId);
       setBanCodOnCancel(false);
+      setNoWhatsappOnCancel(false);
     } else {
       updateOrderStatus(orderId, newStatus);
     }
@@ -777,9 +782,10 @@ export default function AdminOrders() {
 
   function confirmCancelOrder() {
     if (!cancelConfirmOrderId) return;
-    updateOrderStatus(cancelConfirmOrderId, 'cancelled', banCodOnCancel);
+    updateOrderStatus(cancelConfirmOrderId, 'cancelled', banCodOnCancel, noWhatsappOnCancel ? 'no_whatsapp' : undefined);
     setCancelConfirmOrderId(null);
     setBanCodOnCancel(false);
+    setNoWhatsappOnCancel(false);
   }
 
   async function updatePaymentStatus(orderId: string, newPaymentStatus: string) {
@@ -1367,6 +1373,9 @@ export default function AdminOrders() {
                             <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.72rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={10} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.65rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
+                            {order.whatsapp_reactivation_requested && (
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '4px', background: '#f0fdf4', color: '#15803d', border: '1px solid #16a34a', borderRadius: '8px', padding: '2px 7px', fontSize: '0.62rem', fontWeight: '900' }}>🟢 رقم واتساب جديد</div>
+                            )}
                             {order.promo_code && (
                               <div style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
                                 🏷️ {order.promo_code}
@@ -1503,6 +1512,9 @@ export default function AdminOrders() {
                             <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1a1a', marginBottom: '3px' }}>{order.customer_name}</div>
                             <div style={{ fontSize: '0.78rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={11} /> {order.customer_phone}</div>
                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#22c55e', fontFamily: 'monospace', marginTop: '2px', letterSpacing: '0.5px' }}>#{order.id.slice(0, 8).toUpperCase()}</div>
+                            {order.whatsapp_reactivation_requested && (
+                              <div style={{ marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f0fdf4', color: '#15803d', border: '1px solid #16a34a', borderRadius: '7px', padding: '2px 7px', fontSize: '0.66rem', fontWeight: '900' }}>🟢 رقم واتساب جديد</div>
+                            )}
                             {order.promo_code && (
                               <div style={{ marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#fefce8', border: '1px solid #fde047', borderRadius: '6px', padding: '2px 7px', fontSize: '0.68rem', fontWeight: '900', color: '#854d0e', fontFamily: 'monospace' }}>
                                 🏷️ {order.promo_code}
@@ -1740,6 +1752,21 @@ export default function AdminOrders() {
 
               <div style={modalCard}>
                 <h3 style={cardTitle}><User size={18} /> بيانات العميل والتوصيل</h3>
+                {selectedOrder.whatsapp_reactivation_requested && (
+                  <div style={{ background: '#f0fdf4', border: '2px solid #16a34a', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🟢</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '900', fontSize: '0.92rem', color: '#14532d', marginBottom: '3px' }}>العميل أدخل رقم واتساب جديد — جاهز لإعادة التفعيل</div>
+                      <div style={{ fontSize: '0.9rem', color: '#166534', fontWeight: '700', direction: 'ltr', textAlign: 'right' }}>
+                        📱 {selectedOrder.new_whatsapp_number}
+                        {selectedOrder.new_whatsapp_number && (
+                          <a href={`https://wa.me/2${String(selectedOrder.new_whatsapp_number).replace(/\D/g, '').slice(-11)}`} target="_blank" rel="noreferrer" style={{ marginRight: '10px', color: '#16a34a', fontWeight: '900', textDecoration: 'underline' }}>فتح واتساب</a>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#9ca3af', fontWeight: '600', marginTop: '4px' }}>غيّر حالة الطلب إلى "جديد" أو "تجهيز" لإعادة تفعيله</div>
+                    </div>
+                  </div>
+                )}
                 {!editMode ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', fontSize: '0.95rem', color: '#555' }}>
                     <p style={{ margin: 0 }}><strong>الاسم:</strong> {selectedOrder.customer_name}</p>
@@ -2024,9 +2051,21 @@ export default function AdminOrders() {
                 <div style={{ fontSize: '0.78rem', color: '#9ca3af', fontWeight: '600' }}>لن يتمكن العميل من استخدام خيار الدفع عند الاستلام في طلباته القادمة</div>
               </div>
             </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', background: noWhatsappOnCancel ? '#f0fdf4' : '#f9fafb', border: noWhatsappOnCancel ? '2px solid #16a34a' : '2px solid #e5e7eb', borderRadius: '14px', padding: '16px', cursor: 'pointer', marginBottom: '24px', transition: 'all 0.15s', textAlign: 'right' }}>
+              <input
+                type="checkbox"
+                checked={noWhatsappOnCancel}
+                onChange={(e) => setNoWhatsappOnCancel(e.target.checked)}
+                style={{ width: '20px', height: '20px', accentColor: '#16a34a', flexShrink: 0, cursor: 'pointer' }}
+              />
+              <div>
+                <div style={{ fontWeight: '800', fontSize: '0.92rem', color: '#1a1a1a', marginBottom: '2px' }}>العميل ليس لديه واتساب</div>
+                <div style={{ fontSize: '0.78rem', color: '#9ca3af', fontWeight: '600' }}>سيظهر السبب للعميل في صفحة طلباته مع إمكانية إدخال رقم واتساب جديد لإعادة تفعيل الطلب</div>
+              </div>
+            </label>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button onClick={confirmCancelOrder} style={{ padding: '12px 28px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16} /> نعم، إلغاء الطلب</button>
-              <button onClick={() => { setCancelConfirmOrderId(null); setBanCodOnCancel(false); }} style={{ padding: '12px 28px', backgroundColor: '#ffffff', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
+              <button onClick={() => { setCancelConfirmOrderId(null); setBanCodOnCancel(false); setNoWhatsappOnCancel(false); }} style={{ padding: '12px 28px', backgroundColor: '#ffffff', color: '#555', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer' }}>إلغاء</button>
             </div>
           </div>
         </div>

@@ -8,7 +8,7 @@ import {
   Loader2, Save, Clock, CheckCircle, MapPin, Trash2, Plus,
   ChevronDown, ChevronUp, ShoppingBag, Gauge, CreditCard, Car, Settings,
   CarFront, Wallet, Truck, ExternalLink, LinkIcon, Copy, Check,
-  Undo2, RotateCcw, X, AlertCircle, CheckSquare, Square, Hash, Tag
+  Undo2, RotateCcw, X, AlertCircle, CheckSquare, Square, Hash, Tag, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { optimizeImageUrl } from '@/lib/images';
@@ -27,6 +27,65 @@ function buildTrackingUrl(trackingNumber: string): string {
 
 const COD_FEE = 20;
 const egp = (n: any) => `${Number(n || 0).toLocaleString('ar-EG')} ج.م`;
+
+// ── WhatsApp reactivation box (orders cancelled for "no WhatsApp") ──
+function WhatsappReactivation({ order, phone }: { order: any; phone: string }) {
+  const [num, setNum] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState<boolean>(!!order.whatsapp_reactivation_requested);
+
+  async function submit() {
+    const clean = num.replace(/\D/g, '');
+    if (clean.length < 11) return toast.error('يرجى إدخال رقم واتساب صحيح');
+    setSending(true);
+    try {
+      const res = await fetch('/api/orders/whatsapp-reactivation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, phone, newNumber: num }),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) return toast.error(result.error || 'حدث خطأ، حاول لاحقًا');
+      setDone(true);
+      toast.success('تم إرسال الرقم، سنراجع طلبك لإعادة تفعيله');
+    } catch {
+      toast.error('حدث خطأ، حاول لاحقًا');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: '12px', background: '#f0fdf4', border: '2px solid #16a34a', borderRadius: '14px', padding: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '900', color: '#14532d', marginBottom: '6px' }}>
+        <MessageCircle size={15} color="#16a34a" /> إعادة تفعيل الطلب
+      </div>
+      <p style={{ fontSize: '0.78rem', color: '#166534', fontWeight: '600', lineHeight: '1.6', margin: '0 0 10px' }}>
+        تم إلغاء هذا الطلب لعدم توفّر رقم واتساب للتواصل معك. أدخل رقم واتساب صحيح لإعادة تفعيل طلبك.
+      </p>
+      {done ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.8rem', color: '#14532d', fontWeight: '800', background: '#dcfce7', borderRadius: '10px', padding: '10px 12px' }}>
+          <CheckCircle size={15} color="#16a34a" /> تم استلام رقمك الجديد{order.new_whatsapp_number ? ` (${order.new_whatsapp_number})` : ''} — طلبك قيد المراجعة.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="01xxxxxxxxx"
+            value={num}
+            onChange={(e) => setNum(e.target.value)}
+            maxLength={13}
+            style={{ flex: 1, minWidth: '130px', padding: '11px 12px', borderRadius: '11px', border: '1.5px solid #bbf7d0', fontSize: '0.95rem', outline: 'none', direction: 'ltr', textAlign: 'center' }}
+          />
+          <button onClick={submit} disabled={sending} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '0 22px', borderRadius: '11px', cursor: 'pointer', fontWeight: '900', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '80px' }}>
+            {sending ? <Loader2 className="animate-spin" size={15} /> : 'إرسال'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Payment status config ─────────────────────────────────────────────────────
 const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
@@ -764,6 +823,11 @@ export default function ProfilePage() {
 
                             {/* ── Tracking Banner ── */}
                             <CustomerTrackingBanner order={order} />
+
+                            {/* ── WhatsApp reactivation (cancelled: no whatsapp) ── */}
+                            {order.status === 'cancelled' && order.cancel_reason === 'no_whatsapp' && (
+                              <WhatsappReactivation order={order} phone={order.customer_phone || profile.phone_number || ''} />
+                            )}
                           </div>
                           );
                         })()}
