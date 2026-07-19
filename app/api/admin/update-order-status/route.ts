@@ -1,11 +1,62 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 function makeAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+// Email the customer that their phone has no WhatsApp and how to fix it.
+async function sendNoWhatsappEmail(order: { id: string; customer_email?: string | null; customer_name?: string | null }) {
+  if (!order.customer_email || !process.env.RESEND_API_KEY) return;
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const ref = order.id.slice(0, 8).toUpperCase();
+    const name = order.customer_name || 'عميلنا العزيز';
+    const link = 'https://zaitandfilters.com/my-orders';
+    const html = `
+    <div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;background:#f4f6f8;padding:24px;color:#1a1a1a;">
+      <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:22px 24px;color:#fff;">
+          <div style="font-size:1.3rem;font-weight:900;">زيت أند فلترز</div>
+        </div>
+        <div style="padding:26px 24px;">
+          <h2 style="margin:0 0 12px;font-size:1.15rem;color:#14532d;">طلبك بحاجة إلى رقم واتساب للمتابعة</h2>
+          <p style="font-size:0.95rem;line-height:1.9;color:#374151;margin:0 0 14px;">
+            مرحباً ${name}،<br/>
+            حاولنا التواصل معك بخصوص طلبك رقم <strong>#${ref}</strong>، لكن الرقم المسجّل على الطلب
+            <strong>لا يحتوي على حساب واتساب</strong>، ولذلك لم نتمكن من متابعة الطلب.
+          </p>
+          <p style="font-size:0.95rem;line-height:1.9;color:#374151;margin:0 0 20px;">
+            من فضلك اذهب إلى صفحة طلباتك وأضف رقم واتساب صحيح حتى نتمكن من إعادة تفعيل طلبك ومتابعته معك.
+          </p>
+          <a href="${link}" style="display:inline-block;background:#16a34a;color:#fff;text-decoration:none;font-weight:900;font-size:1rem;padding:13px 28px;border-radius:12px;">
+            إضافة رقم واتساب لطلبي
+          </a>
+          <p style="font-size:0.8rem;color:#9ca3af;margin:22px 0 0;line-height:1.7;">
+            إذا لم يظهر الزر، افتح الرابط التالي:<br/>
+            <span style="color:#16a34a;direction:ltr;display:inline-block;">${link}</span>
+          </p>
+        </div>
+        <div style="background:#f9fafb;padding:16px 24px;text-align:center;font-size:0.75rem;color:#9ca3af;">
+          زيت أند فلترز · قطع غيار السيارات
+        </div>
+      </div>
+    </div>`;
+
+    await resend.emails.send({
+      from: 'Zait and Filters <orders@zaitandfilters.com>',
+      to: order.customer_email,
+      subject: `⚠️ طلبك #${ref} بحاجة إلى رقم واتساب للمتابعة - زيت أند فلترز`,
+      html,
+    });
+    console.log('✅ No-WhatsApp email sent for order:', order.id);
+  } catch (err) {
+    console.error('❌ No-WhatsApp email failed:', err);
+  }
 }
 
 export async function POST(req: Request) {
@@ -69,6 +120,18 @@ export async function POST(req: Request) {
         .update({ recovered: false, recovered_at: null })
         .eq('recovery_order_id', orderId)
         .eq('recovered', true);
+
+      // Cancelled for "no WhatsApp": email the customer to add a valid number
+      if (cancelReason === 'no_whatsapp') {
+        const { data: emailOrder } = await db
+          .from('orders')
+          .select('id, customer_email, customer_name')
+          .eq('id', orderId)
+          .single();
+        if (emailOrder?.customer_email) {
+          await sendNoWhatsappEmail(emailOrder);
+        }
+      }
 
       // Ban customer from COD if requested
       if (banCod) {
