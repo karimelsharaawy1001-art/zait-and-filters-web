@@ -11,7 +11,18 @@ import {
   AlertTriangle, Link as LinkIcon, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { orderWhatsAppLink, outOfStockWhatsAppLink } from '@/app/lib/whatsapp';
+import { orderWhatsAppLink, outOfStockWhatsAppLink, orderConfirmationMessage } from '@/app/lib/whatsapp';
+
+// Copy the confirmation message so it can be pasted into WhatsApp manually
+// (WhatsApp Web can render blank on some Linux browsers when opened via a link).
+async function copyOrderMessage(order: any) {
+  try {
+    await navigator.clipboard.writeText(orderConfirmationMessage(order));
+    toast.success('تم نسخ رسالة التأكيد — الصقها في محادثة العميل (Ctrl+V)');
+  } catch {
+    toast.error('تعذّر النسخ — جرّب متصفح آخر');
+  }
+}
 import OrderPriceManager from './OrderPriceManager';
 import OrderCostManager from './OrderCostManager';
 
@@ -1639,10 +1650,16 @@ export default function AdminOrders() {
                   const link = orderWhatsAppLink(selectedOrder);
                   if (!link) return null;
                   return (
-                    <a href={link} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                      <MessageCircle size={16} /> واتساب
-                    </a>
+                    <>
+                      <a href={link} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                        <MessageCircle size={16} /> واتساب
+                      </a>
+                      <button onClick={() => copyOrderMessage(selectedOrder)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                        <FileText size={16} /> نسخ الرسالة
+                      </button>
+                    </>
                   );
                 })()}
                 {!editMode ? (
