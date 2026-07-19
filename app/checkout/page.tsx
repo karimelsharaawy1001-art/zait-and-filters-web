@@ -481,6 +481,13 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (subtotal <= 0) return toast.error('السلة فارغة');
 
+    // Phone number is mandatory — no order without a valid Egyptian mobile.
+    const phone = (customerInfo.phone || '').replace(/\s/g, '');
+    if (!phone) return toast.error('يرجى إدخال رقم الموبايل لإتمام الطلب');
+    if (!/^01[0125]\d{8}$/.test(phone)) {
+      return toast.error('يرجى إدخال رقم موبايل صحيح (11 رقم يبدأ بـ 01)');
+    }
+
     if (!['card_installments', 'cash'].includes(paymentMethod) && !screenshot) {
       return toast.error('يرجى رفع سكرين شوت التحويل');
     }
