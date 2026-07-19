@@ -783,11 +783,19 @@ export default function AdminOrders() {
       const result = await res.json();
       if (!res.ok || result.error) { toast.error('فشل التحديث: ' + (result.error || 'خطأ غير معروف')); return; }
       toast.success(newStatus === 'delivered' ? 'تم تحديث حالة الطلب — Commission will be released after 14 days! ✅' : 'تم تحديث حالة الطلب ✅');
-      const patch: any = { status: newStatus };
-      if (newStatus === 'cancelled') patch.cancel_reason = cancelReason || null;
-      else { patch.cancel_reason = null; patch.whatsapp_reactivation_requested = false; }
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...patch } : o));
-      if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => ({ ...prev, ...patch }));
+      const applyPatch = (o: any) => {
+        const patch: any = { status: newStatus };
+        if (newStatus === 'cancelled') patch.cancel_reason = cancelReason || null;
+        else {
+          patch.cancel_reason = null;
+          patch.whatsapp_reactivation_requested = false;
+          // Promote the customer's new WhatsApp number into the phone field.
+          if (o.whatsapp_reactivation_requested && o.new_whatsapp_number) patch.customer_phone = o.new_whatsapp_number;
+        }
+        return { ...o, ...patch };
+      };
+      setOrders(prev => prev.map(o => o.id === orderId ? applyPatch(o) : o));
+      if (selectedOrder?.id === orderId) setSelectedOrder((prev: any) => applyPatch(prev));
     } catch (err: any) { toast.error('فشل التحديث: ' + err.message); }
   }
 

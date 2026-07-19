@@ -86,6 +86,17 @@ export async function POST(req: Request) {
         // Reactivating (moving out of cancelled) clears the reason + reactivation flag
         meta.cancel_reason = null;
         meta.whatsapp_reactivation_requested = false;
+        // If the customer submitted a new WhatsApp number, promote it to the
+        // order's phone so staff can see/contact them on it.
+        const { data: o } = await db
+          .from('orders')
+          .select('new_whatsapp_number, whatsapp_reactivation_requested')
+          .eq('id', orderId)
+          .single();
+        if (o?.whatsapp_reactivation_requested && o?.new_whatsapp_number) {
+          meta.customer_phone = o.new_whatsapp_number;
+          meta.guest_phone = o.new_whatsapp_number;
+        }
       }
       if (Object.keys(meta).length) {
         const { error: metaErr } = await db.from('orders').update(meta).eq('id', orderId);
