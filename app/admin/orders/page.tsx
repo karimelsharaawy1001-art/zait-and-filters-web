@@ -11,7 +11,21 @@ import {
   AlertTriangle, Link as LinkIcon, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { orderWhatsAppLink, outOfStockWhatsAppLink } from '@/app/lib/whatsapp';
+import { waChatLink, orderConfirmationMessage, outOfStockMessage } from '@/app/lib/whatsapp';
+
+// Web-only WhatsApp: open the chat by number (no ?text= — that blanks WhatsApp
+// Web) in a single reused tab, and copy the message to paste with Ctrl+V.
+async function sendWhatsApp(phone: string, message?: string) {
+  const chat = waChatLink(phone);
+  if (!chat) { toast.error('لا يوجد رقم واتساب صالح'); return; }
+  if (message) {
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success('تم نسخ الرسالة — الصقها في المحادثة (Ctrl+V)');
+    } catch { /* clipboard blocked — chat still opens */ }
+  }
+  window.open(chat, 'zf_whatsapp_web');
+}
 import OrderPriceManager from './OrderPriceManager';
 import OrderCostManager from './OrderCostManager';
 
@@ -539,26 +553,18 @@ function ExpandedOrderRow({
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'flex-start' }}>
           <button onClick={() => onViewDetail(order)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#eff6ff', color: '#1e40af', border: '1px solid #dbeafe', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}><Eye size={13} /> تفاصيل</button>
           <button onClick={() => onViewInvoice(order)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#0f172a', color: '#22c55e', border: 'none', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}><FileText size={13} /> ORDER</button>
-          {(() => {
-            const link = orderWhatsAppLink(order);
-            if (!link) return null;
-            return (
-              <a href={link} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                <MessageCircle size={13} /> واتساب
-              </a>
-            );
-          })()}
-          {(() => {
-            const link = outOfStockWhatsAppLink(order);
-            if (!link) return null;
-            return (
-              <a href={link} target="_blank" rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                <AlertTriangle size={13} /> غير متوفر
-              </a>
-            );
-          })()}
+          {waChatLink(order.customer_phone) && (
+            <button onClick={() => sendWhatsApp(order.customer_phone, orderConfirmationMessage(order))}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+              <MessageCircle size={13} /> واتساب
+            </button>
+          )}
+          {waChatLink(order.customer_phone) && (
+            <button onClick={() => sendWhatsApp(order.customer_phone, outOfStockMessage(order))}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+              <AlertTriangle size={13} /> غير متوفر
+            </button>
+          )}
           <button onClick={() => onDelete(order.id)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#fff5f5', color: '#e74c3c', border: '1px solid #ffebeb', borderRadius: '10px', padding: '7px 12px', cursor: 'pointer', fontWeight: '700', fontSize: '0.8rem', whiteSpace: 'nowrap' }}><Trash2 size={13} /> حذف</button>
         </div>
       </div>
@@ -1635,16 +1641,12 @@ export default function AdminOrders() {
                     <FileText size={16} color="#22c55e" /> ORDER
                   </button>
                 )}
-                {!editMode && (() => {
-                  const link = orderWhatsAppLink(selectedOrder);
-                  if (!link) return null;
-                  return (
-                    <a href={link} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                      <MessageCircle size={16} /> واتساب
-                    </a>
-                  );
-                })()}
+                {!editMode && waChatLink(selectedOrder.customer_phone) && (
+                  <button onClick={() => sendWhatsApp(selectedOrder.customer_phone, orderConfirmationMessage(selectedOrder))}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '9px 14px', cursor: 'pointer', fontWeight: '700', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                    <MessageCircle size={16} /> واتساب
+                  </button>
+                )}
                 {!editMode ? (
                   <button onClick={() => openEditMode(selectedOrder)} style={editBtnStyle}><Edit2 size={16} /> تعديل</button>
                 ) : (

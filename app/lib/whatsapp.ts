@@ -52,6 +52,14 @@ export function waLink(phone: string, name?: string, message?: string): string |
   return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
 }
 
+// Open the chat by number ONLY (no ?text=). WhatsApp Web renders a blank/black
+// screen on the prefilled-text deep link, so we open the chat and copy the
+// message to the clipboard instead.
+export function waChatLink(phone: string): string | null {
+  const digits = normalizePhone(phone);
+  return digits ? `https://web.whatsapp.com/send?phone=${digits}` : null;
+}
+
 export function orderWhatsAppLink(order: any): string | null {
   const digits = normalizePhone(order.customer_phone);
   if (!digits) return null;
@@ -60,15 +68,12 @@ export function orderWhatsAppLink(order: any): string | null {
   return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
 }
 
-// WhatsApp link telling the customer their ordered item is out of stock and
-// that we'll message them again once it's back.
-export function outOfStockWhatsAppLink(order: any): string | null {
-  const digits = normalizePhone(order.customer_phone);
-  if (!digits) return null;
+// Message telling the customer their ordered item is out of stock.
+export function outOfStockMessage(order: any): string {
   const items: any[] = order.items || [];
   const names = items.map(i => `• ${i.name || 'منتج'}`).join('\n');
   const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : '';
-  const lines = [
+  return [
     `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
     '',
     `للأسف المنتج اللي طلبته${shortId ? ` في طلب #${shortId}` : ''} غير متوفر حالياً في المخزون:`,
@@ -76,22 +81,16 @@ export function outOfStockWhatsAppLink(order: any): string | null {
     '',
     'وهنبعتلك رسالة تاني أول ما يتوفر مرة أخرى.',
     'نعتذر عن الإزعاج ونشكر تفهمك 🌹',
-  ].filter(Boolean);
-  let text = lines.join('\n');
-  if (text.length > 1500) text = text.slice(0, 1500) + '...';
-  return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
+  ].filter(Boolean).join('\n');
 }
 
-// WhatsApp link notifying the customer that some product prices changed,
-// asking them to proceed or cancel the affected products.
-export function priceChangeWhatsAppLink(
+// Message notifying the customer that some product prices changed.
+export function priceChangeMessage(
   order: any,
   changes: { name: string; oldPrice: number; newPrice: number }[],
-): string | null {
-  const digits = normalizePhone(order.customer_phone);
-  if (!digits || changes.length === 0) return null;
+): string {
   const shortId = order.id ? order.id.slice(0, 8).toUpperCase() : '';
-  const lines = [
+  return [
     `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
     '',
     `للأسف حصل تغيير في أسعار بعض المنتجات في طلبك${shortId ? ` رقم #${shortId}` : ''}:`,
@@ -103,10 +102,7 @@ export function priceChangeWhatsAppLink(
     'تحب تكمل الطلب بالأسعار الجديدة، ولا تحب نلغي المنتجات دي من طلبك؟',
     '',
     'في انتظار ردك 🌹',
-  ];
-  let text = lines.join('\n');
-  if (text.length > 1500) text = text.slice(0, 1500) + '...';
-  return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
+  ].join('\n');
 }
 
 function fmt(n: any): number {
@@ -130,19 +126,32 @@ export function orderConfirmationMessage(order: any): string {
     bank_transfer: 'تحويل بنكي',
   };
 
-  const total = parseFloat(order.total_price || 0);
-  const itemCount = items.reduce((s, i) => s + (i.quantity || 1), 0);
+  const itemsList = items
+    .map(i => `• ${i.quantity || 1}x ${i.name || 'منتج'} — ${(fmt(i.price) * (i.quantity || 1)).toFixed(0)} ج.م`)
+    .join('\n');
 
-  // Keep the pre-filled message short and free of special chars — long or
-  // symbol-heavy text makes WhatsApp Web open to a blank/black screen.
+  const shipping = parseFloat(order.shipping_cost || order.shipping_fee || 0);
+  const discount = parseFloat(order.discount_applied || order.discount_amount || 0);
+  const total = parseFloat(order.total_price || 0);
+
   const lines = [
     `ازيك يا أ. ${order.customer_name || 'حبيبنا'}،`,
+    '',
     'تشرفنا بطلبك من زيت أند فلترز',
-    `رقم الطلب: ${shortId}`,
+    '',
+    'تفاصيل الطلب:',
+    `رقم الطلب: #${shortId}`,
     date ? `التاريخ: ${date}` : '',
-    itemCount ? `عدد المنتجات: ${itemCount}` : '',
+    `العنوان: ${order.city || ''}${order.city && order.customer_address ? ' - ' : ''}${order.customer_address || ''}`,
+    '',
+    'المنتجات:',
+    itemsList || '(بدون منتجات)',
+    '',
+    `الشحن: ${shipping === 0 ? 'مجاني' : `${fmt(shipping)} ج.م`}`,
     `الاجمالي: ${fmt(total)} ج.م`,
     `الدفع: ${paymentLabels[order.payment_method] || order.payment_method || 'غير محدد'}`,
+    discount > 0 ? `الخصم: -${fmt(discount)} ج.م` : '',
+    '',
     'ممكن تاكيد الطلب عشان نبدا التجهيز؟',
   ];
 
