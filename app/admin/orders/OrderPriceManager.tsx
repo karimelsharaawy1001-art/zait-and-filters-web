@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { Tag, MessageCircle, Globe, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '@/app/lib/supabase';
-import { priceChangeMessage, waChatLink } from '@/app/lib/whatsapp';
+import { priceChangeWhatsAppLink } from '@/app/lib/whatsapp';
 
 // Panel inside the order detail modal to (1) notify the customer on WhatsApp
 // about product price changes, and (2) push the new price to the website.
@@ -26,16 +26,11 @@ export default function OrderPriceManager({ order }: { order: any }) {
       .filter(Boolean) as { key: string; id?: string; name: string; slug?: string; oldPrice: number; newPrice: number }[];
   }, [items, newPrices]);
 
-  async function notifyCustomer() {
+  function notifyCustomer() {
     if (changes.length === 0) return toast.error('أدخل السعر الجديد لمنتج واحد على الأقل');
-    const chat = waChatLink(order.customer_phone);
-    if (!chat) return toast.error('لا يوجد رقم هاتف صالح لهذا العميل');
-    const msg = priceChangeMessage(order, changes.map(c => ({ name: c.name, oldPrice: c.oldPrice, newPrice: c.newPrice })));
-    try {
-      await navigator.clipboard.writeText(msg);
-      toast.success('تم نسخ الرسالة — الصقها في المحادثة (Ctrl+V)');
-    } catch { /* clipboard blocked — chat still opens */ }
-    window.open(chat, 'zf_whatsapp_web');
+    const link = priceChangeWhatsAppLink(order, changes.map(c => ({ name: c.name, oldPrice: c.oldPrice, newPrice: c.newPrice })));
+    if (!link) return toast.error('لا يوجد رقم هاتف صالح لهذا العميل');
+    window.open(link, '_blank', 'noopener,noreferrer');
   }
 
   async function updateWebsitePrices() {

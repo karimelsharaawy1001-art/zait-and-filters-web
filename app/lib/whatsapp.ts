@@ -49,15 +49,7 @@ export function waLink(phone: string, name?: string, message?: string): string |
   if (!digits) return null;
   let text = `ازيك يا أ. ${name || ''}، بخصوص رسالتك لمتجر زيت أند فلترز`.trim();
   if (message) text += `:\n«${message}»`;
-  return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
-}
-
-// Open the chat by number ONLY (no ?text=). WhatsApp Web renders a blank/black
-// screen on the prefilled-text deep link, so we open the chat and copy the
-// message to the clipboard instead.
-export function waChatLink(phone: string): string | null {
-  const digits = normalizePhone(phone);
-  return digits ? `https://web.whatsapp.com/send?phone=${digits}` : null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
 export function orderWhatsAppLink(order: any): string | null {
@@ -65,7 +57,28 @@ export function orderWhatsAppLink(order: any): string | null {
   if (!digits) return null;
   let text = orderConfirmationMessage(order);
   if (text.length > 1500) text = text.slice(0, 1500) + '...';
-  return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+// WhatsApp link telling the customer their ordered item is out of stock.
+export function outOfStockWhatsAppLink(order: any): string | null {
+  const digits = normalizePhone(order.customer_phone);
+  if (!digits) return null;
+  let text = outOfStockMessage(order);
+  if (text.length > 1500) text = text.slice(0, 1500) + '...';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+// WhatsApp link notifying the customer that some product prices changed.
+export function priceChangeWhatsAppLink(
+  order: any,
+  changes: { name: string; oldPrice: number; newPrice: number }[],
+): string | null {
+  const digits = normalizePhone(order.customer_phone);
+  if (!digits || changes.length === 0) return null;
+  let text = priceChangeMessage(order, changes);
+  if (text.length > 1500) text = text.slice(0, 1500) + '...';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
 // Message telling the customer their ordered item is out of stock.
