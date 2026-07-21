@@ -18,13 +18,21 @@ const egp = (n: number) => `${Math.round(n).toLocaleString('ar-EG')} ج.م`;
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 // ── Per-order money math ──────────────────────────────────────────────────────
-const grossOf   = (o: any) => parseFloat(o.total_price || 0) || 0;
+// Gross = value of purchased items minus applied discounts, EXCLUDING shipping.
+const itemsSubtotal = (o: any) => (Array.isArray(o.items) ? o.items : []).reduce(
+  (s: number, i: any) => s + (parseFloat(i.price || 0) || 0) * (parseInt(i.quantity) || 1), 0);
+const discountsOf = (o: any) =>
+  (parseFloat(o.discount_applied || o.discount_amount || 0) || 0) + (parseFloat(o.wallet_discount || 0) || 0);
+const grossOf   = (o: any) => Math.max(0, itemsSubtotal(o) - discountsOf(o));
+
 const prodCost  = (o: any) => (Array.isArray(o.items) ? o.items : []).reduce(
   (s: number, i: any) => s + (parseFloat(i.cost_price || 0) || 0) * (parseInt(i.quantity) || 1), 0);
-const shipCost  = (o: any) => parseFloat(o.shipping_cost_paid || 0) || 0;
+const shipCharged = (o: any) => parseFloat(o.shipping_cost || 0) || 0;   // collected from customer
+const shipCost  = (o: any) => parseFloat(o.shipping_cost_paid || 0) || 0; // paid to courier
 const extraCost = (o: any) => parseFloat(o.extra_costs || 0) || 0;
 const costOf    = (o: any) => prodCost(o) + shipCost(o) + extraCost(o);
-const netOf     = (o: any) => grossOf(o) - costOf(o);
+// Shipping is a pass-through: what we collected offsets what we paid.
+const netOf     = (o: any) => grossOf(o) + shipCharged(o) - costOf(o);
 // An order with items but no cost entered makes profit look inflated
 const missingCost = (o: any) => (Array.isArray(o.items) ? o.items : []).some((i: any) => !parseFloat(i.cost_price || 0));
 
@@ -71,12 +79,15 @@ export default function ReportsPage() {
 
   const totals = useMemo(() => {
     const gross = rows.reduce((s, o) => s + grossOf(o), 0);
+    const discounts = rows.reduce((s, o) => s + discountsOf(o), 0);
     const product = rows.reduce((s, o) => s + prodCost(o), 0);
     const shipping = rows.reduce((s, o) => s + shipCost(o), 0);
+    const shipRev = rows.reduce((s, o) => s + shipCharged(o), 0);
     const extra = rows.reduce((s, o) => s + extraCost(o), 0);
     const cost = product + shipping + extra;
-    return { gross, product, shipping, extra, cost, net: gross - cost, count: rows.length,
-             margin: gross > 0 ? ((gross - cost) / gross) * 100 : 0,
+    const net = gross + shipRev - cost;
+    return { gross, discounts, product, shipping, shipRev, extra, cost, net, count: rows.length,
+             margin: gross > 0 ? (net / gross) * 100 : 0,
              missing: rows.filter(missingCost).length };
   }, [rows]);
 
@@ -85,7 +96,8 @@ export default function ReportsPage() {
     const list = rows.filter(o => (o.status || 'pending') === st.key);
     const gross = list.reduce((s, o) => s + grossOf(o), 0);
     const cost = list.reduce((s, o) => s + costOf(o), 0);
-    return { ...st, count: list.length, gross, cost, net: gross - cost };
+    const net = list.reduce((s, o) => s + netOf(o), 0);
+    return { ...st, count: list.length, gross, cost, net };
   }).filter(s => s.count > 0), [rows]);
 
   if (loading) return (
@@ -162,7 +174,7 @@ export default function ReportsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', margin: '18px 0' }}>
         {[
           { label: 'عدد الطلبات',     value: totals.count.toLocaleString('ar-EG'), color: '#1a1a1a', bg: '#f9fafb', icon: <Package size={20} /> },
-          { label: 'إجمالي المبيعات', value: egp(totals.gross),                    color: '#15803d', bg: '#f0fdf4', icon: <TrendingUp size={20} /> },
+          { label: 'إجمالي المبيعات (بدون الشحن)', value: egp(totals.gross),       color: '#15803d', bg: '#f0fdf4', icon: <TrendingUp size={20} /> },
           { label: 'إجمالي التكلفة',  value: egp(totals.cost),                     color: '#d97706', bg: '#fffbeb', icon: <TrendingDown size={20} /> },
           { label: 'صافي الربح',      value: egp(totals.net),                      color: totals.net >= 0 ? '#15803d' : '#b91c1c', bg: totals.net >= 0 ? '#f0fdf4' : '#fef2f2', icon: <DollarSign size={20} /> },
           { label: 'هامش الربح',      value: `${totals.margin.toFixed(1)}%`,       color: totals.margin >= 0 ? '#15803d' : '#b91c1c', bg: '#eff6ff', icon: <Percent size={20} /> },
@@ -174,6 +186,24 @@ export default function ReportsPage() {
             <div style={{ fontSize: '1.45rem', fontWeight: '900', color: c.color }}>{c.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* ── Revenue composition ── */}
+      <div style={{ ...card, marginBottom: '14px' }}>
+        <h3 style={h3}>مكوّنات الإيراد</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          {[
+            { l: 'قيمة المنتجات قبل الخصم', v: totals.gross + totals.discounts, c: '#1a1a1a' },
+            { l: 'الخصومات المطبقة', v: -totals.discounts, c: '#16a34a' },
+            { l: 'إجمالي المبيعات (بدون الشحن)', v: totals.gross, c: '#15803d' },
+            { l: 'إيراد الشحن المحصّل', v: totals.shipRev, c: '#3b82f6' },
+          ].map((r, i) => (
+            <div key={i} style={{ background: '#f9fafb', borderRadius: '12px', padding: '14px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: '700', marginBottom: '4px' }}>{r.l}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '900', color: r.c }}>{egp(r.v)}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Cost composition ── */}
@@ -246,7 +276,8 @@ export default function ReportsPage() {
               <table style={table}>
                 <thead><tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
                   <th style={th}>رقم الطلب</th><th style={th}>التاريخ</th><th style={th}>العميل</th><th style={th}>الحالة</th>
-                  <th style={th}>المبيعات</th><th style={th}>تكلفة المنتجات</th><th style={th}>الشحن</th><th style={th}>إضافية</th><th style={th}>صافي الربح</th>
+                  <th style={th}>المنتجات</th><th style={th}>الخصم</th><th style={th}>المبيعات</th>
+                  <th style={th}>تكلفة المنتجات</th><th style={th}>شحن محصّل</th><th style={th}>شحن مدفوع</th><th style={th}>إضافية</th><th style={th}>صافي الربح</th>
                 </tr></thead>
                 <tbody>
                   {rows.map(o => {
@@ -258,17 +289,20 @@ export default function ReportsPage() {
                         <td style={{ ...td, whiteSpace: 'nowrap' }}>{new Date(o.created_at).toLocaleDateString('ar-EG')}</td>
                         <td style={{ ...td, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.customer_name}</td>
                         <td style={{ ...td, color: st?.color, fontWeight: '800' }}>{st?.label || o.status}</td>
-                        <td style={td}>{egp(grossOf(o))}</td>
+                        <td style={td}>{egp(itemsSubtotal(o))}</td>
+                        <td style={{ ...td, color: '#16a34a' }}>{discountsOf(o) > 0 ? `- ${egp(discountsOf(o))}` : '—'}</td>
+                        <td style={{ ...td, fontWeight: '800' }}>{egp(grossOf(o))}</td>
                         <td style={{ ...td, color: missingCost(o) ? '#d97706' : '#555' }}>
                           {egp(prodCost(o))}{missingCost(o) && ' ⚠️'}
                         </td>
+                        <td style={{ ...td, color: '#3b82f6' }}>{egp(shipCharged(o))}</td>
                         <td style={td}>{egp(shipCost(o))}</td>
                         <td style={td}>{egp(extraCost(o))}</td>
                         <td style={{ ...td, fontWeight: '900', color: net >= 0 ? '#15803d' : '#b91c1c' }}>{egp(net)}</td>
                       </tr>
                     );
                   })}
-                  {rows.length === 0 && <tr><td style={td} colSpan={9}>لا توجد طلبات مطابقة للفلاتر</td></tr>}
+                  {rows.length === 0 && <tr><td style={td} colSpan={12}>لا توجد طلبات مطابقة للفلاتر</td></tr>}
                 </tbody>
               </table>
             </div>
