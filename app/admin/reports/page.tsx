@@ -109,12 +109,23 @@ export default function ReportsPage() {
   return (
     <div style={{ direction: 'rtl', padding: '10px 0 60px' }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        @media (max-width: 900px) { .rep-table { display: none !important; } .rep-cards { display: flex !important; } }
+        .rep-cards { display: none; flex-direction: column; gap: 10px; }
+        @media (max-width: 900px) {
+          .rep-table { display: none !important; }
+          .rep-cards { display: flex !important; }
+        }
         @media (min-width: 901px) { .rep-table { display: block !important; } .rep-cards { display: none !important; } }
+        @media (max-width: 600px) {
+          .rep-title { font-size: 1.4rem !important; }
+          .rep-date { flex: 1 1 100%; }
+          .rep-date input { width: 100%; box-sizing: border-box; }
+          .rep-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .rep-preset { flex: 1 1 auto; justify-content: center; }
+        }
       `}} />
 
       <div style={{ marginBottom: '22px' }}>
-        <h1 style={{ fontSize: '1.9rem', fontWeight: '900', color: '#1a1a1a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <h1 className="rep-title" style={{ fontSize: '1.9rem', fontWeight: '900', color: '#1a1a1a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
           📑 تقارير الأرباح
         </h1>
         <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: '6px 0 0' }}>
@@ -125,17 +136,17 @@ export default function ReportsPage() {
       {/* ── Filters ── */}
       <div style={card}>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '16px' }}>
-          <div>
+          <div className="rep-date">
             <label style={lab}>من تاريخ</label>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={inp} />
           </div>
-          <div>
+          <div className="rep-date">
             <label style={lab}>إلى تاريخ</label>
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={inp} />
           </div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: '1 1 100%' }}>
             {[['today','اليوم'],['week','آخر 7 أيام'],['month','هذا الشهر'],['lastMonth','الشهر الماضي'],['all','الكل']].map(([k, l]) => (
-              <button key={k} onClick={() => applyPreset(k)} style={presetBtn}>{l}</button>
+              <button key={k} className="rep-preset" onClick={() => applyPreset(k)} style={presetBtn}>{l}</button>
             ))}
           </div>
           {(dateFrom || dateTo) && (
@@ -171,7 +182,7 @@ export default function ReportsPage() {
       </div>
 
       {/* ── Summary cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', margin: '18px 0' }}>
+      <div className="rep-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', margin: '18px 0' }}>
         {[
           { label: 'عدد الطلبات',     value: totals.count.toLocaleString('ar-EG'), color: '#1a1a1a', bg: '#f9fafb', icon: <Package size={20} /> },
           { label: 'إجمالي المبيعات (بدون الشحن)', value: egp(totals.gross),       color: '#15803d', bg: '#f0fdf4', icon: <TrendingUp size={20} /> },
@@ -191,7 +202,7 @@ export default function ReportsPage() {
       {/* ── Revenue composition ── */}
       <div style={{ ...card, marginBottom: '14px' }}>
         <h3 style={h3}>مكوّنات الإيراد</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+        <div className="rep-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           {[
             { l: 'قيمة المنتجات قبل الخصم', v: totals.gross + totals.discounts, c: '#1a1a1a' },
             { l: 'الخصومات المطبقة', v: -totals.discounts, c: '#16a34a' },
@@ -209,7 +220,7 @@ export default function ReportsPage() {
       {/* ── Cost composition ── */}
       <div style={card}>
         <h3 style={h3}>مكوّنات التكلفة</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+        <div className="rep-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           {[
             { l: 'تكلفة المنتجات', v: totals.product },
             { l: 'تكلفة الشحن المدفوعة', v: totals.shipping },
@@ -247,7 +258,29 @@ export default function ReportsPage() {
           {/* Per-status */}
           <div style={{ ...card, marginTop: '14px' }}>
             <h3 style={h3}>التفصيل حسب الحالة</h3>
-            <div style={{ overflowX: 'auto' }}>
+
+            {/* mobile cards */}
+            <div className="rep-cards">
+              {byStatus.map(s => (
+                <div key={s.key} style={mCard}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '900', fontSize: '0.9rem', color: s.color }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.color }} />{s.label}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '700' }}>{s.count} طلب</span>
+                  </div>
+                  <div style={mRow}><span>المبيعات</span><span style={{ fontWeight: '800' }}>{egp(s.gross)}</span></div>
+                  <div style={mRow}><span>التكلفة</span><span style={{ fontWeight: '800', color: '#d97706' }}>{egp(s.cost)}</span></div>
+                  <div style={mTotal}>
+                    <span>صافي الربح</span>
+                    <span style={{ color: s.net >= 0 ? '#15803d' : '#b91c1c' }}>{egp(s.net)}</span>
+                  </div>
+                </div>
+              ))}
+              {byStatus.length === 0 && <div style={{ ...mCard, textAlign: 'center', color: '#9ca3af' }}>لا توجد طلبات مطابقة</div>}
+            </div>
+
+            <div className="rep-table" style={{ overflowX: 'auto' }}>
               <table style={table}>
                 <thead><tr style={{ background: '#f9fafb' }}>
                   <th style={th}>الحالة</th><th style={th}>عدد الطلبات</th><th style={th}>المبيعات</th><th style={th}>التكلفة</th><th style={th}>صافي الربح</th>
@@ -272,7 +305,43 @@ export default function ReportsPage() {
           {/* Per-order */}
           <div style={{ ...card, marginTop: '14px' }}>
             <h3 style={h3}>تفاصيل الطلبات ({rows.length})</h3>
-            <div style={{ overflowX: 'auto', maxHeight: '560px', overflowY: 'auto' }}>
+
+            {/* mobile cards */}
+            <div className="rep-cards" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              {rows.map(o => {
+                const st = STATUSES.find(s => s.key === (o.status || 'pending'));
+                const net = netOf(o);
+                return (
+                  <div key={o.id} style={mCard}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: '900', color: '#16a34a', fontSize: '0.82rem' }}>#{o.id.slice(0, 8).toUpperCase()}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '900', color: st?.color, background: '#f9fafb', border: `1px solid ${st?.color}33`, borderRadius: '7px', padding: '2px 8px' }}>{st?.label || o.status}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: '#6b7280', marginBottom: '8px' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{o.customer_name}</span>
+                      <span>{new Date(o.created_at).toLocaleDateString('ar-EG')}</span>
+                    </div>
+                    <div style={mRow}><span>المنتجات</span><span>{egp(itemsSubtotal(o))}</span></div>
+                    {discountsOf(o) > 0 && <div style={mRow}><span>الخصم</span><span style={{ color: '#16a34a' }}>- {egp(discountsOf(o))}</span></div>}
+                    <div style={mRow}><span>المبيعات</span><span style={{ fontWeight: '800' }}>{egp(grossOf(o))}</span></div>
+                    <div style={mRow}>
+                      <span>تكلفة المنتجات</span>
+                      <span style={{ color: missingCost(o) ? '#d97706' : '#374151' }}>{egp(prodCost(o))}{missingCost(o) && ' ⚠️'}</span>
+                    </div>
+                    <div style={mRow}><span>شحن محصّل</span><span style={{ color: '#3b82f6' }}>{egp(shipCharged(o))}</span></div>
+                    <div style={mRow}><span>شحن مدفوع</span><span>{egp(shipCost(o))}</span></div>
+                    {extraCost(o) > 0 && <div style={mRow}><span>تكاليف إضافية</span><span>{egp(extraCost(o))}</span></div>}
+                    <div style={mTotal}>
+                      <span>صافي الربح</span>
+                      <span style={{ color: net >= 0 ? '#15803d' : '#b91c1c' }}>{egp(net)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {rows.length === 0 && <div style={{ ...mCard, textAlign: 'center', color: '#9ca3af' }}>لا توجد طلبات مطابقة للفلاتر</div>}
+            </div>
+
+            <div className="rep-table" style={{ overflowX: 'auto', maxHeight: '560px', overflowY: 'auto' }}>
               <table style={table}>
                 <thead><tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
                   <th style={th}>رقم الطلب</th><th style={th}>التاريخ</th><th style={th}>العميل</th><th style={th}>الحالة</th>
@@ -323,3 +392,6 @@ const h3: any = { fontSize: '1rem', fontWeight: '900', color: '#1a1a1a', margin:
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right', minWidth: '640px' };
 const th: any = { padding: '10px 12px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '900', whiteSpace: 'nowrap', borderBottom: '2px solid #f0f0f0' };
 const td: any = { padding: '10px 12px', fontSize: '0.82rem', color: '#374151', whiteSpace: 'nowrap' };
+const mCard: any = { background: '#f9fafb', border: '1px solid #eee', borderRadius: '12px', padding: '12px 14px' };
+const mRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#374151', fontWeight: '600', padding: '3px 0' };
+const mTotal: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.92rem', fontWeight: '900', borderTop: '1px dashed #d1d5db', paddingTop: '8px', marginTop: '6px' };
