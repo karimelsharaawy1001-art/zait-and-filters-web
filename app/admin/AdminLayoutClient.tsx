@@ -60,6 +60,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'المتابعة الحية', href: '/admin/online-users',  icon: '👁️', badge: 0 },
         { name: 'إدارة الطلبات', href: '/admin/orders',         icon: '🛍️', badge: badges.orders },
         { name: 'الأرباح',       href: '/admin/profits',        icon: '💰', badge: 0 },
+        { name: 'تقارير الأرباح', href: '/admin/reports',       icon: '📑', badge: 0 },
         { name: 'إدارة الشحن',   href: '/admin/shipping',       icon: '🚚', badge: 0 },
       ]
     },
