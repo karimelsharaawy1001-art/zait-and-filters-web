@@ -60,7 +60,8 @@ import {
 } from 'lucide-react';
 
 
-const ITEMS_PER_PAGE = 20;
+const PAGE_SIZE_OPTIONS = [20, 50, 100, 200, 'الكل'] as const;
+const ALL_PAGE_SIZE = 100000;
 
 
 // ── Confirmation Modal ────────────────────────────────────────────────────────
@@ -187,6 +188,52 @@ const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
   const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
   const [imageEdits, setImageEdits] = useState<Record<string, string>>({});
   const [savingImageId, setSavingImageId] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState<number>(20);
+  const [priceEdits, setPriceEdits] = useState<Record<string, { r: string; s: string }>>({});
+  const [savingPriceId, setSavingPriceId] = useState<string | null>(null);
+
+  const getPrice = (p: any) => priceEdits[p.id] ?? { r: p.regular_price != null ? String(p.regular_price) : '', s: p.sale_price != null ? String(p.sale_price) : '' };
+  const priceDirty = (p: any) => {
+    const e = priceEdits[p.id]; if (!e) return false;
+    return e.r !== (p.regular_price != null ? String(p.regular_price) : '') || e.s !== (p.sale_price != null ? String(p.sale_price) : '');
+  };
+  async function saveInlinePrice(id: string) {
+    const e = priceEdits[id]; if (!e) return;
+    const reg = e.r.trim() === '' ? null : Number(e.r);
+    const sale = e.s.trim() === '' ? null : Number(e.s);
+    if (reg == null || isNaN(reg)) { toast.error('أدخل سعرًا أساسيًا صحيحًا'); return; }
+    if (sale != null && isNaN(sale)) { toast.error('سعر الخصم غير صحيح'); return; }
+    setSavingPriceId(id);
+    const { error } = await supabase.from('products').update({ regular_price: reg, sale_price: sale }).eq('id', id);
+    setSavingPriceId(null);
+    if (error) { toast.error('فشل تحديث السعر'); return; }
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, regular_price: reg, sale_price: sale } : p)));
+    setPriceEdits((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    toast.success('تم تحديث السعر ✅');
+  }
+  function renderInlinePrice(product: any) {
+    const val = getPrice(product);
+    const dirty = priceDirty(product);
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <input type="number" placeholder="الأساسي" value={val.r}
+            onChange={(e) => setPriceEdits((prev) => ({ ...prev, [product.id]: { ...getPrice(product), r: e.target.value } }))}
+            onKeyDown={(e) => { if (e.key === 'Enter' && dirty) saveInlinePrice(product.id); }}
+            style={{ ...miniInputStyle, width: '78px' }} />
+          <input type="number" placeholder="الخصم" value={val.s}
+            onChange={(e) => setPriceEdits((prev) => ({ ...prev, [product.id]: { ...getPrice(product), s: e.target.value } }))}
+            onKeyDown={(e) => { if (e.key === 'Enter' && dirty) saveInlinePrice(product.id); }}
+            style={{ ...miniInputStyle, width: '78px', borderColor: '#22c55e' }} />
+        </div>
+        <button onClick={() => saveInlinePrice(product.id)} disabled={!dirty || savingPriceId === product.id}
+          title="حفظ السعر"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', flexShrink: 0, border: 'none', borderRadius: '6px', cursor: (!dirty || savingPriceId === product.id) ? 'not-allowed' : 'pointer', background: dirty ? '#22c55e' : '#e5e7eb', color: '#fff' }}>
+          {savingPriceId === product.id ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+        </button>
+      </div>
+    );
+  }
 
   async function handleUpdateImage(id: string) {
     const url = (imageEdits[id] ?? '').trim();
@@ -286,6 +333,7 @@ if (searchSku) params.set('sku', searchSku);
     filterStatus,
     sortBy,
     sortOrder,
+    pageSize,
   ]);
 
 
@@ -339,8 +387,8 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     setLoading(true);
     let query = buildFilteredQuery();
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
-    const from = (currentPage - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
+    const from = (currentPage - 1) * pageSize;
+    const to = from + pageSize - 1;
     query = query.range(from, to);
     const { data, count } = await query;
     if (data) setProducts(data);
@@ -1096,60 +1144,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                     <td style={tdStyle}>{product.car_model}</td>
                     <td style={tdStyle}>{product.car_model_year}</td>
                     <td style={tdStyle}>
-                      {editingId === product.id ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                          <input
-                            type="number"
-                            placeholder="الأساسي"
-                            value={editData.regular_price}
-                            onChange={(e) =>
-                              setEditData({ ...editData, regular_price: e.target.value })
-                            }
-                            style={miniInputStyle}
-                            autoFocus
-                          />
-                          <input
-                            type="number"
-                            placeholder="الخصم"
-                            value={editData.sale_price}
-                            onChange={(e) =>
-                              setEditData({ ...editData, sale_price: e.target.value })
-                            }
-                            style={{ ...miniInputStyle, borderColor: '#2ecc71' }}
-                          />
-                          <div style={{ display: 'flex', gap: '5px' }}>
-                            <button
-                              onClick={() => handleUpdatePrice(product.id)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                            >
-                              <Check size={16} color="#2ecc71" />
-                            </button>
-                            <button
-                              onClick={() => setEditingId(null)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                            >
-                              <X size={16} color="#22c55e" />
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ lineHeight: '1.2' }}>
-                          <div
-                            style={{
-                              fontSize: product.sale_price ? '0.8rem' : '1rem',
-                              color: product.sale_price ? '#9ca3af' : '#fff',
-                              textDecoration: product.sale_price ? 'line-through' : 'none',
-                            }}
-                          >
-                            {product.regular_price} ج.م
-                          </div>
-                          {product.sale_price && (
-                            <div style={{ color: '#2ecc71', fontWeight: 'bold' }}>
-                              {product.sale_price} ج.م
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {renderInlinePrice(product)}
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -1200,7 +1195,6 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
           <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>لا توجد منتجات</div>
         ) : products.map((product) => {
           const isSelected = selectedIds.has(product.id);
-          const isEditingPrice = editingId === product.id;
           return (
             <div key={product.id} className={`prod-card${isSelected ? ' prod-card-selected' : ''}`}>
               {/* Top row: checkbox + image + name */}
@@ -1245,37 +1239,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   {product.is_active ? '● نشط' : '○ معطل'}
                 </button>
 
-                {isEditingPrice ? (
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <input
-                      type="number" placeholder="الأساسي" value={editData.regular_price}
-                      onChange={(e) => setEditData({ ...editData, regular_price: e.target.value })}
-                      style={{ ...miniInputStyle, width: '70px' }} autoFocus
-                    />
-                    <input
-                      type="number" placeholder="خصم" value={editData.sale_price}
-                      onChange={(e) => setEditData({ ...editData, sale_price: e.target.value })}
-                      style={{ ...miniInputStyle, width: '70px', borderColor: '#2ecc71' }}
-                    />
-                    <button onClick={() => handleUpdatePrice(product.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                      <Check size={16} color="#2ecc71" />
-                    </button>
-                    <button onClick={() => setEditingId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                      <X size={16} color="#22c55e" />
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ lineHeight: '1.2', textAlign: 'left' }}>
-                    {product.sale_price ? (
-                      <>
-                        <div style={{ fontSize: '0.72rem', color: '#9ca3af', textDecoration: 'line-through' }}>{product.regular_price} ج.م</div>
-                        <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#2ecc71' }}>{product.sale_price} ج.م</div>
-                      </>
-                    ) : (
-                      <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1a1a1a' }}>{product.regular_price} ج.م</div>
-                    )}
-                  </div>
-                )}
+                {renderInlinePrice(product)}
               </div>
 
               {/* Action buttons */}
@@ -1327,12 +1291,24 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
         </button>
         <span style={{ color: '#666', fontSize: '0.85rem' }}>صفحة {currentPage} · {totalCount} منتج</span>
         <button
-          disabled={currentPage * ITEMS_PER_PAGE >= totalCount}
+          disabled={currentPage * pageSize >= totalCount}
           onClick={() => setCurrentPage((p) => p + 1)}
           style={pageBtnStyle}
         >
           التالي →
         </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
+          <span style={{ color: '#666', fontSize: '0.82rem' }}>عرض</span>
+          <select
+            value={pageSize === ALL_PAGE_SIZE ? 'الكل' : String(pageSize)}
+            onChange={(e) => { const v = e.target.value; setPageSize(v === 'الكل' ? ALL_PAGE_SIZE : Number(v)); setCurrentPage(1); }}
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '0.82rem', cursor: 'pointer', background: '#fff', color: '#1a1a1a' }}
+          >
+            {PAGE_SIZE_OPTIONS.map((o) => <option key={String(o)} value={String(o)}>{o}</option>)}
+          </select>
+          <span style={{ color: '#666', fontSize: '0.82rem' }}>لكل صفحة</span>
+        </div>
       </div>
     </div>
   );
