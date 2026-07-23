@@ -11,6 +11,7 @@ import {
   Trash2,
   Check,
   X,
+  Loader2,
   FileDown,
   FileUp,
   ClipboardList,
@@ -149,6 +150,19 @@ const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ regular_price: '', sale_price: '' });
+  const [imageEdits, setImageEdits] = useState<Record<string, string>>({});
+  const [savingImageId, setSavingImageId] = useState<string | null>(null);
+
+  async function handleUpdateImage(id: string) {
+    const url = (imageEdits[id] ?? '').trim();
+    setSavingImageId(id);
+    const { error } = await supabase.from('products').update({ image_url: url || null }).eq('id', id);
+    setSavingImageId(null);
+    if (error) { toast.error('فشل حفظ رابط الصورة'); return; }
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, image_url: url || null } : p)));
+    setImageEdits((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    toast.success('تم حفظ رابط الصورة ✅');
+  }
 
 
   // ── MULTI-SELECT STATE ──
@@ -1041,7 +1055,34 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                             : <span style={{ fontSize: '1.2rem' }}>📦</span>
                           }
                         </div>
-                        <span>{product.name}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: 0 }}>
+                          <span>{product.name}</span>
+                          {(() => {
+                            const val = imageEdits[product.id] ?? product.image_url ?? '';
+                            const dirty = imageEdits[product.id] !== undefined && (imageEdits[product.id] ?? '') !== (product.image_url ?? '');
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <input
+                                  type="url"
+                                  dir="ltr"
+                                  placeholder="🔗 رابط الصورة..."
+                                  value={val}
+                                  onChange={(e) => setImageEdits((prev) => ({ ...prev, [product.id]: e.target.value }))}
+                                  onKeyDown={(e) => { if (e.key === 'Enter' && dirty) handleUpdateImage(product.id); }}
+                                  style={{ width: '230px', maxWidth: '100%', padding: '5px 8px', fontSize: '0.72rem', border: `1px solid ${dirty ? '#22c55e' : '#e5e7eb'}`, borderRadius: '6px', outline: 'none', color: '#374151', background: '#fff' }}
+                                />
+                                <button
+                                  onClick={() => handleUpdateImage(product.id)}
+                                  disabled={!dirty || savingImageId === product.id}
+                                  title="حفظ رابط الصورة"
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', flexShrink: 0, border: 'none', borderRadius: '6px', cursor: (!dirty || savingImageId === product.id) ? 'not-allowed' : 'pointer', background: dirty ? '#22c55e' : '#e5e7eb', color: '#fff' }}
+                                >
+                                  {savingImageId === product.id ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                                </button>
+                              </div>
+                            );
+                          })()}
+                        </div>
                       </div>
                     </td>
 
