@@ -18,8 +18,8 @@ function generateSlug(name: string, brand: string, carMake: string, carModel: st
 }
 
 // One row of product fields — reused for quick-add and inline edit.
-function ProductForm({ initial, categories, subcategories, brands, makes, models, onSubmit, onCancel, submitLabel, busy }: {
-  initial?: any; categories: string[]; subcategories: string[]; brands: string[]; makes: string[]; models: string[];
+function ProductForm({ initial, categories, brands, makes, models, onSubmit, onCancel, submitLabel, busy }: {
+  initial?: any; categories: string[]; subcategories?: string[]; brands: string[]; makes: string[]; models: string[];
   onSubmit: (v: any) => void; onCancel?: () => void; submitLabel: string; busy?: boolean;
 }) {
   const [f, setF] = useState(() => ({
@@ -30,6 +30,20 @@ function ProductForm({ initial, categories, subcategories, brands, makes, models
     sale_price: initial?.sale_price != null ? String(initial.sale_price) : '',
   }));
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+
+  // Subcategories depend on the category chosen IN this form — fetch them live.
+  const [subcategories, setSubcategories] = useState<string[]>(initial?.subcategory ? [initial.subcategory] : []);
+  useEffect(() => {
+    if (!f.category) { setSubcategories([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('products').select('subcategory').eq('category', f.category);
+      if (!cancelled && data) {
+        setSubcategories(Array.from(new Set(data.map((i: any) => i.subcategory).filter(Boolean))).sort() as string[]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [f.category]);
   const opt = (v: string) => (v ? { value: v, label: v } : null);
   const cs: any = { control: (b: any, s: any) => ({ ...b, minHeight: '38px', borderColor: s.isFocused ? '#22c55e' : '#d1d5db', boxShadow: 'none', fontSize: '0.82rem' }), menu: (b: any) => ({ ...b, zIndex: 40, fontSize: '0.82rem' }), option: (b: any, s: any) => ({ ...b, backgroundColor: s.isSelected ? '#22c55e' : s.isFocused ? '#f0fdf4' : '#fff', color: s.isSelected ? '#fff' : '#1a1a1a' }) };
   const inp: any = { width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' };
