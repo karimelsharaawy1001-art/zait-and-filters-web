@@ -60,10 +60,27 @@ function cleanUrl(raw: string): string {
   return u.replace(/(%20|\s)+$/i, '');
 }
 
+// Fetch an image, sending browser-like headers so Cloudinary's hotlink/bot
+// protection (which returns 401/403 to bare server requests) lets it through.
+async function fetchImage(url: string): Promise<Response> {
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+    'Referer': 'https://zaitandfilters.com/',
+    'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+  };
+  let res = await fetch(url, { headers });
+  if (!res.ok && (res.status === 401 || res.status === 403 || res.status >= 500)) {
+    // Retry once after a short pause (transient / rate-limit)
+    await new Promise(r => setTimeout(r, 400));
+    res = await fetch(url, { headers });
+  }
+  return res;
+}
+
 async function uploadByUrl(admin: SupabaseClient, imageUrl: string): Promise<string> {
   const clean = cleanUrl(imageUrl);
 
-  const imgRes = await fetch(clean);
+  const imgRes = await fetchImage(clean);
   if (!imgRes.ok) throw new Error(`Failed to fetch image: HTTP ${imgRes.status}`);
   const blob = await imgRes.blob();
 
