@@ -8,6 +8,53 @@ import toast from 'react-hot-toast';
 
 // Searchable dropdown (react-select) — same lib the store uses.
 const Select: any = dynamic(() => import('react-select'), { ssr: false });
+// Creatable variant — lets you type a NEW value (new brand/category/car…).
+const Creatable: any = dynamic(() => import('react-select/creatable'), { ssr: false });
+
+function generateSlug(name: string, brand: string, carMake: string, carModel: string): string {
+  const raw = `${brand}-${carMake}-${carModel}`.toLowerCase()
+    .replace(/[^a-zA-Z0-9\-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  return `${raw || 'product'}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+// One row of product fields — reused for quick-add and inline edit.
+function ProductForm({ initial, categories, subcategories, brands, makes, models, onSubmit, onCancel, submitLabel, busy }: {
+  initial?: any; categories: string[]; subcategories: string[]; brands: string[]; makes: string[]; models: string[];
+  onSubmit: (v: any) => void; onCancel?: () => void; submitLabel: string; busy?: boolean;
+}) {
+  const [f, setF] = useState(() => ({
+    name: initial?.name || '', category: initial?.category || '', subcategory: initial?.subcategory || '',
+    brand: initial?.brand || '', car_make: initial?.car_make || '', car_model: initial?.car_model || '',
+    car_model_year: initial?.car_model_year || '',
+    regular_price: initial?.regular_price != null ? String(initial.regular_price) : '',
+    sale_price: initial?.sale_price != null ? String(initial.sale_price) : '',
+  }));
+  const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const opt = (v: string) => (v ? { value: v, label: v } : null);
+  const cs: any = { control: (b: any, s: any) => ({ ...b, minHeight: '38px', borderColor: s.isFocused ? '#22c55e' : '#d1d5db', boxShadow: 'none', fontSize: '0.82rem' }), menu: (b: any) => ({ ...b, zIndex: 40, fontSize: '0.82rem' }), option: (b: any, s: any) => ({ ...b, backgroundColor: s.isSelected ? '#22c55e' : s.isFocused ? '#f0fdf4' : '#fff', color: s.isSelected ? '#fff' : '#1a1a1a' }) };
+  const inp: any = { width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' };
+  const wrap: any = { display: 'flex', flexDirection: 'column', gap: '3px' };
+  const lab: any = { fontSize: '0.68rem', fontWeight: '800', color: '#6b7280' };
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', alignItems: 'end' }}>
+      <div style={{ ...wrap, gridColumn: '1 / -1' }}><span style={lab}>اسم المنتج *</span><input value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="اسم المنتج" style={inp} /></div>
+      <div style={wrap}><span style={lab}>القسم الرئيسي</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={categories.map((c) => ({ value: c, label: c }))} value={opt(f.category)} onChange={(o: any) => set('category', o?.value || '')} /></div>
+      <div style={wrap}><span style={lab}>القسم الفرعي</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={subcategories.map((c) => ({ value: c, label: c }))} value={opt(f.subcategory)} onChange={(o: any) => set('subcategory', o?.value || '')} /></div>
+      <div style={wrap}><span style={lab}>العلامة التجارية</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={brands.map((c) => ({ value: c, label: c }))} value={opt(f.brand)} onChange={(o: any) => set('brand', o?.value || '')} /></div>
+      <div style={wrap}><span style={lab}>الماركة (السيارة)</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={makes.map((c) => ({ value: c, label: c }))} value={opt(f.car_make)} onChange={(o: any) => set('car_make', o?.value || '')} /></div>
+      <div style={wrap}><span style={lab}>الموديل</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={models.map((c) => ({ value: c, label: c }))} value={opt(f.car_model)} onChange={(o: any) => set('car_model', o?.value || '')} /></div>
+      <div style={wrap}><span style={lab}>السنة</span><input value={f.car_model_year} onChange={(e) => set('car_model_year', e.target.value)} placeholder="2015-2024 أو عام" style={inp} /></div>
+      <div style={wrap}><span style={lab}>السعر الأساسي *</span><input type="number" value={f.regular_price} onChange={(e) => set('regular_price', e.target.value)} placeholder="0" style={inp} /></div>
+      <div style={wrap}><span style={lab}>سعر الخصم</span><input type="number" value={f.sale_price} onChange={(e) => set('sale_price', e.target.value)} placeholder="—" style={{ ...inp, borderColor: '#22c55e' }} /></div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={() => onSubmit(f)} disabled={busy} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px 18px', background: busy ? '#9ca3af' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '800', fontSize: '0.82rem', cursor: busy ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+          {busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} {submitLabel}
+        </button>
+        {onCancel && <button onClick={onCancel} style={{ padding: '9px 14px', background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.82rem', cursor: 'pointer' }}>إلغاء</button>}
+      </div>
+    </div>
+  );
+}
 
 const toOpts = (arr: string[]) => arr.map((x) => ({ value: x, label: x }));
 const searchableSelectStyles: any = {
@@ -189,6 +236,49 @@ const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
   const [imageEdits, setImageEdits] = useState<Record<string, string>>({});
   const [savingImageId, setSavingImageId] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState<number>(20);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [expandedEditId, setExpandedEditId] = useState<string | null>(null);
+  const [savingForm, setSavingForm] = useState(false);
+
+  async function addProductQuick(v: any) {
+    if (!v.name.trim()) { toast.error('اكتب اسم المنتج'); return; }
+    const reg = Number(v.regular_price);
+    if (!v.regular_price || isNaN(reg)) { toast.error('اكتب السعر الأساسي'); return; }
+    setSavingForm(true);
+    const row = {
+      name: v.name.trim(), brand: v.brand || null, category: v.category || null, subcategory: v.subcategory || null,
+      car_make: v.car_make || 'عام', car_model: v.car_model || 'عام', car_model_year: v.car_model_year || 'عام',
+      regular_price: reg, sale_price: v.sale_price ? Number(v.sale_price) : null,
+      slug: generateSlug(v.name, v.brand || '', v.car_make || '', v.car_model || ''), is_active: true,
+    };
+    const { error } = await supabase.from('products').insert([row]);
+    setSavingForm(false);
+    if (error) { toast.error('فشل الإضافة: ' + error.message); return; }
+    toast.success('تمت إضافة المنتج ✅');
+    setShowQuickAdd(false);
+    fetchProducts();
+    fetchUniqueValues('car_make', setAvailableMakes);
+    fetchUniqueValues('category', setAvailableCategories);
+    fetchUniqueValues('brand', setAvailableBrands);
+  }
+
+  async function updateProductQuick(id: string, v: any) {
+    if (!v.name.trim()) { toast.error('اكتب اسم المنتج'); return; }
+    const reg = Number(v.regular_price);
+    if (!v.regular_price || isNaN(reg)) { toast.error('اكتب السعر الأساسي'); return; }
+    setSavingForm(true);
+    const patch = {
+      name: v.name.trim(), brand: v.brand || null, category: v.category || null, subcategory: v.subcategory || null,
+      car_make: v.car_make || null, car_model: v.car_model || null, car_model_year: v.car_model_year || null,
+      regular_price: reg, sale_price: v.sale_price ? Number(v.sale_price) : null,
+    };
+    const { error } = await supabase.from('products').update(patch).eq('id', id);
+    setSavingForm(false);
+    if (error) { toast.error('فشل الحفظ: ' + error.message); return; }
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    setExpandedEditId(null);
+    toast.success('تم حفظ التعديلات ✅');
+  }
   const [priceEdits, setPriceEdits] = useState<Record<string, { r: string; s: string }>>({});
   const [savingPriceId, setSavingPriceId] = useState<string | null>(null);
 
@@ -970,6 +1060,25 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
       )}
 
 
+      {/* ── Quick Add ── */}
+      <div style={{ marginBottom: '16px' }}>
+        <button
+          onClick={() => setShowQuickAdd((s) => !s)}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 20px', background: showQuickAdd ? '#f3f4f6' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: showQuickAdd ? '#374151' : '#fff', border: 'none', borderRadius: '10px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer' }}
+        >
+          {showQuickAdd ? <X size={18} /> : <Check size={18} />} {showQuickAdd ? 'إغلاق الإضافة السريعة' : '➕ إضافة منتج سريع'}
+        </button>
+        {showQuickAdd && (
+          <div style={{ marginTop: '12px', background: '#fff', border: '2px solid #22c55e', borderRadius: '14px', padding: '18px' }}>
+            <ProductForm
+              categories={availableCategories} subcategories={availableSubcategories}
+              brands={availableBrands} makes={availableMakes} models={availableModels}
+              onSubmit={addProductQuick} submitLabel="إضافة المنتج" busy={savingForm}
+            />
+          </div>
+        )}
+      </div>
+
       {/* ── Desktop Table ── */}
       <div
         className="prod-desktop-table"
@@ -1034,7 +1143,7 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
             ) : (
               products.map((product) => {
                 const isSelected = selectedIds.has(product.id);
-                return (
+                return [
                   <tr
                     key={product.id}
                     style={{
@@ -1156,19 +1265,11 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                           <Edit3 size={18} color="#f1c40f" />
                         </Link>
                         <button
-                          onClick={() => {
-                            setEditingId(product.id);
-                            setEditData({
-                              regular_price: product.regular_price.toString(),
-                              sale_price: product.sale_price
-                                ? product.sale_price.toString()
-                                : '',
-                            });
-                          }}
+                          onClick={() => setExpandedEditId((cur) => (cur === product.id ? null : product.id))}
                           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                          title="السعر"
+                          title="تعديل سريع بدون فتح صفحة"
                         >
-                          <DollarSign size={18} color="#3b82f6" />
+                          <Edit3 size={18} color={expandedEditId === product.id ? '#16a34a' : '#3b82f6'} />
                         </button>
                         <button
                           onClick={() => deleteProduct(product.id)}
@@ -1179,8 +1280,22 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                         </button>
                       </div>
                     </td>
-                  </tr>
-                );
+                  </tr>,
+                  expandedEditId === product.id ? (
+                    <tr key={product.id + '-edit'}>
+                      <td colSpan={11} style={{ padding: '18px', background: '#f0fdf4', borderBottom: '2px solid #22c55e' }}>
+                        <ProductForm
+                          initial={product}
+                          categories={availableCategories} subcategories={availableSubcategories}
+                          brands={availableBrands} makes={availableMakes} models={availableModels}
+                          onSubmit={(v) => updateProductQuick(product.id, v)}
+                          onCancel={() => setExpandedEditId(null)}
+                          submitLabel="حفظ التعديلات" busy={savingForm}
+                        />
+                      </td>
+                    </tr>
+                  ) : null,
+                ];
               })
             )}
           </tbody>
@@ -1253,17 +1368,30 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   <span>تعديل</span>
                 </Link>
                 <button
-                  onClick={() => { setEditingId(product.id); setEditData({ regular_price: product.regular_price.toString(), sale_price: product.sale_price ? product.sale_price.toString() : '' }); }}
+                  onClick={() => setExpandedEditId((cur) => (cur === product.id ? null : product.id))}
                   className="prod-action-btn"
                 >
-                  <DollarSign size={16} color="#3b82f6" />
-                  <span>السعر</span>
+                  <Edit3 size={16} color={expandedEditId === product.id ? '#16a34a' : '#3b82f6'} />
+                  <span>تعديل سريع</span>
                 </button>
                 <button onClick={() => deleteProduct(product.id)} className="prod-action-btn" style={{ borderColor: '#22c55e33' }}>
                   <Trash2 size={16} color="#22c55e" />
                   <span style={{ color: '#22c55e' }}>حذف</span>
                 </button>
               </div>
+
+              {expandedEditId === product.id && (
+                <div style={{ marginTop: '12px', padding: '14px', background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: '12px' }}>
+                  <ProductForm
+                    initial={product}
+                    categories={availableCategories} subcategories={availableSubcategories}
+                    brands={availableBrands} makes={availableMakes} models={availableModels}
+                    onSubmit={(v) => updateProductQuick(product.id, v)}
+                    onCancel={() => setExpandedEditId(null)}
+                    submitLabel="حفظ التعديلات" busy={savingForm}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
