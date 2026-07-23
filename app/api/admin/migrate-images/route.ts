@@ -179,15 +179,19 @@ export async function POST(req: NextRequest) {
     // Target unusable (missing table/column) → skip it, let the client advance.
     if (error) return NextResponse.json({ ok: true, targetIndex, targetLabel: t.label, skipped: true, processed: 0, migrated: 0, failed: 0, results: [], hasMore: false });
 
-    const results = await Promise.all((rows ?? []).map(async (r: any) => {
-      const oldUrl = r[t.col] as string;
+    // Dedupe by URL: a reused image is downloaded & uploaded only ONCE, then
+    // EVERY row referencing that exact URL is updated together. This keeps
+    // Cloudinary delivery hits (and Supabase uploads) to the number of unique
+    // images, not the number of rows — critical when the quota is tight.
+    const uniqueUrls = Array.from(new Set((rows ?? []).map((r: any) => r[t.col]).filter(Boolean))) as string[];
+    const results = await Promise.all(uniqueUrls.map(async (oldUrl) => {
       try {
         const newUrl = await uploadByUrl(admin, oldUrl);
-        const { error: upErr } = await admin.from(t.table).update({ [t.col]: newUrl }).eq('id', r.id);
+        const { error: upErr } = await admin.from(t.table).update({ [t.col]: newUrl }).eq(t.col, oldUrl);
         if (upErr) throw new Error('DB: ' + upErr.message);
-        return { id: String(r.id), name: `${t.label}`, oldUrl, newUrl, ok: true };
+        return { id: oldUrl.slice(-28), name: `${t.label}`, oldUrl, newUrl, ok: true };
       } catch (e: any) {
-        return { id: String(r.id), name: `${t.label}`, oldUrl, ok: false, error: e?.message || 'فشل' };
+        return { id: oldUrl.slice(-28), name: `${t.label}`, oldUrl, ok: false, error: e?.message || 'فشل' };
       }
     }));
 
