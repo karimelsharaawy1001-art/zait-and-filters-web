@@ -28,6 +28,7 @@ function ProductForm({ initial, categories, brands, makes, models, onSubmit, onC
     car_model_year: initial?.car_model_year || '',
     regular_price: initial?.regular_price != null ? String(initial.regular_price) : '',
     sale_price: initial?.sale_price != null ? String(initial.sale_price) : '',
+    image_url: initial?.image_url || '',
   }));
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
@@ -52,6 +53,15 @@ function ProductForm({ initial, categories, brands, makes, models, onSubmit, onC
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', alignItems: 'end' }}>
       <div style={{ ...wrap, gridColumn: '1 / -1' }}><span style={lab}>اسم المنتج *</span><input value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="اسم المنتج" style={inp} /></div>
+      <div style={{ ...wrap, gridColumn: '1 / -1' }}>
+        <span style={lab}>🔗 رابط الصورة</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input dir="ltr" value={f.image_url} onChange={(e) => set('image_url', e.target.value)} placeholder="https://..." style={inp} />
+          <div style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', border: '1px solid #d1d5db', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {f.image_url ? <img src={f.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '1rem' }}>📦</span>}
+          </div>
+        </div>
+      </div>
       <div style={wrap}><span style={lab}>القسم الرئيسي</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={categories.map((c) => ({ value: c, label: c }))} value={opt(f.category)} onChange={(o: any) => set('category', o?.value || '')} /></div>
       <div style={wrap}><span style={lab}>القسم الفرعي</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={subcategories.map((c) => ({ value: c, label: c }))} value={opt(f.subcategory)} onChange={(o: any) => set('subcategory', o?.value || '')} /></div>
       <div style={wrap}><span style={lab}>العلامة التجارية</span><Creatable isClearable placeholder="اختر/أضف" formatCreateLabel={(v: string) => `إضافة "${v}"`} styles={cs} options={brands.map((c) => ({ value: c, label: c }))} value={opt(f.brand)} onChange={(o: any) => set('brand', o?.value || '')} /></div>
@@ -263,6 +273,7 @@ const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
       name: v.name.trim(), brand: v.brand || null, category: v.category || null, subcategory: v.subcategory || null,
       car_make: v.car_make || 'عام', car_model: v.car_model || 'عام', car_model_year: v.car_model_year || 'عام',
       regular_price: reg, sale_price: v.sale_price ? Number(v.sale_price) : null,
+      image_url: v.image_url?.trim() || null,
       slug: generateSlug(v.name, v.brand || '', v.car_make || '', v.car_model || ''), is_active: true,
     };
     const { error } = await supabase.from('products').insert([row]);
@@ -285,6 +296,7 @@ const [searchSku, setSearchSku] = useState(() => searchParams.get('sku') || '');
       name: v.name.trim(), brand: v.brand || null, category: v.category || null, subcategory: v.subcategory || null,
       car_make: v.car_make || null, car_model: v.car_model || null, car_model_year: v.car_model_year || null,
       regular_price: reg, sale_price: v.sale_price ? Number(v.sale_price) : null,
+      image_url: v.image_url?.trim() || null,
     };
     const { error } = await supabase.from('products').update(patch).eq('id', id);
     setSavingForm(false);
