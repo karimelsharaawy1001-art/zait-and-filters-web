@@ -60,6 +60,21 @@ function cleanUrl(raw: string): string {
   return u.replace(/(%20|\s)+$/i, '');
 }
 
+// A Cloudinary "fetch" URL embeds the original remote image URL, e.g.
+//   res.cloudinary.com/<cloud>/image/fetch/f_auto/https://source.com/x.jpg
+// Extract that original so we can download straight from the source and skip
+// Cloudinary (whose fetch delivery is restricted → 401).
+function extractFetchOriginal(url: string): string | null {
+  const idx = url.search(/\/image\/fetch\//i);
+  if (idx === -1) return null;
+  const rest = url.slice(idx + '/image/fetch/'.length);
+  const m = rest.match(/https?(?::\/\/|%3A%2F%2F).+$/i);
+  if (!m) return null;
+  let remote = m[0];
+  if (/%3A%2F%2F/i.test(remote)) { try { remote = decodeURIComponent(remote); } catch { /* keep as-is */ } }
+  return remote;
+}
+
 // Rebuild a Cloudinary URL pointing at the ORIGINAL asset (no transformations).
 // If "strict transformations" is on, transformed URLs 401 but the original works.
 function cloudinaryOriginal(url: string): string {
@@ -94,8 +109,14 @@ async function fetchImage(url: string): Promise<Response> {
 async function uploadByUrl(admin: SupabaseClient, imageUrl: string): Promise<string> {
   const clean = cleanUrl(imageUrl);
 
-  // Try the original (no-transformation) URL first, then the stored URL.
-  const candidates = Array.from(new Set([cloudinaryOriginal(clean), clean]));
+  // Prefer the embedded original source (bypasses restricted Cloudinary fetch),
+  // then the transformation-free Cloudinary asset, then the stored URL as-is.
+  const fetchOrig = extractFetchOriginal(clean);
+  const candidates = Array.from(new Set([
+    ...(fetchOrig ? [fetchOrig] : []),
+    cloudinaryOriginal(clean),
+    clean,
+  ]));
   let imgRes: Response | null = null;
   let lastStatus = 0;
   for (const c of candidates) {
