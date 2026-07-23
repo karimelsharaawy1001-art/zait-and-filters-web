@@ -60,6 +60,20 @@ function cleanUrl(raw: string): string {
   return u.replace(/(%20|\s)+$/i, '');
 }
 
+// Rebuild a Cloudinary URL pointing at the ORIGINAL asset (no transformations).
+// If "strict transformations" is on, transformed URLs 401 but the original works.
+function cloudinaryOriginal(url: string): string {
+  const m = url.match(/^(https?:\/\/res\.cloudinary\.com\/[^/]+\/(?:image|video|raw)\/upload\/)(.*)$/i);
+  if (!m) return url;
+  const segs = m[2].split('/');
+  // Drop leading transformation segments (e.g. "f_auto,q_auto", "w_500,c_fill"),
+  // stop at the version (v123...) or the public id / folder.
+  while (segs.length > 1 && /(^|,)[a-z]{1,3}_[^/,]+/.test(segs[0]) && !/^v\d+$/i.test(segs[0])) {
+    segs.shift();
+  }
+  return m[1] + segs.join('/');
+}
+
 // Fetch an image, sending browser-like headers so Cloudinary's hotlink/bot
 // protection (which returns 401/403 to bare server requests) lets it through.
 async function fetchImage(url: string): Promise<Response> {
@@ -80,8 +94,16 @@ async function fetchImage(url: string): Promise<Response> {
 async function uploadByUrl(admin: SupabaseClient, imageUrl: string): Promise<string> {
   const clean = cleanUrl(imageUrl);
 
-  const imgRes = await fetchImage(clean);
-  if (!imgRes.ok) throw new Error(`Failed to fetch image: HTTP ${imgRes.status}`);
+  // Try the original (no-transformation) URL first, then the stored URL.
+  const candidates = Array.from(new Set([cloudinaryOriginal(clean), clean]));
+  let imgRes: Response | null = null;
+  let lastStatus = 0;
+  for (const c of candidates) {
+    imgRes = await fetchImage(c);
+    if (imgRes.ok) break;
+    lastStatus = imgRes.status;
+  }
+  if (!imgRes || !imgRes.ok) throw new Error(`Failed to fetch image: HTTP ${lastStatus}`);
   const blob = await imgRes.blob();
 
   const rawExt = clean.split('.').pop()?.split('?')[0]?.toLowerCase() || 'jpg';
