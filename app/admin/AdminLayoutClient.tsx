@@ -72,7 +72,7 @@ export default function AdminLayoutClient({ children }: Props) {
         { name: 'إدارة الفئات والأقسام', href: '/admin/categories',     icon: '🗂️', badge: 0 },
         { name: 'إدارة الماركات',        href: '/admin/brands',         icon: '🏎️', badge: 0 },
         { name: 'صور السيارات',          href: '/admin/car-images',     icon: '🚗', badge: 0 },
-        { name: 'نقل الصور لـ Cloudinary', href: '/admin/migrate-images', icon: '☁️', badge: 0 },
+        { name: 'نقل الصور لـ Supabase', href: '/admin/migrate-images', icon: '☁️', badge: 0 },
       ]
     },
     {

@@ -14,11 +14,14 @@ export default function MigrateImagesPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const stopRef = useRef(false);
 
+  const [targets, setTargets] = useState<{ table: string; label: string; remaining: number | null }[]>([]);
+  const [phase, setPhase] = useState<string>('');
+
   const refreshCount = useCallback(async () => {
     try {
       const r = await fetch('/api/admin/migrate-images');
       const d = await r.json();
-      if (d.ok) setRemaining(d.remaining);
+      if (d.ok) { setRemaining(d.remaining); setTargets(d.targets || []); }
       else setMsg(d.error || 'تعذّر جلب العدد');
     } catch { setMsg('تعذّر الاتصال بالخادم'); }
   }, []);
@@ -27,32 +30,37 @@ export default function MigrateImagesPage() {
 
   async function run() {
     setRunning(true); stopRef.current = false; setMsg(null);
-    // Fresh run: reset counters and cursor. Already-migrated rows are skipped
-    // by the server filter; previously-failed rows are retried.
     setTotal(remaining ?? 0);
     setMigrated(0); setFailed(0); setLog([]);
-    let cursor = '';
     let localMigrated = 0, localFailed = 0;
+    const targetCount = targets.length || 9;
 
-    while (!stopRef.current) {
-      let d: any;
-      try {
-        const r = await fetch('/api/admin/migrate-images', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 10, afterId: cursor }),
-        });
-        d = await r.json();
-      } catch { setMsg('انقطع الاتصال — أعد المحاولة'); break; }
+    // Walk every target (products, categories, cars, brands, banners, …).
+    for (let ti = 0; ti < targetCount && !stopRef.current; ti++) {
+      let cursor = '';
+      while (!stopRef.current) {
+        let d: any;
+        try {
+          const r = await fetch('/api/admin/migrate-images', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetIndex: ti, limit: 8, afterId: cursor }),
+          });
+          d = await r.json();
+        } catch { setMsg('انقطع الاتصال — أعد المحاولة'); setRunning(false); await refreshCount(); return; }
 
-      if (!d.ok) { setMsg(d.error || 'حدث خطأ'); break; }
+        if (!d.ok) { setMsg(d.error || 'حدث خطأ'); setRunning(false); await refreshCount(); return; }
+        if (d.done) break;
 
-      localMigrated += d.migrated; localFailed += d.failed;
-      setMigrated(localMigrated); setFailed(localFailed);
-      setLog(prev => [...d.results, ...prev].slice(0, 500));
-      cursor = d.lastId || cursor;
+        if (d.targetLabel) setPhase(d.targetLabel);
+        localMigrated += d.migrated || 0; localFailed += d.failed || 0;
+        setMigrated(localMigrated); setFailed(localFailed);
+        if (d.results?.length) setLog(prev => [...d.results, ...prev].slice(0, 500));
+        cursor = d.lastId || cursor;
 
-      if (d.processed === 0 || !d.hasMore) break;
+        if (d.skipped || d.processed === 0 || !d.hasMore) break;
+      }
     }
+    setPhase('');
     setRunning(false);
     await refreshCount();
   }
@@ -74,10 +82,10 @@ export default function MigrateImagesPage() {
   return (
     <div style={{ padding: 24, maxWidth: 820, margin: '0 auto', fontFamily: "'Cairo', sans-serif" }} dir="rtl">
       <h1 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: 6, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <CloudUpload size={24} color="#15803d" /> نقل صور المنتجات إلى Cloudinary
+        <CloudUpload size={24} color="#15803d" /> نقل الصور من Cloudinary إلى Supabase
       </h1>
       <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: 20 }}>
-        ينقل صور المنتجات المستضافة على روابط خارجية (غير Cloudinary) إلى حساب Cloudinary الخاص بنا، ويحدّث رابط الصورة تلقائياً. آمن للتكرار — يتخطى الصور المنقولة مسبقاً.
+        ينقل كل الصور المستضافة على Cloudinary (المنتجات، الأقسام، السيارات، الماركات، البانرات، التقييمات…) إلى تخزين Supabase، ويحدّث الروابط تلقائياً. آمن للتكرار — يتخطى الصور المنقولة مسبقاً.
       </p>
 
       {msg && (
@@ -85,10 +93,23 @@ export default function MigrateImagesPage() {
       )}
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
-        <Stat label="متبقّي" value={remaining ?? '—'} color="#c2410c" bg="#fff7ed" />
+        <Stat label="متبقّي على Cloudinary" value={remaining ?? '—'} color="#c2410c" bg="#fff7ed" />
         <Stat label="تم نقلها" value={migrated} color="#15803d" bg="#f0fdf4" />
-        <Stat label="فشلت" value={failed} color="#16a34a" bg="#f0fdf4" />
+        <Stat label="فشلت" value={failed} color="#dc2626" bg="#fef2f2" />
       </div>
+
+      {targets.some(t => (t.remaining ?? 0) > 0) && (
+        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '12px 16px', marginBottom: 18 }}>
+          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6b7280', marginBottom: 8 }}>المتبقّي حسب النوع</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {targets.filter(t => (t.remaining ?? 0) > 0).map(t => (
+              <span key={t.table} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa', borderRadius: 8, padding: '4px 10px', fontSize: '0.78rem', fontWeight: 800 }}>
+                {t.label} <strong>{t.remaining}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {total > 0 && (
         <div style={{ marginBottom: 18 }}>
@@ -111,7 +132,7 @@ export default function MigrateImagesPage() {
             <Square size={15} /> إيقاف
           </button>
         )}
-        {running && <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803d', fontWeight: 700, fontSize: '0.85rem' }}><Loader2 size={16} className="animate-spin" /> جاري النقل...</span>}
+        {running && <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803d', fontWeight: 700, fontSize: '0.85rem' }}><Loader2 size={16} className="animate-spin" /> جاري النقل{phase ? ` — ${phase}` : '...'}</span>}
         {log.some(r => r.ok) && (
           <button onClick={downloadBackup}
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px', background: '#fff', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 10, fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' }}>
