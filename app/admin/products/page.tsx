@@ -2,8 +2,43 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
+
+// Searchable dropdown (react-select) — same lib the store uses.
+const Select: any = dynamic(() => import('react-select'), { ssr: false });
+
+const toOpts = (arr: string[]) => arr.map((x) => ({ value: x, label: x }));
+const searchableSelectStyles: any = {
+  control: (b: any, s: any) => ({ ...b, minHeight: '40px', backgroundColor: '#fff', borderColor: s.isFocused ? '#22c55e' : '#d1d5db', boxShadow: s.isFocused ? '0 0 0 3px rgba(34,197,94,0.15)' : 'none', borderRadius: '8px', fontSize: '0.85rem', '&:hover': { borderColor: '#22c55e' } }),
+  menu: (b: any) => ({ ...b, zIndex: 30, fontSize: '0.85rem' }),
+  option: (b: any, s: any) => ({ ...b, backgroundColor: s.isSelected ? '#22c55e' : s.isFocused ? '#f0fdf4' : '#fff', color: s.isSelected ? '#fff' : '#1a1a1a', cursor: 'pointer' }),
+  singleValue: (b: any) => ({ ...b, color: '#1a1a1a' }),
+  placeholder: (b: any) => ({ ...b, color: '#9ca3af' }),
+};
+
+// A searchable filter dropdown that behaves like the old <select>.
+function FilterSelect({ value, onChange, options, placeholder = 'الكل', disabled = false, instanceId }: {
+  value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
+  placeholder?: string; disabled?: boolean; instanceId: string;
+}) {
+  const selected = options.find((o) => o.value === value) || null;
+  return (
+    <Select
+      instanceId={instanceId}
+      isDisabled={disabled}
+      isClearable
+      isSearchable
+      placeholder={placeholder}
+      noOptionsMessage={() => 'لا توجد نتائج'}
+      options={options}
+      value={selected}
+      onChange={(opt: any) => onChange(opt?.value ?? '')}
+      styles={searchableSelectStyles}
+    />
+  );
+}
 import {
   Eye,
   Edit3,
@@ -766,78 +801,41 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
 </div>
         <div>
           <label style={labelStyle}>القسم الرئيسي</label>
-          <select
+          <FilterSelect
+            instanceId="filter-category"
             value={filterCategory}
-            onChange={(e) => {
-              setFilterCategory(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={filterInputStyle}
-          >
-            <option value="">الكل</option>
-            {availableCategories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setFilterCategory(v); setCurrentPage(1); }}
+            options={toOpts(availableCategories)}
+          />
         </div>
         <div>
           <label style={labelStyle}>القسم الفرعي</label>
-          <select
+          <FilterSelect
+            instanceId="filter-subcategory"
             value={filterSubcategory}
-            onChange={(e) => {
-              setFilterSubcategory(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={filterInputStyle}
+            onChange={(v) => { setFilterSubcategory(v); setCurrentPage(1); }}
+            options={toOpts(availableSubcategories)}
             disabled={!filterCategory}
-          >
-            <option value="">الكل</option>
-            {availableSubcategories.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div>
           <label style={labelStyle}>الماركة</label>
-          <select
+          <FilterSelect
+            instanceId="filter-make"
             value={filterMake}
-            onChange={(e) => {
-              setFilterMake(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={filterInputStyle}
-          >
-            <option value="">الكل</option>
-            <option value="__universal__">🌐 عام (بدون سيارة)</option>
-            {availableMakes.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setFilterMake(v); setCurrentPage(1); }}
+            options={[{ value: '__universal__', label: '🌐 عام (بدون سيارة)' }, ...toOpts(availableMakes)]}
+          />
         </div>
         <div>
           <label style={labelStyle}>الموديل</label>
-          <select
+          <FilterSelect
+            instanceId="filter-model"
             value={filterModel}
-            onChange={(e) => {
-              setFilterModel(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={filterInputStyle}
+            onChange={(v) => { setFilterModel(v); setCurrentPage(1); }}
+            options={toOpts(availableModels)}
             disabled={!filterMake}
-          >
-            <option value="">الكل</option>
-            {availableModels.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div>
           <label style={labelStyle}>السنة</label>
@@ -851,21 +849,12 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
         </div>
         <div>
           <label style={labelStyle}>العلامة التجارية</label>
-          <select
+          <FilterSelect
+            instanceId="filter-brand"
             value={filterBrand}
-            onChange={(e) => {
-              setFilterBrand(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={filterInputStyle}
-          >
-            <option value="">الكل</option>
-            {availableBrands.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => { setFilterBrand(v); setCurrentPage(1); }}
+            options={toOpts(availableBrands)}
+          />
         </div>
         <div>
           <label style={labelStyle}>الصورة</label>
@@ -974,8 +963,8 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
                   )}
                 </button>
               </th>
-              <th style={thStyle}>الحالة</th>
-              <th style={thStyle}>الصورة والاسم</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('is_active')}>الحالة{renderSortIcon('is_active')}</th>
+              <th style={{ ...sortableThStyle }} onClick={() => handleSort('name')}>الصورة والاسم{renderSortIcon('name')}</th>
               {/* ── NEW: ID column header ── */}
               <th style={{ ...sortableThStyle }} onClick={() => handleSort('id')}>ID{renderSortIcon('id')}</th>
 <th style={{ ...sortableThStyle }} onClick={() => handleSort('sku')}>SKU{renderSortIcon('sku')}</th>
