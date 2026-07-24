@@ -415,17 +415,19 @@ const ddItem: any = { padding: '9px 14px', cursor: 'pointer', fontSize: '0.85rem
 
 // ─── Payment Status helpers ───────────────────────────────────────────────────
 const paymentStatusLabels: Record<string, string> = {
-  pending:  'في انتظار الدفع',
-  paid:     'تم الدفع',
-  failed:   'فشل الدفع',
-  refunded: 'تم الاسترجاع',
+  pending:        'في انتظار الدفع',
+  paid:           'تم الدفع',
+  partially_paid: 'مدفوع جزئياً (عربون)',
+  failed:         'فشل الدفع',
+  refunded:       'تم الاسترجاع',
 };
 
 const paymentStatusColors: Record<string, { bg: string; color: string; border: string }> = {
-  pending:  { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
-  paid:     { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-  failed:   { bg: '#f0fdf4', color: '#16a34a', border: '#dcfce7' },
-  refunded: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+  pending:        { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+  paid:           { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  partially_paid: { bg: '#fffbeb', color: '#b45309', border: '#fcd34d' },
+  failed:         { bg: '#f0fdf4', color: '#16a34a', border: '#dcfce7' },
+  refunded:       { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
 };
 
 // ─── Egypt Post tracking URL builder ─────────────────────────────────────────
@@ -529,6 +531,13 @@ function ExpandedOrderRow({
           <div style={{ fontSize: '0.82rem', color: '#555', marginBottom: '4px' }}>الشحن: <strong style={{ color: shipping === 0 ? '#22c55e' : '#1a1a1a' }}>{shipping === 0 ? 'مجاني' : `${shipping} ج.م`}</strong>{order.shipping_type === 'express' && <span style={{ marginRight: '6px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: '800' }}>⚡ سريع</span>}</div>
           {discountVal > 0 && <div style={{ fontSize: '0.82rem', color: '#16a34a', marginBottom: '4px' }}>خصم: -{discountVal} ج.م</div>}
           <div style={{ fontSize: '1rem', fontWeight: '900', color: '#15803d', marginTop: '6px' }}>{total.toLocaleString()} ج.م</div>
+          {order.payment_status === 'partially_paid' && (
+            <div style={{ marginTop: '8px', padding: '8px 10px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '10px' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: '900', color: '#b45309', marginBottom: '3px' }}>💰 مدفوع جزئياً (عربون)</div>
+              <div style={{ fontSize: '0.76rem', color: '#92400e', fontWeight: '700' }}>عربون مدفوع: {(Number(order.deposit_amount) || (Number(order.total_price) - Number(order.remaining_amount)) || 0).toLocaleString()} ج.م{order.deposit_method ? ` (${order.deposit_method === 'instapay' ? 'InstaPay' : 'محفظة'})` : ''}</div>
+              <div style={{ fontSize: '0.76rem', color: '#92400e', fontWeight: '700' }}>باقي عند الاستلام: {(Number(order.remaining_amount) || 0).toLocaleString()} ج.م</div>
+            </div>
+          )}
           {order.tracking_number && (
             <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e0f2e9' }}>
               <div style={{ fontSize: '0.68rem', fontWeight: '800', color: '#9ca3af', letterSpacing: '1px', marginBottom: '5px', textTransform: 'uppercase' }}>تتبع الشحنة</div>

@@ -89,10 +89,11 @@ function WhatsappReactivation({ order, phone }: { order: any; phone: string }) {
 
 // ── Payment status config ─────────────────────────────────────────────────────
 const paymentStatusConfig: Record<string, { label: string; bg: string; color: string }> = {
-  pending:  { label: 'في انتظار الدفع', bg: '#ffffff', color: '#fb923c' },
-  paid:     { label: 'تم الدفع ✓',      bg: '#f0fdf4', color: '#15803d' },
-  failed:   { label: 'فشل الدفع',       bg: '#f0fdf4', color: '#16a34a' },
-  refunded: { label: 'تم الاسترجاع',    bg: '#f3f4f6', color: '#a78bfa' },
+  pending:        { label: 'في انتظار الدفع', bg: '#ffffff', color: '#fb923c' },
+  paid:           { label: 'تم الدفع ✓',      bg: '#f0fdf4', color: '#15803d' },
+  partially_paid: { label: 'مدفوع جزئياً (عربون)', bg: '#fffbeb', color: '#b45309' },
+  failed:         { label: 'فشل الدفع',       bg: '#f0fdf4', color: '#16a34a' },
+  refunded:       { label: 'تم الاسترجاع',    bg: '#f3f4f6', color: '#a78bfa' },
 };
 
 // ── Shipping status config ────────────────────────────────────────────────────

@@ -34,6 +34,7 @@ export default function CheckoutPage() {
   const [selectedCity, setSelectedCity] = useState<any>(null);
   const [expressShipping, setExpressShipping] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('instapay');
+  const [depositMethod, setDepositMethod] = useState<'instapay' | 'wallets'>('instapay');
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
   const [promoCode, setPromoCode] = useState('');
@@ -181,14 +182,27 @@ export default function CheckoutPage() {
 
   const subtotal = useMemo(() => cart.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0), [cart]);
 
-  const codFee = paymentMethod === 'cash' ? COD_FEE : 0;
-  const finalTotal = useMemo(() => {
+  // Order value before the cash-collection fee.
+  const orderValueNoFee = useMemo(() => {
     const shipping = expressShipping ? EXPRESS_COST : (selectedCity?.price || 0);
     let currentDiscount = discountAmount;
     if (appliedPromoType === 'free_shipping') currentDiscount = shipping;
-    const total = (subtotal + shipping) - currentDiscount - walletDiscount + codFee;
+    const total = (subtotal + shipping) - currentDiscount - walletDiscount;
     return total > 0 ? total : 0;
-  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping, walletDiscount, codFee]);
+  }, [subtotal, selectedCity, discountAmount, appliedPromoType, expressShipping, walletDiscount]);
+
+  // ── Cash-on-delivery deposit rule ──
+  // Orders above 5,000 can't be paid fully on delivery: the amount above 5,000
+  // must be paid now (InstaPay/Wallet) as a deposit; the remaining 5,000 is COD.
+  const COD_MAX = 5000;
+  const orderAboveCodCap = orderValueNoFee > COD_MAX;
+  const requiresDeposit = paymentMethod === 'cash' && orderAboveCodCap;
+  const depositAmount = requiresDeposit ? Math.round(orderValueNoFee - COD_MAX) : 0;
+  const remainingCod = requiresDeposit ? COD_MAX : 0;
+
+  // No collection fee on deposit orders (the deposit + 5,000 = total exactly).
+  const codFee = (paymentMethod === 'cash' && !requiresDeposit) ? COD_FEE : 0;
+  const finalTotal = Math.max(0, orderValueNoFee + codFee);
 
   useEffect(() => { if (isInitialized) setTimeout(() => setIsReady(true), 800); }, [isInitialized]);
 
@@ -492,6 +506,10 @@ export default function CheckoutPage() {
       return toast.error('يرجى رفع سكرين شوت التحويل');
     }
 
+    if (requiresDeposit && !screenshot) {
+      return toast.error('يرجى رفع إثبات دفع العربون لإتمام الطلب');
+    }
+
     if (expressShipping && !['instapay', 'wallets'].includes(paymentMethod)) {
       setPaymentMethod('instapay');
       return toast.error('الشحن السريع متاح فقط لـ InstaPay والمحافظ الإلكترونية');
@@ -543,6 +561,8 @@ export default function CheckoutPage() {
         car_mileage: carMileage,
         marketer_id: finalMarketerId,
         status: 'pending',
+        // Cash-on-delivery deposit: partial payment now, rest collected on delivery.
+        ...(requiresDeposit ? { payment_status: 'partially_paid', remaining_amount: remainingCod } : {}),
         created_at: new Date().toISOString()
       };
 
@@ -589,6 +609,14 @@ export default function CheckoutPage() {
       } else {
         const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
         if (error) throw error;
+
+        // Record how/how-much the deposit was paid (non-fatal if columns absent).
+        if (requiresDeposit) {
+          const { error: depErr } = await supabase.from('orders')
+            .update({ deposit_method: depositMethod, deposit_amount: depositAmount })
+            .eq('id', newOrder.id);
+          if (depErr) console.warn('deposit meta skipped:', depErr.message);
+        }
 
         if (finalMarketerId) await trackAffiliateCommission(newOrder.id, finalMarketerId);
 
@@ -1130,6 +1158,12 @@ export default function CheckoutPage() {
               </div>
             )}
             <div style={finalRow}><span>الإجمالي النهائي:</span><span>{finalTotal.toFixed(2)} ج.م</span></div>
+            {requiresDeposit && (
+              <div style={{ marginTop: '8px', padding: '10px 12px', background: '#fffbeb', borderRadius: '10px', border: '1px solid #fcd34d' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#92400e', fontWeight: '800', marginBottom: '4px' }}><span>عربون يُدفع الآن:</span><span>{depositAmount.toLocaleString()} ج.م</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#92400e', fontWeight: '800' }}><span>يُدفع عند الاستلام:</span><span>{remainingCod.toLocaleString()} ج.م</span></div>
+              </div>
+            )}
 
             {/* Cashback notice — hidden when a promo code is active or paying cash on delivery */}
             {appliedPromo ? (
@@ -1330,11 +1364,36 @@ export default function CheckoutPage() {
                       <span style={paySubTitle}>ادفع نقداً عند استلام طلبك</span>
                     </div>
                   </div>
-                  {paymentMethod === 'cash' && (
+                  {paymentMethod === 'cash' && !orderAboveCodCap && (
                     <div style={payDetailsBox}>
                       <div style={{ padding: '10px 14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #166534' }}>
                         <span style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: '700', lineHeight: '1.6' }}>سيتم تحصيل قيمة الطلب نقداً عند استلامه. لا حاجة لرفع أي إثبات دفع.</span>
                       </div>
+                    </div>
+                  )}
+                  {paymentMethod === 'cash' && orderAboveCodCap && (
+                    <div style={payDetailsBox}>
+                      <div style={{ padding: '12px 14px', background: '#fffbeb', borderRadius: '10px', border: '1.5px solid #f59e0b', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '0.82rem', color: '#92400e', fontWeight: '800', marginBottom: '6px' }}>⚠️ الطلبات فوق 5,000 ج.م تتطلب عربون</div>
+                        <div style={{ fontSize: '0.78rem', color: '#92400e', fontWeight: '600', lineHeight: '1.7' }}>
+                          لا يمكن دفع كامل المبلغ عند الاستلام. ادفع عربون <strong>{depositAmount.toLocaleString()} ج.م</strong> الآن، والباقي <strong>{remainingCod.toLocaleString()} ج.م</strong> عند الاستلام.
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#15803d', marginBottom: '8px' }}>اختر طريقة دفع العربون:</div>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                        {(['instapay', 'wallets'] as const).map((m) => (
+                          <button type="button" key={m} onClick={() => setDepositMethod(m)}
+                            style={{ flex: 1, padding: '10px', borderRadius: '10px', cursor: 'pointer', fontWeight: '800', fontSize: '0.8rem',
+                              background: depositMethod === m ? '#f0fdf4' : '#fff', color: depositMethod === m ? '#15803d' : '#6b7280',
+                              border: depositMethod === m ? '2px solid #16a34a' : '2px solid #e5e7eb' }}>
+                            {m === 'instapay' ? 'InstaPay' : 'محفظة إلكترونية'}
+                          </button>
+                        ))}
+                      </div>
+                      <input id="u-deposit" type="file" accept="image/*" onChange={(e) => setScreenshot(e.target.files?.[0] || null)} style={{ display: 'none' }} />
+                      <label htmlFor="u-deposit" className="upload-hover" style={uploadArea}>
+                        <Upload size={14} /> {screenshot ? '✅ تم اختيار إثبات العربون' : `رفع إثبات تحويل العربون (${depositAmount.toLocaleString()} ج.م)`}
+                      </label>
                     </div>
                   )}
                 </div>
@@ -1354,7 +1413,7 @@ export default function CheckoutPage() {
           </div>
 
           <button disabled={loading} type="submit" className="btn-hover" style={btnStyle}>
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : `تأكيد الطلب — ${finalTotal.toFixed(0)} ج.م`}</>}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <><CheckCircle size={20} /> {paymentMethod === 'card_installments' ? 'الانتقال للدفع والتقسيط' : requiresDeposit ? `ادفع العربون وأكد الطلب — ${depositAmount.toLocaleString()} ج.م` : `تأكيد الطلب — ${finalTotal.toFixed(0)} ج.م`}</>}
           </button>
 
           {/* Trust row */}
