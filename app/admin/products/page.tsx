@@ -614,6 +614,19 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
     });
   };
 
+  const [bulkStatusLoading, setBulkStatusLoading] = useState(false);
+  async function bulkSetActive(active: boolean) {
+    if (selectedIds.size === 0) return;
+    const idsArray = Array.from(selectedIds);
+    setBulkStatusLoading(true);
+    const { error } = await supabase.from('products').update({ is_active: active }).in('id', idsArray);
+    setBulkStatusLoading(false);
+    if (error) { toast.error('حدث خطأ: ' + error.message); return; }
+    setProducts((prev) => prev.map((p) => (selectedIds.has(p.id) ? { ...p, is_active: active } : p)));
+    toast.success(`تم ${active ? 'تفعيل' : 'تعطيل'} ${idsArray.length} منتج ✅`);
+    setSelectedIds(new Set());
+  }
+
 
   // ── EXPORT ───────────────────────────────────────────────────────────────
   const exportToCSV = async () => {
@@ -1067,6 +1080,20 @@ if (searchSku) query = query.ilike('sku', `%${searchSku}%`);
               style={{ ...secondaryBtnStyle, color: '#6b7280' }}
             >
               <X size={15} /> إلغاء التحديد
+            </button>
+            <button
+              onClick={() => bulkSetActive(true)}
+              disabled={bulkStatusLoading}
+              style={{ ...secondaryBtnStyle, backgroundColor: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}
+            >
+              <Check size={15} /> تفعيل
+            </button>
+            <button
+              onClick={() => bulkSetActive(false)}
+              disabled={bulkStatusLoading}
+              style={{ ...secondaryBtnStyle, backgroundColor: '#f9fafb', color: '#6b7280', border: '1px solid #e5e7eb' }}
+            >
+              <X size={15} /> تعطيل
             </button>
             <button
               onClick={handleBulkDelete}
