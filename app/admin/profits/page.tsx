@@ -36,6 +36,7 @@ export default function AdminProfits() {
 
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['processing', 'shipped', 'delivered']);
   const toggleStatus = (k: string) =>
     setSelectedStatuses((prev) => (prev.includes(k) ? prev.filter((s) => s !== k) : [...prev, k]));
@@ -146,6 +147,10 @@ export default function AdminProfits() {
 
   // Profits only count finished orders (delivered).
   const filteredOrders = completedOrders;
+  const PER_PAGE = 20;
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PER_PAGE));
+  const pageOrders = filteredOrders.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+  useEffect(() => { setCurrentPage(1); }, [selectedStatuses, dateFrom, dateTo, orders]);
 
   if (loading) {
     return (
@@ -264,7 +269,7 @@ export default function AdminProfits() {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => {
+                {pageOrders.map((order) => {
                   const isExpanded = expandedOrderId === order.id;
                   const items = order.items || [];
                   const grossProfit = items.reduce((sum: number, item: any, idx: number) => {
@@ -433,7 +438,7 @@ export default function AdminProfits() {
 
           {/* MOBILE CARDS */}
           <div className="profits-cards" style={{ display: 'none', flexDirection: 'column', gap: '12px' }}>
-            {filteredOrders.map((order) => {
+            {pageOrders.map((order) => {
               const isExpanded = expandedOrderId === order.id;
               const items = order.items || [];
               const grossProfit = items.reduce((sum: number, item: any, idx: number) => {
@@ -557,6 +562,19 @@ export default function AdminProfits() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Pagination */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '14px', marginTop: '20px', flexWrap: 'wrap' }}>
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              style={{ padding: '10px 22px', borderRadius: '10px', border: '1px solid #e5e7eb', background: currentPage === 1 ? '#f3f4f6' : '#fff', color: currentPage === 1 ? '#9ca3af' : '#374151', fontWeight: '800', fontSize: '0.85rem', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}>
+              ← السابق
+            </button>
+            <span style={{ color: '#666', fontSize: '0.85rem', fontWeight: '700' }}>صفحة {currentPage} من {totalPages} · {filteredOrders.length} طلب</span>
+            <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              style={{ padding: '10px 22px', borderRadius: '10px', border: '1px solid #e5e7eb', background: currentPage >= totalPages ? '#f3f4f6' : '#fff', color: currentPage >= totalPages ? '#9ca3af' : '#374151', fontWeight: '800', fontSize: '0.85rem', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer' }}>
+              التالي →
+            </button>
           </div>
         </>
       )}
