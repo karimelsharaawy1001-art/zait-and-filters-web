@@ -8,6 +8,16 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  pending:    { label: 'جديد',   color: '#c2410c', bg: '#fff7ed' },
+  processing: { label: 'تجهيز',  color: '#a16207', bg: '#fefce8' },
+  shipped:    { label: 'شحن',    color: '#0369a1', bg: '#eff6ff' },
+  delivered:  { label: 'توصيل',  color: '#15803d', bg: '#f0fdf4' },
+  cancelled:  { label: 'ملغي',   color: '#b91c1c', bg: '#fef2f2' },
+  refunded:   { label: 'مسترجع', color: '#7c3aed', bg: '#f5f3ff' },
+};
+const STATUS_FILTER = ['processing', 'shipped', 'delivered'];
+
 export default function AdminProfits() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +26,9 @@ export default function AdminProfits() {
 
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['processing', 'shipped', 'delivered']);
+  const toggleStatus = (k: string) =>
+    setSelectedStatuses((prev) => (prev.includes(k) ? prev.filter((s) => s !== k) : [...prev, k]));
 
   type CostMap = Record<string, Record<number, number>>;
   const [costPrices, setCostPrices] = useState<CostMap>({});
@@ -103,7 +116,7 @@ export default function AdminProfits() {
     return grossProfit - shippingCost - discount - extras;
   }
 
-  const completedOrders = orders.filter(o => o.status === 'delivered');
+  const completedOrders = orders.filter(o => selectedStatuses.includes(o.status));
 
   function totalRevenue(): number {
     return completedOrders.reduce((s, o) => s + parseFloat(o.total_price || 0), 0);
@@ -178,6 +191,24 @@ export default function AdminProfits() {
             <X size={14} /> إلغاء الفلتر
           </button>
         )}
+        <div style={{ flexBasis: '100%', height: 0 }} />
+        <div>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: '#666', marginBottom: '6px' }}>حالات الطلبات المحتسبة</label>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {STATUS_FILTER.map((k) => {
+              const on = selectedStatuses.includes(k);
+              const m = STATUS_META[k];
+              return (
+                <button key={k} onClick={() => toggleStatus(k)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px', cursor: 'pointer', fontWeight: '800', fontSize: '0.82rem',
+                    background: on ? m.bg : '#fff', color: on ? m.color : '#9ca3af', border: on ? `2px solid ${m.color}` : '2px solid #e5e7eb' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: on ? m.color : '#d1d5db' }} />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* ── Summary Cards ── */}
@@ -185,7 +216,7 @@ export default function AdminProfits() {
         {[
           { label: 'إجمالي الإيرادات', value: totalRevenue().toLocaleString(), color: '#15803d', icon: <TrendingUp size={20} />, bg: '#f0fdf4' },
           { label: 'صافي الربح', value: totalNetProfit().toLocaleString(), color: totalNetProfit() >= 0 ? '#15803d' : '#16a34a', icon: <DollarSign size={20} />, bg: totalNetProfit() >= 0 ? '#f0fdf4' : '#f0fdf4' },
-          { label: 'الطلبات المكتملة', value: completedOrders.length.toLocaleString(), color: '#1e40af', icon: <Package size={20} />, bg: '#eff6ff' },
+          { label: 'عدد الطلبات', value: completedOrders.length.toLocaleString(), color: '#1e40af', icon: <Package size={20} />, bg: '#eff6ff' },
           { label: 'إجمالي التكاليف الإضافية', value: totalExtraCosts().toLocaleString(), color: '#d97706', icon: <TrendingDown size={20} />, bg: '#fffbeb' },
           { label: 'إجمالي تكلفة الشحن', value: totalShippingCostPaid().toLocaleString(), color: '#3b82f6', icon: <TrendingDown size={20} />, bg: '#eff6ff' },
         ].map((card, i) => (
@@ -215,6 +246,7 @@ export default function AdminProfits() {
                   <th style={thStyle}></th>
                   <th style={thStyle}>العميل</th>
                   <th style={thStyle}>التاريخ</th>
+                  <th style={thStyle}>الحالة</th>
                   <th style={thStyle}>المنتجات / التكلفة</th>
                   <th style={thStyle}>تكاليف إضافية</th>
                   <th style={thStyle}>ربح المنتجات</th>
@@ -252,6 +284,13 @@ export default function AdminProfits() {
                           {new Date(order.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' })}
                         </td>
                         <td style={tdStyle}>
+                          {(() => { const m = STATUS_META[order.status] || { label: order.status, color: '#6b7280', bg: '#f3f4f6' }; return (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: '800', background: m.bg, color: m.color, whiteSpace: 'nowrap' }}>
+                              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: m.color }} />{m.label}
+                            </span>
+                          ); })()}
+                        </td>
+                        <td style={tdStyle}>
                           <div style={{ fontSize: '0.82rem', color: '#15803d', fontWeight: '700' }}>{items.length} منتج</div>
                         </td>
                         <td style={tdStyle} onClick={e => e.stopPropagation()}>
@@ -274,7 +313,7 @@ export default function AdminProfits() {
                       </tr>
                       {isExpanded && (
                         <tr key={`${order.id}-expanded`}>
-                          <td colSpan={7} style={{ padding: '0 16px 16px', background: '#fafff8', borderBottom: '1px solid #e0f2e9' }}>
+                          <td colSpan={8} style={{ padding: '0 16px 16px', background: '#fafff8', borderBottom: '1px solid #e0f2e9' }}>
                             <div style={{ animation: 'slideDown 0.2s ease' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {items.map((item: any, idx: number) => {
@@ -402,7 +441,12 @@ export default function AdminProfits() {
                 <div key={order.id} style={{ background: '#fff', borderRadius: '16px', border: isExpanded ? '2px solid #22c55e' : '1px solid #eee', overflow: 'hidden' }}>
                   <div onClick={() => setExpandedOrderId(isExpanded ? null : order.id)} style={{ padding: '14px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <div style={{ fontWeight: '800', color: '#1a1a1a' }}>{order.customer_name}</div>
+                      <div style={{ fontWeight: '800', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        {order.customer_name}
+                        {(() => { const m = STATUS_META[order.status] || { label: order.status, color: '#6b7280', bg: '#f3f4f6' }; return (
+                          <span style={{ padding: '2px 8px', borderRadius: '7px', fontSize: '0.65rem', fontWeight: '900', background: m.bg, color: m.color }}>{m.label}</span>
+                        ); })()}
+                      </div>
                       <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>#{order.id.slice(0, 8).toUpperCase()} • {new Date(order.created_at).toLocaleDateString('ar-EG')}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
