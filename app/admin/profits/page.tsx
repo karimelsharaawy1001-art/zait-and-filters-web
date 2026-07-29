@@ -18,6 +18,16 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 };
 const STATUS_FILTER = ['processing', 'shipped', 'delivered'];
 
+// Car fitment label for an order item (handles both field-name variants).
+function carInfo(item: any): string {
+  const univ = ['universal', 'عام', 'all', 'الكل', ''];
+  const make = String(item.car_make || item.make || '').trim();
+  const model = String(item.car_model || item.model || '').trim();
+  const year = String(item.car_model_year || item.year || item.model_year || '').trim();
+  if (univ.includes(make.toLowerCase())) return 'جميع السيارات';
+  return [make, model, year].filter((v) => v && !univ.includes(v.toLowerCase())).join(' ') || '—';
+}
+
 export default function AdminProfits() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -327,6 +337,7 @@ export default function AdminProfits() {
                                         style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '8px', background: '#f9f9f9', flexShrink: 0 }} />
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontWeight: '700', fontSize: '0.85rem', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                                        <div style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: '700', margin: '2px 0' }}>🚗 {carInfo(item)}</div>
                                         <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
                                           {item.brand && <span>{item.brand} • </span>}
                                           سعر البيع: {price.toLocaleString()} ج.م × {qty}
@@ -471,6 +482,7 @@ export default function AdminProfits() {
                                 <img src={item.image_url || '/placeholder.png'} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '6px', background: '#f9f9f9', flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontWeight: '700', fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                                  <div style={{ fontSize: '0.68rem', color: '#16a34a', fontWeight: '700' }}>🚗 {carInfo(item)}</div>
                                   <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{price.toLocaleString()} ج.م × {qty}</div>
                                 </div>
                               </div>
