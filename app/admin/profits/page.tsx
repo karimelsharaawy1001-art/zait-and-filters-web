@@ -82,6 +82,25 @@ export default function AdminProfits() {
     }
   }
 
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  // Save ALL cost edits for one order at once — only when the user clicks Save.
+  async function saveOrderProfit(order: any) {
+    setSavingId(order.id);
+    const items = (order.items || []).map((it: any, idx: number) => ({
+      ...it, cost_price: costPrices[order.id]?.[idx] ?? parseFloat(it.cost_price || 0),
+    }));
+    const extra = extraCosts[order.id] || 0;
+    const ship = shippingCostPaid[order.id] || 0;
+    const { error } = await supabase.from('orders')
+      .update({ items, extra_costs: extra, shipping_cost_paid: ship })
+      .eq('id', order.id);
+    setSavingId(null);
+    if (error) { toast.error('فشل الحفظ: ' + error.message); return; }
+    setOrders(prev => prev.map(o => o.id === order.id ? { ...o, items, extra_costs: extra, shipping_cost_paid: ship } : o));
+    toast.success('تم حفظ التكاليف ✅');
+  }
+
   async function saveItemCost(orderId: string, itemIndex: number, costPrice: number) {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
@@ -150,7 +169,9 @@ export default function AdminProfits() {
   const PER_PAGE = 20;
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PER_PAGE));
   const pageOrders = filteredOrders.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
-  useEffect(() => { setCurrentPage(1); }, [selectedStatuses, dateFrom, dateTo, orders]);
+  // Reset to page 1 only when the FILTERS change — never when saving a cost
+  // (which updates `orders` and must keep you on the same page).
+  useEffect(() => { setCurrentPage(1); }, [selectedStatuses, dateFrom, dateTo]);
 
   if (loading) {
     return (
@@ -313,7 +334,6 @@ export default function AdminProfits() {
                             <input type="number" min={0} step="0.01"
                               value={extraCosts[order.id] ?? 0}
                               onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
-                              onBlur={() => saveExtraCosts(order.id)}
                               style={{ width: '90px', height: '34px', border: '1px solid #e5e5e5', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', background: '#fff' }}
                             />
                             <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
@@ -360,7 +380,6 @@ export default function AdminProfits() {
                                                 [order.id]: { ...(p[order.id] || {}), [idx]: v }
                                               }));
                                             }}
-                                            onBlur={() => saveItemCost(order.id, idx, costPrices[order.id]?.[idx] || 0)}
                                             className="cost-input"
                                             style={{ width: '85px', height: '34px', border: '1px solid #e5e5e5', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700', background: '#fff' }}
                                           />
@@ -394,7 +413,6 @@ export default function AdminProfits() {
                                         <input type="number" min={0} step="0.01"
                                           value={paidShipping || ''}
                                           onChange={e => setShippingCostPaid(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
-                                          onBlur={() => saveShippingCostPaid(order.id)}
                                           style={{ width: '80px', height: '30px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700', background: '#fff' }} />
                                         <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                                       </div>
@@ -411,7 +429,6 @@ export default function AdminProfits() {
                                         <input type="number" min={0} step="0.01"
                                           value={extras || ''}
                                           onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
-                                          onBlur={() => saveExtraCosts(order.id)}
                                           style={{ width: '80px', height: '30px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700', background: '#fff' }} />
                                         <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                                       </div>
@@ -425,6 +442,10 @@ export default function AdminProfits() {
                                   </div>
                                 </div>
                               </div>
+                              <button onClick={() => saveOrderProfit(order)} disabled={savingId === order.id}
+                                style={{ marginTop: '12px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: savingId === order.id ? '#9ca3af' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '0.9rem', cursor: savingId === order.id ? 'not-allowed' : 'pointer' }}>
+                                {savingId === order.id ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={16} />} حفظ التكاليف
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -500,7 +521,6 @@ export default function AdminProfits() {
                                       const v = parseFloat(e.target.value) || 0;
                                       setCostPrices(p => ({ ...p, [order.id]: { ...(p[order.id] || {}), [idx]: v } }));
                                     }}
-                                    onBlur={() => saveItemCost(order.id, idx, costPrices[order.id]?.[idx] || 0)}
                                     style={{ width: '100%', height: '34px', border: '1px solid #e5e5e5', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }} />
                                 </div>
                                 <div style={{ flex: 1, textAlign: 'center', paddingTop: '14px' }}>
@@ -529,7 +549,6 @@ export default function AdminProfits() {
                               <input type="number" min={0} step="0.01"
                                 value={paidShipping || ''}
                                 onChange={e => setShippingCostPaid(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
-                                onBlur={() => saveShippingCostPaid(order.id)}
                                 style={{ width: '80px', height: '32px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700' }} />
                               <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                             </div>
@@ -546,7 +565,6 @@ export default function AdminProfits() {
                               <input type="number" min={0} step="0.01"
                                 value={extras || ''}
                                 onChange={e => setExtraCosts(p => ({ ...p, [order.id]: parseFloat(e.target.value) || 0 }))}
-                                onBlur={() => saveExtraCosts(order.id)}
                                 style={{ width: '80px', height: '32px', border: '1px solid #e5e5e5', borderRadius: '6px', textAlign: 'center', fontSize: '0.82rem', fontWeight: '700' }} />
                               <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>ج.م</span>
                             </div>
@@ -557,6 +575,10 @@ export default function AdminProfits() {
                         <span style={{ color: 'rgba(0,0,0,0.05)', fontSize: '0.85rem', fontWeight: '700' }}>صافي الربح</span>
                         <span style={{ fontSize: '1.2rem', fontWeight: '900', color: netProfit >= 0 ? '#22c55e' : '#15803d' }}>{netProfit.toLocaleString()} ج.م</span>
                       </div>
+                      <button onClick={() => saveOrderProfit(order)} disabled={savingId === order.id}
+                        style={{ marginTop: '10px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: savingId === order.id ? '#9ca3af' : 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '0.9rem', cursor: savingId === order.id ? 'not-allowed' : 'pointer' }}>
+                        {savingId === order.id ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={16} />} حفظ التكاليف
+                      </button>
                     </div>
                   )}
                 </div>
@@ -583,7 +605,7 @@ export default function AdminProfits() {
       {filteredOrders.length > 0 && (
         <div style={{ marginTop: '20px', padding: '14px 18px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#92400e', fontWeight: '700' }}>
           <FileText size={18} color="#d97706" />
-          يمكنك تعديل تكلفة أي منتج وسيتم الحفظ تلقائياً عند مغادرة الحقل. استخدم فلتر التاريخ لعرض تقارير فترة محددة.
+          عدّل تكاليف المنتجات والشحن ثم اضغط "حفظ التكاليف" لحفظ الطلب — لن تتغيّر صفحتك بعد الحفظ.
         </div>
       )}
     </div>
