@@ -1,11 +1,10 @@
 // app/api/paymob-webhook/route.ts
 //
 // Paymob calls this URL after a payment completes (server-to-server).
-// Configure in the Paymob dashboard → Webhook URL:
+// Configure in Paymob dashboard → Webhook URL:
 //   https://zaitandfilters.com/api/paymob-webhook
 //
-// For Unified Checkout, the callback is a POST with form-encoded transaction data.
-// The key fields are: id (transaction), order (paymob order id), success, status.
+// Accept Iframe sends form-encoded transaction data.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -16,120 +15,93 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Map Paymob status → our internal payment_status
-function mapPaymentStatus(paymobStatus: string): string {
-  const s = (paymobStatus || '').toUpperCase().trim();
-  if (['SUCCESS', 'PAID', 'APPROVED', 'TRUE'].includes(s)) return 'paid';
-  if (['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'VOIDED', 'FALSE'].includes(s)) return 'failed';
-  if (['PENDING', 'PROCESSING', 'INITIATED'].includes(s)) return 'pending';
-  if (['REFUNDED', 'REVERSED'].includes(s)) return 'refunded';
+function mapPaymentStatus(s: string): string {
+  const u = (s || '').toUpperCase().trim();
+  if (['SUCCESS', 'PAID', 'APPROVED', 'TRUE'].includes(u)) return 'paid';
+  if (['FAILED', 'DECLINED', 'REJECTED', 'ERROR', 'VOIDED', 'FALSE'].includes(u)) return 'failed';
+  if (['PENDING', 'PROCESSING', 'INITIATED'].includes(u)) return 'pending';
+  if (['REFUNDED', 'REVERSED'].includes(u)) return 'refunded';
   return 'pending';
-}
-
-function verifyHmac(body: any, hmacSecret: string): boolean {
-  try {
-    // Paymob HMAC-SHA512: sort fields lexicographically, concatenate values, hash
-    const fields = [
-      body.amount_cents,
-      body.created,
-      body.currency,
-      body.error_occured,
-      body.has_parent_transaction,
-      body.id,
-      body.integration_id,
-      body.is_3d_secure,
-      body.is_auth,
-      body.is_capture,
-      body.is_refunded,
-      body.is_standalone_payment,
-      body.is_voided,
-      body.order,
-      body.owner,
-      body.pending,
-      body.source_data?.card_first_six || '',
-      body.source_data?.card_last_four || '',
-      body.source_data?.hpan || '',
-      body.source_data?.message || '',
-      body.source_data?.name || '',
-      body.source_data?.type || '',
-      body.status,
-      String(body.success),
-    ].join('');
-
-    const calculated = crypto.createHmac('sha512', hmacSecret).update(fields).digest('hex');
-    return calculated === (body.hmac || '');
-  } catch {
-    return false;
-  }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // Paymob sends form-encoded data
     const rawText = await req.text();
     const params = new URLSearchParams(rawText);
     const body: Record<string, string> = {};
     params.forEach((v, k) => { body[k] = v; });
 
-    // Also try JSON body
+    // Also try JSON
     let jsonBody: any = {};
     try { jsonBody = JSON.parse(rawText); } catch {}
-
     const payload = { ...jsonBody, ...body };
+
     console.log('[Paymob Webhook] Received:', JSON.stringify(payload, null, 2));
 
-    const paymobOrderId = payload.order || payload.order_id;
+    const paymobOrderId = payload.order || payload.order_id || payload.intention_order_id;
     const transactionId = payload.id || payload.transaction_id;
     const status = payload.status;
     const success = payload.success === 'true' || payload.success === true;
 
-    // ── 1. Verify HMAC (if secret is configured) ────────────────────────────
+    // ── Verify HMAC if configured ───────────────────────────────────────────
     const hmacSecret = process.env.PAYMOB_HMAC_SECRET;
     if (hmacSecret && payload.hmac) {
-      if (!verifyHmac(payload, hmacSecret)) {
-        console.error('[Paymob Webhook] ❌ Invalid HMAC — rejecting');
-        return NextResponse.json({ error: 'Invalid HMAC' }, { status: 401 });
+      try {
+        const fields = [
+          payload.amount_cents, payload.created, payload.currency,
+          payload.error_occured, payload.has_parent_transaction,
+          payload.id, payload.integration_id, payload.is_3d_secure,
+          payload.is_auth, payload.is_capture, payload.is_refunded,
+          payload.is_standalone_payment, payload.is_voided,
+          payload.order, payload.owner, payload.pending,
+          payload.source_data?.card_first_six || '',
+          payload.source_data?.card_last_four || '',
+          payload.source_data?.hpan || '',
+          payload.source_data?.message || '',
+          payload.source_data?.name || '',
+          payload.source_data?.type || '',
+          payload.status, String(payload.success),
+        ].join('');
+        const calculated = crypto.createHmac('sha512', hmacSecret).update(fields).digest('hex');
+        if (calculated !== payload.hmac) {
+          console.error('[Paymob Webhook] ❌ Invalid HMAC');
+          return NextResponse.json({ error: 'Invalid HMAC' }, { status: 401 });
+        }
+        console.log('[Paymob Webhook] ✅ HMAC verified');
+      } catch (err) {
+        console.warn('[Paymob Webhook] HMAC check error:', err);
       }
-      console.log('[Paymob Webhook] ✅ HMAC verified');
-    } else if (!hmacSecret) {
-      console.warn('[Paymob Webhook] ⚠️ No HMAC secret — skipping verification');
     }
 
-    // ── 2. Check payment success ────────────────────────────────────────────
+    // ── Check success ───────────────────────────────────────────────────────
     if (!success && status?.toUpperCase() !== 'SUCCESS') {
-      console.log('[Paymob Webhook] Payment not successful, status:', status);
-      return NextResponse.json({ received: true, action: 'ignored', reason: 'non-success status' });
+      console.log('[Paymob Webhook] Non-success status:', status);
+      return NextResponse.json({ received: true, action: 'ignored' });
     }
 
     if (!paymobOrderId) {
-      console.error('[Paymob Webhook] No order ID in payload');
+      console.error('[Paymob Webhook] No order ID');
       return NextResponse.json({ received: true, action: 'ignored', reason: 'no order id' });
     }
 
-    // ── 3. Find matching order by paymob_order_id ──────────────────────────
-    const { data: matchedOrder, error: findError } = await supabase
+    // ── Find matching order ─────────────────────────────────────────────────
+    const { data: matchedOrder, error: findErr } = await supabase
       .from('orders')
       .select('id, status, payment_status')
       .eq('paymob_order_id', String(paymobOrderId))
       .maybeSingle();
 
-    if (findError) {
-      console.error('[Paymob Webhook] Fetch error:', findError);
-      return NextResponse.json({ received: true, action: 'error', reason: findError.message }, { status: 500 });
-    }
-
-    if (!matchedOrder) {
-      console.warn('[Paymob Webhook] No matching order found for paymob_order_id:', paymobOrderId);
-      // Return 200 to prevent retries
-      return NextResponse.json({ received: true, action: 'not_found', paymobOrderId });
+    if (findErr || !matchedOrder) {
+      console.warn('[Paymob Webhook] No matching order for:', paymobOrderId);
+      return NextResponse.json({ received: true, action: 'not_found' });
     }
 
     console.log('[Paymob Webhook] Matched order:', matchedOrder.id);
 
-    // ── 4. Update order status ──────────────────────────────────────────────
+    // ── Update order ────────────────────────────────────────────────────────
     const paymentMethod = payload['source_data.type'] || payload.payment_method || null;
 
-    const { error: updateError } = await supabase
+    const { error: updateErr } = await supabase
       .from('orders')
       .update({
         status:                'pending',
@@ -141,25 +113,25 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', matchedOrder.id);
 
-    if (updateError) {
-      console.error('[Paymob Webhook] Update error:', updateError);
-      return NextResponse.json({ received: true, action: 'error', reason: updateError.message }, { status: 500 });
+    if (updateErr) {
+      console.error('[Paymob Webhook] Update error:', updateErr);
+      return NextResponse.json({ received: true, action: 'error' }, { status: 500 });
     }
 
-    console.log('[Paymob Webhook] ✅ Order updated:', matchedOrder.id, '→ pending / paid');
+    console.log('[Paymob Webhook] ✅ Order updated:', matchedOrder.id);
 
-    // ── 5. Send order confirmation email ────────────────────────────────────
+    // ── Send email ──────────────────────────────────────────────────────────
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zaitandfilters.com';
     fetch(`${baseUrl}/api/send-order-confirmation`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId: matchedOrder.id }),
-    }).catch((err) => console.error('[Paymob Webhook] Email send error:', err));
+    }).catch((err) => console.error('[Paymob Webhook] Email error:', err));
 
     return NextResponse.json({ received: true, action: 'updated', orderId: matchedOrder.id });
 
   } catch (err: any) {
-    console.error('[Paymob Webhook] Unexpected error:', err);
+    console.error('[Paymob Webhook] Error:', err);
     return NextResponse.json({ received: true, action: 'error', reason: err.message });
   }
 }

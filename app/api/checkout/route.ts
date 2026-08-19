@@ -1,142 +1,124 @@
 // app/api/checkout/route.ts
 //
-// Paymob Unified Checkout (Hosted Redirection)
-// Docs: https://developers.paymob.com/paymob-docs/api-reference/backend-apis/intention/create-intention
-//
+// Paymob Accept (Hosted Iframe) API
 // Flow:
-//   1. POST /intentions  → get client_secret
-//   2. Redirect user to https://accept.paymob.com/unifiedcheckout/?publicKey=...&clientSecret=...
-//   3. Paymob shows ALL payment methods (cards, wallets, installments) on one page
-//   4. After payment → webhook callback + redirect
+//   1. POST /api/auth/tokens          → get auth_token
+//   2. POST /api/ecommerce/orders     → create Paymob order → get order id
+//   3. POST /api/acceptance/payment_keys → get payment_key (token)
+//   4. Redirect user to iframe URL with payment_token
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const PAYMOB_BASE = 'https://accept.paymob.com';
+const PAYMOB_BASE = 'https://accept.paymobsolutions.com';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { amount, orderId, customerName, customerPhone, customerEmail, items } = body;
 
-    const secretKey     = process.env.PAYMOB_SECRET_KEY;
-    const publicKey     = process.env.PAYMOB_PUBLIC_KEY;
-    const integrationIds = (process.env.PAYMOB_INTEGRATION_IDS || '').split(',').map(Number).filter(Boolean);
+    const apiKey        = process.env.PAYMOB_API_KEY;
+    const integrationId = Number(process.env.PAYMOB_INTEGRATION_ID);
+    const iframeId      = process.env.PAYMOB_IFRAME_ID;
 
-    if (!secretKey || !publicKey) {
-      console.error('[Paymob] ❌ Missing PAYMOB_SECRET_KEY or PAYMOB_PUBLIC_KEY');
-      return NextResponse.json(
-        { success: false, message: 'Server config error: missing Paymob keys' },
-        { status: 500 }
-      );
+    if (!apiKey) {
+      return NextResponse.json({ success: false, message: 'Missing PAYMOB_API_KEY' }, { status: 500 });
     }
-
-    if (!integrationIds.length) {
-      console.error('[Paymob] ❌ Missing PAYMOB_INTEGRATION_IDS');
-      return NextResponse.json(
-        { success: false, message: 'Server config error: missing Paymob integration IDs' },
-        { status: 500 }
-      );
+    if (!integrationId || !iframeId) {
+      return NextResponse.json({ success: false, message: 'Missing PAYMOB_INTEGRATION_ID or PAYMOB_IFRAME_ID' }, { status: 500 });
     }
-
     if (!amount || !orderId || !customerName || !customerPhone) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields: amount, orderId, customerName, customerPhone' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zaitandfilters.com';
-    const amountCents = Math.round(Number(amount) * 100);
+    // ── Step 1: Auth token ──────────────────────────────────────────────────
+    console.log('[Paymob] Step1: Getting auth token...');
+    const authRes = await fetch(`${PAYMOB_BASE}/api/auth/tokens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey }),
+    });
+    const authData = await authRes.json();
+    if (!authData.token) {
+      console.error('[Paymob] Auth failed:', authData);
+      return NextResponse.json({ success: false, message: 'Paymob auth failed' }, { status: 502 });
+    }
+    const authToken = authData.token;
+    console.log('[Paymob] Auth OK');
 
-    // Build items for the intention
+    // ── Step 2: Create order ────────────────────────────────────────────────
+    const amountCents = Math.round(Number(amount) * 100);
     const intentionItems = (items || []).map((item: any) => ({
       name:     item.name || 'Product',
       amount:   Math.round(Number(item.price) * 100),
       quantity: item.quantity || 1,
     }));
-
-    // If no items provided, add a single item with the total
     if (intentionItems.length === 0) {
-      intentionItems.push({
-        name:     'Order',
-        amount:   amountCents,
-        quantity: 1,
-      });
+      intentionItems.push({ name: 'Order', amount: amountCents, quantity: 1 });
     }
 
+    console.log('[Paymob] Step2: Creating order, amount_cents:', amountCents);
+    const paymobOrderRes = await fetch(`${PAYMOB_BASE}/api/ecommerce/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        auth_token:      authToken,
+        delivery_needed: 'false',
+        amount_cents:    amountCents,
+        currency:        'EGP',
+        items:           intentionItems,
+      }),
+    });
+    const paymobOrderData = await paymobOrderRes.json();
+    if (!paymobOrderData.id) {
+      console.error('[Paymob] Order failed:', paymobOrderData);
+      return NextResponse.json({ success: false, message: 'Paymob order failed', details: paymobOrderData }, { status: 502 });
+    }
+    const paymobOrderId = paymobOrderData.id;
+    console.log('[Paymob] Order created, id:', paymobOrderId);
+
+    // ── Step 3: Payment key ─────────────────────────────────────────────────
     const firstName = customerName.trim().split(' ')[0] || 'Customer';
     const lastName  = customerName.trim().split(' ').slice(1).join(' ') || 'NA';
 
-    // ── Step 1: Create Intention ────────────────────────────────────────────
-    console.log('[Paymob] Creating intention...');
-    console.log('[Paymob] payment_methods:', integrationIds, '| amount_cents:', amountCents);
-
-    const intentionRes = await fetch(`${PAYMOB_BASE}/intentions`, {
+    console.log('[Paymob] Step3: Getting payment key, integration_id:', integrationId);
+    const keyRes = await fetch(`${PAYMOB_BASE}/api/acceptance/payment_keys`, {
       method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Token ${secretKey}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amount:            amountCents,
-        currency:          'EGP',
-        payment_methods:   integrationIds,
-        items:             intentionItems,
+        auth_token:      authToken,
+        amount_cents:    amountCents,
+        expiration:      3600,
+        order_id:        paymobOrderId,
+        currency:        'EGP',
+        integration_id:  integrationId,
         billing_data: {
-          apartment:       'NA',
-          email:           customerEmail?.trim() || 'customer@zaitandfilters.com',
-          floor:           'NA',
-          first_name:      firstName,
-          street:          'NA',
-          building:        'NA',
-          phone_number:    customerPhone.trim(),
-          shipping_method: 'NA',
-          postal_code:     'NA',
-          city:            'Cairo',
-          country:         'EG',
-          last_name:       lastName,
-          state:           'NA',
+          apartment: 'NA', email: customerEmail?.trim() || 'customer@zaitandfilters.com',
+          floor: 'NA', first_name: firstName, street: 'NA', building: 'NA',
+          phone_number: customerPhone.trim(), shipping_method: 'NA',
+          postal_code: 'NA', city: 'Cairo', country: 'EG',
+          last_name: lastName, state: 'NA',
         },
-        special_reference: String(orderId),
-        redirection_url:   `${siteUrl}/order-success?orderId=${orderId}`,
-        notification_url:  `${siteUrl}/api/paymob-webhook`,
       }),
     });
-
-    const intentionData = await intentionRes.json();
-    console.log('[Paymob] Intention response:', JSON.stringify({ status: intentionRes.status, keys: Object.keys(intentionData) }));
-
-    if (!intentionRes.ok || !intentionData.client_secret) {
-      console.error('[Paymob] ❌ Intention failed:', JSON.stringify(intentionData));
-      return NextResponse.json(
-        {
-          success: false,
-          message: intentionData.detail || intentionData.message || 'Failed to create Paymob intention',
-          details: intentionData,
-        },
-        { status: intentionRes.status || 502 }
-      );
+    const keyData = await keyRes.json();
+    if (!keyData.token) {
+      console.error('[Paymob] Payment key failed:', keyData);
+      return NextResponse.json({ success: false, message: 'Paymob payment key failed', details: keyData }, { status: 502 });
     }
 
-    const clientSecret = intentionData.client_secret;
-    const intentionOrderId = intentionData.intention_order_id || intentionData.id;
-    const checkoutUrl = `${PAYMOB_BASE}/unifiedcheckout/?publicKey=${publicKey}&clientSecret=${clientSecret}`;
+    const paymentToken = keyData.token;
+    const iframeBase   = process.env.PAYMOB_IFRAME_BASE || PAYMOB_BASE;
+    const iframeUrl    = `${iframeBase}/api/acceptance/iframes/${iframeId}?payment_token=${paymentToken}`;
 
-    console.log('[Paymob] ✅ Intention created. orderId:', intentionOrderId);
-    console.log('[Paymob] Checkout URL:', checkoutUrl);
-
+    console.log('[Paymob] ✅ Ready. iframe:', iframeUrl);
     return NextResponse.json({
-      success:          true,
-      url:              checkoutUrl,
-      paymobOrderId:    intentionOrderId,
-      intentionId:      intentionData.id,
+      success:       true,
+      url:           iframeUrl,
+      paymobOrderId: paymobOrderId,
     });
 
   } catch (err: any) {
-    console.error('[Paymob] Unexpected error:', err);
-    return NextResponse.json(
-      { success: false, message: 'Internal error: ' + err.message },
-      { status: 500 }
-    );
+    console.error('[Paymob] Error:', err);
+    return NextResponse.json({ success: false, message: 'Internal error: ' + err.message }, { status: 500 });
   }
 }
