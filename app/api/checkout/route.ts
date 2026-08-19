@@ -16,7 +16,7 @@ const PAYMOB_BASE = 'https://accept.paymobsolutions.com';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, orderId, customerName, customerPhone, customerEmail } = body;
+    const { amount, orderId, customerName, customerPhone, customerEmail, items } = body;
 
     const apiKey       = process.env.PAYMOB_API_KEY;
     const integrationId = Number(process.env.PAYMOB_INTEGRATION_ID_CARDS);
@@ -74,7 +74,11 @@ export async function POST(req: NextRequest) {
         delivery_needed: 'false',
         amount_cents:    amountCents,
         currency:        'EGP',
-        items:           [],
+        items:           (items || []).map((item: any) => ({
+          name:     item.name || 'Product',
+          amount_cents: Math.round(Number(item.price) * 100),
+          quantity: item.quantity || 1,
+        })),
       }),
     });
     const paymobOrderData = await paymobOrderRes.json();

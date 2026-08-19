@@ -389,6 +389,7 @@ export default function CheckoutPage() {
         customerPhone: customerInfo.phone.trim(),
         customerEmail: customerInfo.email?.trim() || 'customer@zaitandfilters.com',
         orderId: orderId,
+        items: cart,
       };
 
       const response = await fetch('/api/checkout', {
