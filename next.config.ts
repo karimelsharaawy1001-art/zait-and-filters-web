@@ -30,9 +30,12 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    EASYKASH_API_KEY: process.env.EASYKASH_API_KEY || 'apdj858gekt0naz1',
-    EASYKASH_HMAC_SECRET: process.env.EASYKASH_HMAC_SECRET || '87ca3d5640dc3f5809d3dfbf4a5045ad',
-    EASYKASH_MERCHANT_ID: process.env.EASYKASH_MERCHANT_ID || 'DNH7034',
+    PAYMOB_API_KEY:                 process.env.PAYMOB_API_KEY || '',
+    PAYMOB_HMAC_SECRET:             process.env.PAYMOB_HMAC_SECRET || '',
+    PAYMOB_INTEGRATION_ID_CARDS:    process.env.PAYMOB_INTEGRATION_ID_CARDS || '',
+    PAYMOB_INTEGRATION_ID_WALLETS:  process.env.PAYMOB_INTEGRATION_ID_WALLETS || '',
+    PAYMOB_IFRAME_ID_CARDS:         process.env.PAYMOB_IFRAME_ID_CARDS || '',
+    PAYMOB_IFRAME_ID_WALLETS:       process.env.PAYMOB_IFRAME_ID_WALLETS || '',
   },
   async rewrites() {
     return [

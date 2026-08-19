@@ -47,8 +47,8 @@ export default function OrderSuccessClient() {
 
     try {
       let query = supabase.from('orders').select('*');
-      if (provRef)       query = query.eq('easykash_ref', provRef);
-      else if (custRef)  query = query.eq('easykash_customer_ref', custRef);
+      if (provRef)       query = query.eq('paymob_ref', provRef);
+      else if (custRef)  query = query.eq('paymob_order_id', custRef);
       else               { if (intervalRef.current) clearInterval(intervalRef.current); setPhase('failed'); return; }
 
       const { data } = await query.maybeSingle();
@@ -100,7 +100,7 @@ export default function OrderSuccessClient() {
       <div style={card}>
         <Loader2 size={52} color="#22c55e" style={{ animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
         <h2 style={{ fontWeight: '900', fontSize: '1.4rem', marginBottom: '8px', color: '#1a1a1a' }}>جاري التحقق من الدفع...</h2>
-        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '4px' }}>تم استلام طلبك، نتحقق من تأكيد الدفع من EasyKash</p>
+        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '4px' }}>تم استلام طلبك، نتحقق من تأكيد الدفع من Paymob</p>
         <p style={{ color: '#374151', fontSize: '0.78rem' }}>({tries}/{POLL_MAX_TRIES} محاولة)</p>
       </div>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }` }} />
@@ -163,7 +163,7 @@ export default function OrderSuccessClient() {
           <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🎉</div>
           <h1 style={{ fontSize: '1.7rem', fontWeight: '900', marginBottom: '6px' }}>تم الدفع وتسجيل طلبك بنجاح!</h1>
           <p style={{ color: 'rgba(0,0,0,0.06)', fontSize: '0.9rem' }}>رقم الطلب: <span style={{ color: '#22c55e', fontWeight: '900' }}>#{orderNum}</span></p>
-          {order.easykash_payment_method && <p style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.78rem', marginTop: '4px' }}>طريقة الدفع: {order.easykash_payment_method}</p>}
+          {order.paymob_payment_method && <p style={{ color: 'rgba(0,0,0,0.2)', fontSize: '0.78rem', marginTop: '4px' }}>طريقة الدفع: {order.paymob_payment_method}</p>}
         </div>
 
         {/* Buttons */}
@@ -221,7 +221,7 @@ export default function OrderSuccessClient() {
                 <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#1a1a1a', lineHeight: '1.5', marginBottom: '6px' }}>{order.customer_address}</div>
                 <div style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: '700' }}>{order.city}</div>
                 <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e5e7eb' }}>
-                  طريقة الدفع: <strong style={{ color: '#1a1a1a' }}>{order.easykash_payment_method || 'بطاقة / تقسيط'}</strong>
+                  طريقة الدفع: <strong style={{ color: '#1a1a1a' }}>{order.paymob_payment_method || 'بطاقة / تقسيط'}</strong>
                 </div>
               </div>
             </div>
