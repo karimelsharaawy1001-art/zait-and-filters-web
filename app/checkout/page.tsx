@@ -381,7 +381,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const initiatePaymobPayment = async (orderId: string) => {
+  const initiateEasyKashPayment = async (orderId: string, customerReference: number) => {
     try {
       const payload = {
         amount: finalTotal,
@@ -389,7 +389,8 @@ export default function CheckoutPage() {
         customerPhone: customerInfo.phone.trim(),
         customerEmail: customerInfo.email?.trim() || 'customer@zaitandfilters.com',
         orderId: orderId,
-        items: cart,
+        customerReference: customerReference,
+        description: `طلب رقم ${orderId} - زيت وفلاتر`,
       };
 
       const response = await fetch('/api/checkout', {
@@ -412,17 +413,13 @@ export default function CheckoutPage() {
       }
 
       if (data.success && data.url) {
-        // Store the Paymob order ID so the success page can look up the order
-        if (data.paymobOrderId) {
-          await supabase.from('orders').update({ paymob_order_id: String(data.paymobOrderId) }).eq('id', orderId);
-        }
         toast.success('جاري التحويل لصفحة الدفع... 🚀');
         setTimeout(() => { window.location.href = data.url; }, 500);
       } else {
-        throw new Error(data.message || data.error || 'لم يتم إرجاع رابط الدفع من Paymob');
+        throw new Error(data.message || data.error || 'لم يتم إرجاع رابط الدفع من EasyKash');
       }
     } catch (err: any) {
-      console.error('[Paymob] Error:', err);
+      console.error('[EasyKash] Error:', err);
       toast.error('خطأ في بوابة الدفع: ' + err.message);
       setLoading(false);
     }
@@ -605,8 +602,9 @@ export default function CheckoutPage() {
         localStorage.removeItem('zf_marketer_ref');
 
         // Admin + customer notifications for card orders are sent by the
-        // Paymob webhook once the payment is approved.
-        await initiatePaymobPayment(newOrder.id);
+        // EasyKash webhook once the payment is approved.
+        const customerReference = Date.now() % 100000000;
+        await initiateEasyKashPayment(newOrder.id, customerReference);
 
       } else {
         const { data: newOrder, error } = await supabase.from('orders').insert([orderData]).select().single();
@@ -1302,7 +1300,7 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              {/* ── 2nd: Paymob (card/installments) — hidden for express shipping ── */}
+              {/* ── 2nd: EasyKash (card/installments) — hidden for express shipping ── */}
               {!expressShipping && (
               <label className="pay-card-label" style={paymentCard(paymentMethod === 'card_installments')}>
                 <input type="radio" value="card_installments" checked={paymentMethod === 'card_installments'} onChange={(e) => setPaymentMethod(e.target.value)} style={hideRadio}/>

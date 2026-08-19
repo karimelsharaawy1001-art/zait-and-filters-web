@@ -1,124 +1,111 @@
 // app/api/checkout/route.ts
 //
-// Paymob Accept (Hosted Iframe) API
-// Flow:
-//   1. POST /api/auth/tokens          → get auth_token
-//   2. POST /api/ecommerce/orders     → create Paymob order → get order id
-//   3. POST /api/acceptance/payment_keys → get payment_key (token)
-//   4. Redirect user to iframe URL with payment_token
+// EasyKash Direct Payment (Hosted) API
+// Docs: https://easykash.gitbook.io/easykash-apis-documentation/direct-payment-hosted/pay-api
+//
+// POST https://back.easykash.net/api/directpayv1/pay
+// Header: authorization: <API_KEY>
+// Returns: { redirectUrl: "https://www.easykash.net/DirectPayV1/{productCode}" }
 
 import { NextRequest, NextResponse } from 'next/server';
-
-const PAYMOB_BASE = 'https://accept.paymobsolutions.com';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, orderId, customerName, customerPhone, customerEmail, items } = body;
+    const { amount, orderId, customerName, customerPhone, customerEmail } = body;
 
-    const apiKey        = process.env.PAYMOB_API_KEY;
-    const integrationId = Number(process.env.PAYMOB_INTEGRATION_ID);
-    const iframeId      = process.env.PAYMOB_IFRAME_ID;
+    const apiKey  = process.env.EASYKASH_API_KEY;
+    const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zaitandfilters.com';
 
     if (!apiKey) {
-      return NextResponse.json({ success: false, message: 'Missing PAYMOB_API_KEY' }, { status: 500 });
+      console.error('[EasyKash] ❌ Missing EASYKASH_API_KEY');
+      return NextResponse.json(
+        { success: false, message: 'Server config error: missing EASYKASH_API_KEY' },
+        { status: 500 }
+      );
     }
-    if (!integrationId || !iframeId) {
-      return NextResponse.json({ success: false, message: 'Missing PAYMOB_INTEGRATION_ID or PAYMOB_IFRAME_ID' }, { status: 500 });
-    }
+
     if (!amount || !orderId || !customerName || !customerPhone) {
-      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: 'Missing required fields: amount, orderId, customerName, customerPhone' },
+        { status: 400 }
+      );
     }
 
-    // ── Step 1: Auth token ──────────────────────────────────────────────────
-    console.log('[Paymob] Step1: Getting auth token...');
-    const authRes = await fetch(`${PAYMOB_BASE}/api/auth/tokens`, {
+    // ── Build payload exactly as per EasyKash docs ───────────────────────────
+    const payload = {
+      amount:            Number(amount),       // in EGP
+      currency:          'EGP',
+      name:              customerName.trim(),
+      email:             customerEmail?.trim() || 'customer@zaitandfilters.com',
+      mobile:            customerPhone.trim(),
+      redirectUrl:       `${siteUrl}/order-success?orderId=${orderId}`,
+      customerReference: Number(String(orderId).replace(/\D/g, '').slice(-8)) || Date.now(),
+      // Show all payment options available on your account
+      paymentOptions:    [1, 2, 3, 4, 5, 6, 8, 9, 10, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 34],
+      cashExpiry:        24, // hours
+    };
+
+    console.log('[EasyKash] POST https://back.easykash.net/api/directpayv1/pay');
+    console.log('[EasyKash] Payload:', JSON.stringify(payload, null, 2));
+
+    const response = await fetch('https://back.easykash.net/api/directpayv1/pay', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ api_key: apiKey }),
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': apiKey,   // ← exactly as documented: "authorization" header
+        'Accept':        'application/json',
+      },
+      body: JSON.stringify(payload),
     });
-    const authData = await authRes.json();
-    if (!authData.token) {
-      console.error('[Paymob] Auth failed:', authData);
-      return NextResponse.json({ success: false, message: 'Paymob auth failed' }, { status: 502 });
-    }
-    const authToken = authData.token;
-    console.log('[Paymob] Auth OK');
 
-    // ── Step 2: Create order ────────────────────────────────────────────────
-    const amountCents = Math.round(Number(amount) * 100);
-    const intentionItems = (items || []).map((item: any) => ({
-      name:     item.name || 'Product',
-      amount:   Math.round(Number(item.price) * 100),
-      quantity: item.quantity || 1,
-    }));
-    if (intentionItems.length === 0) {
-      intentionItems.push({ name: 'Order', amount: amountCents, quantity: 1 });
+    const rawText = await response.text();
+    console.log('[EasyKash] Status:', response.status);
+    console.log('[EasyKash] Response:', rawText);
+
+    // Parse JSON
+    let data: any;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      console.error('[EasyKash] Non-JSON response:', rawText.slice(0, 300));
+      return NextResponse.json(
+        { success: false, message: 'EasyKash returned an invalid response', raw: rawText.slice(0, 200) },
+        { status: 502 }
+      );
     }
 
-    console.log('[Paymob] Step2: Creating order, amount_cents:', amountCents);
-    const paymobOrderRes = await fetch(`${PAYMOB_BASE}/api/ecommerce/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth_token:      authToken,
-        delivery_needed: 'false',
-        amount_cents:    amountCents,
-        currency:        'EGP',
-        items:           intentionItems,
-      }),
-    });
-    const paymobOrderData = await paymobOrderRes.json();
-    if (!paymobOrderData.id) {
-      console.error('[Paymob] Order failed:', paymobOrderData);
-      return NextResponse.json({ success: false, message: 'Paymob order failed', details: paymobOrderData }, { status: 502 });
-    }
-    const paymobOrderId = paymobOrderData.id;
-    console.log('[Paymob] Order created, id:', paymobOrderId);
-
-    // ── Step 3: Payment key ─────────────────────────────────────────────────
-    const firstName = customerName.trim().split(' ')[0] || 'Customer';
-    const lastName  = customerName.trim().split(' ').slice(1).join(' ') || 'NA';
-
-    console.log('[Paymob] Step3: Getting payment key, integration_id:', integrationId);
-    const keyRes = await fetch(`${PAYMOB_BASE}/api/acceptance/payment_keys`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth_token:      authToken,
-        amount_cents:    amountCents,
-        expiration:      3600,
-        order_id:        paymobOrderId,
-        currency:        'EGP',
-        integration_id:  integrationId,
-        billing_data: {
-          apartment: 'NA', email: customerEmail?.trim() || 'customer@zaitandfilters.com',
-          floor: 'NA', first_name: firstName, street: 'NA', building: 'NA',
-          phone_number: customerPhone.trim(), shipping_method: 'NA',
-          postal_code: 'NA', city: 'Cairo', country: 'EG',
-          last_name: lastName, state: 'NA',
+    if (!response.ok) {
+      console.error('[EasyKash] ❌ Error:', data);
+      return NextResponse.json(
+        {
+          success: false,
+          message: data?.message || data?.error || `EasyKash error ${response.status}`,
+          details: data,
         },
-      }),
-    });
-    const keyData = await keyRes.json();
-    if (!keyData.token) {
-      console.error('[Paymob] Payment key failed:', keyData);
-      return NextResponse.json({ success: false, message: 'Paymob payment key failed', details: keyData }, { status: 502 });
+        { status: response.status }
+      );
     }
 
-    const paymentToken = keyData.token;
-    const iframeBase   = process.env.PAYMOB_IFRAME_BASE || PAYMOB_BASE;
-    const iframeUrl    = `${iframeBase}/api/acceptance/iframes/${iframeId}?payment_token=${paymentToken}`;
+    // ── Docs say response is: { redirectUrl: "https://www.easykash.net/DirectPayV1/{productCode}" }
+    const paymentUrl = data?.redirectUrl || data?.url || data?.paymentUrl || data?.data?.redirectUrl || null;
 
-    console.log('[Paymob] ✅ Ready. iframe:', iframeUrl);
-    return NextResponse.json({
-      success:       true,
-      url:           iframeUrl,
-      paymobOrderId: paymobOrderId,
-    });
+    if (!paymentUrl) {
+      console.error('[EasyKash] ❌ No redirectUrl in response:', data);
+      return NextResponse.json(
+        { success: false, message: 'EasyKash did not return a payment URL', raw: data },
+        { status: 502 }
+      );
+    }
+
+    console.log('[EasyKash] ✅ Payment URL:', paymentUrl);
+    return NextResponse.json({ success: true, url: paymentUrl });
 
   } catch (err: any) {
-    console.error('[Paymob] Error:', err);
-    return NextResponse.json({ success: false, message: 'Internal error: ' + err.message }, { status: 500 });
+    console.error('[EasyKash] Unexpected error:', err);
+    return NextResponse.json(
+      { success: false, message: 'Internal error: ' + err.message },
+      { status: 500 }
+    );
   }
 }

@@ -710,7 +710,7 @@ export default function AdminOrders() {
   const paymentLabels: any = {
     'card_installments': 'بطاقة / تقسيط',
     'instapay': 'انستا باي',
-    'paymob': 'Paymob',
+    'easykash': 'EasyKash',
     'wallets': 'محفظة إلكترونية',
     'cash': 'كاش عند الاستلام',
     'vodafone_cash': 'فودافون كاش',
