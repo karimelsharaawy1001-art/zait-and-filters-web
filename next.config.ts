@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
     PAYMOB_INTEGRATION_ID_CARDS:    process.env.PAYMOB_INTEGRATION_ID_CARDS || '',
     PAYMOB_INTEGRATION_ID_WALLETS:  process.env.PAYMOB_INTEGRATION_ID_WALLETS || '',
     PAYMOB_IFRAME_ID_CARDS:         process.env.PAYMOB_IFRAME_ID_CARDS || '',
+    PAYMOB_IFRAME_BASE:             process.env.PAYMOB_IFRAME_BASE || 'https://accept-alpha.paymob.com',
     PAYMOB_IFRAME_ID_WALLETS:       process.env.PAYMOB_IFRAME_ID_WALLETS || '',
   },
   async rewrites() {
