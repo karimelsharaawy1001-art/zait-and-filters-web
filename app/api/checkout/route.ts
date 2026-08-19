@@ -130,8 +130,8 @@ export async function POST(req: NextRequest) {
     }
 
     const paymentToken = keyData.token;
-    // Iframe domain may differ from the API domain
-    const iframeBase   = process.env.PAYMOB_IFRAME_BASE || 'https://accept-alpha.paymob.com';
+    // Iframe domain must match the API domain (production)
+    const iframeBase   = process.env.PAYMOB_IFRAME_BASE || PAYMOB_BASE;
     const iframeUrl    = `${iframeBase}/api/acceptance/iframes/${iframeId}?payment_token=${paymentToken}`;
 
     console.log('[Paymob] ✅ Payment ready. iframe URL:', iframeUrl);
