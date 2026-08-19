@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ api_key: apiKey }),
     });
     const authData = await authRes.json();
+    console.log('[Paymob] Auth response:', JSON.stringify({ hasToken: !!authData.token, keys: Object.keys(authData) }));
     if (!authData.token) {
       console.error('[Paymob] ❌ Auth token failed:', authData);
       return NextResponse.json(
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
       }),
     });
     const paymobOrderData = await paymobOrderRes.json();
+    console.log('[Paymob] Order response:', JSON.stringify(paymobOrderData));
     if (!paymobOrderData.id) {
       console.error('[Paymob] ❌ Create order failed:', paymobOrderData);
       return NextResponse.json(
@@ -125,6 +127,7 @@ export async function POST(req: NextRequest) {
       }),
     });
     const keyData = await keyRes.json();
+    console.log('[Paymob] Payment key response:', JSON.stringify({ hasToken: !!keyData.token, keys: Object.keys(keyData) }));
     if (!keyData.token) {
       console.error('[Paymob] ❌ Payment key failed:', keyData);
       return NextResponse.json(
@@ -139,10 +142,12 @@ export async function POST(req: NextRequest) {
     const iframeUrl    = `${iframeBase}/api/acceptance/iframes/${iframeId}?payment_token=${paymentToken}`;
 
     console.log('[Paymob] ✅ Payment ready. iframe URL:', iframeUrl);
+    console.log('[Paymob] amountCents:', amountCents, '| paymobOrderId:', paymobOrderId, '| integrationId:', integrationId);
     return NextResponse.json({
       success:       true,
       url:           iframeUrl,
       paymobOrderId: paymobOrderId,
+      _debug:        { amountCents, paymobOrderId, integrationId, iframeId },
     });
 
   } catch (err: any) {
