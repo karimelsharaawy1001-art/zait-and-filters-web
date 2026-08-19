@@ -30,13 +30,11 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    PAYMOB_API_KEY:                 process.env.PAYMOB_API_KEY || '',
-    PAYMOB_HMAC_SECRET:             process.env.PAYMOB_HMAC_SECRET || '',
-    PAYMOB_INTEGRATION_ID_CARDS:    process.env.PAYMOB_INTEGRATION_ID_CARDS || '',
-    PAYMOB_INTEGRATION_ID_WALLETS:  process.env.PAYMOB_INTEGRATION_ID_WALLETS || '',
-    PAYMOB_IFRAME_ID_CARDS:         process.env.PAYMOB_IFRAME_ID_CARDS || '',
-    PAYMOB_IFRAME_BASE:             process.env.PAYMOB_IFRAME_BASE || '',
-    PAYMOB_IFRAME_ID_WALLETS:       process.env.PAYMOB_IFRAME_ID_WALLETS || '',
+    PAYMOB_API_KEY:          process.env.PAYMOB_API_KEY || '',
+    PAYMOB_SECRET_KEY:       process.env.PAYMOB_SECRET_KEY || '',
+    PAYMOB_PUBLIC_KEY:       process.env.PAYMOB_PUBLIC_KEY || '',
+    PAYMOB_HMAC_SECRET:      process.env.PAYMOB_HMAC_SECRET || '',
+    PAYMOB_INTEGRATION_IDS:  process.env.PAYMOB_INTEGRATION_IDS || '',
   },
   async rewrites() {
     return [
