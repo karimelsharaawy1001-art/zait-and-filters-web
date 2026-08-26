@@ -41,6 +41,9 @@ export default function ProfessionalFooter() {
           <p style={brandDesc}>
             وجهتك الأولى والموثوقة لجميع أنواع زيوت المحركات وفلاتر السيارات الأصلية. نضمن لك الجودة والأداء العالي لسيارتك.
           </p>
+          <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '16px', direction: 'ltr', textAlign: 'left' }}>
+            Powered By Carisma Auto Garage
+          </p>
           <div style={socialLinks}>
             <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noreferrer" className="footer-social-icon" style={socialIcon} aria-label="Facebook">
               <Facebook size={20} />
