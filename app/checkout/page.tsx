@@ -67,8 +67,7 @@ export default function CheckoutPage() {
 
   const EXPRESS_COST = 150;
   const COD_FEE = 20; // Cash-on-delivery collection fee (رسوم تحصيل)
-  const EXPRESS_CITIES = ['القاهرة', 'الجيزة'];
-  const isExpressAvailable = EXPRESS_CITIES.includes(selectedCity?.city_name || '');
+  const isExpressAvailable = true;
 
   useEffect(() => {
     if (!isExpressAvailable && expressShipping) setExpressShipping(false);
@@ -1212,7 +1211,7 @@ export default function CheckoutPage() {
             </select>
           </div>
 
-          {/* ── Shipping Type Selector (only for Cairo & Giza) ── */}
+          {/* ── Shipping Type Selector ── */}
           {isExpressAvailable && (
             <div style={{ marginBottom: '16px' }}>
               <label style={lab}><Truck size={14} /> نوع الشحن</label>
@@ -1250,7 +1249,7 @@ export default function CheckoutPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: '800', fontSize: '0.88rem', color: '#1a1a1a' }}>شحن سريع خلال 48 ساعة</span>
-                      <span style={{ background: '#f59e0b', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 7px', borderRadius: '6px' }}>داخل القاهرة والجيزة</span>
+                      <span style={{ background: '#f59e0b', color: '#fff', fontSize: '0.65rem', fontWeight: '900', padding: '2px 7px', borderRadius: '6px' }}>جميع المحافظات</span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '3px' }}>توصيل سريع خلال 48 ساعة من تأكيد الطلب</div>
                     <div style={{ marginTop: '6px', padding: '7px 10px', background: '#f3f4f6', borderRadius: '8px', border: '1px solid #166534', fontSize: '0.72rem', color: '#fbbf24', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
