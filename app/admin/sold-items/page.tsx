@@ -4,7 +4,7 @@ import { supabase } from '@/app/lib/supabase';
 import {
   Loader2, Search, X, Download, Package, TrendingUp, TrendingDown,
   DollarSign, Percent, AlertTriangle, Boxes, ChevronDown, ChevronUp, FileSpreadsheet,
-  TicketPercent, BadgePercent
+  TicketPercent, BadgePercent, BarChart3, Car, Tag, Layers, Award
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -43,6 +43,7 @@ type Line = {
   productId: string;
   name: string;
   brand: string;
+  category: string;
   car_make: string;
   car_model: string;
   car_model_year: string;
@@ -97,6 +98,7 @@ function flatten(o: any): Line[] {
       productId: str(it.id),
       name: str(it.name) || 'منتج غير معروف',
       brand: str(it.brand),
+      category: str(it.category),
       car_make: str(it.car_make),
       car_model: str(it.car_model),
       car_model_year: str(it.car_model_year),
@@ -164,6 +166,73 @@ function aggregate(lines: Line[]): Bucket[] {
 // Aggregated row as rendered/sorted — `orderIds` collapses to a plain count.
 type Row = Omit<Bucket, 'orderIds'> & { orders: number };
 
+// ── Statistics: group the same filtered lines along other dimensions ────────
+type StatKind = 'products' | 'cars' | 'brands' | 'categories';
+type StatRow = {
+  key: string;
+  label: string;
+  sub: string;
+  quantity: number;
+  orderIds: Set<string>;
+  sellTotal: number;
+  netTotal: number;
+  profit: number;
+  missingCost: number;
+};
+
+// Rendered stat row — `orderIds` collapses to a distinct-order count.
+type StatOut = Omit<StatRow, 'orderIds'> & { orders: number };
+
+const UNSPECIFIED = 'غير محدد';
+
+// A blank car field, or the literal "UNIVERSAL" used for fit-everything parts,
+// carries no car signal — it is bucketed as unspecified rather than dropped, so
+// each breakdown still reconciles with the totals shown above it.
+const clean = (v: string) => {
+  const s = str(v);
+  return !s || s.toUpperCase() === 'UNIVERSAL' || s === UNSPECIFIED ? '' : s;
+};
+
+// Resolve a line to the bucket it belongs to for a given breakdown.
+function statBucket(l: Line, kind: StatKind): { key: string; label: string; sub: string } {
+  if (kind === 'products') {
+    return {
+      key: bucketKey(l),
+      label: l.name,
+      sub: [clean(l.brand), [clean(l.car_make), clean(l.car_model)].filter(Boolean).join(' ')].filter(Boolean).join(' • '),
+    };
+  }
+  if (kind === 'cars') {
+    const label = [clean(l.car_make), clean(l.car_model)].filter(Boolean).join(' ') || UNSPECIFIED;
+    return { key: label.toLowerCase(), label, sub: clean(l.car_model_year) || (label === UNSPECIFIED ? 'لم تُسجَّل بيانات السيارة' : '') };
+  }
+  if (kind === 'brands') {
+    const label = clean(l.brand) || UNSPECIFIED;
+    return { key: label.toLowerCase(), label, sub: label === UNSPECIFIED ? 'لم تُسجَّل بيانات البراند' : '' };
+  }
+  const label = clean(l.category) || UNSPECIFIED;
+  return { key: label.toLowerCase(), label, sub: label === UNSPECIFIED ? 'لم تُسجَّل بيانات القسم' : '' };
+}
+
+function groupStats(lines: Line[], kind: StatKind): StatRow[] {
+  const map = new Map<string, StatRow>();
+  for (const l of lines) {
+    const { key, label, sub } = statBucket(l, kind);
+    let b = map.get(key);
+    if (!b) {
+      b = { key, label, sub, quantity: 0, orderIds: new Set(), sellTotal: 0, netTotal: 0, profit: 0, missingCost: 0 };
+      map.set(key, b);
+    }
+    b.quantity += l.quantity;
+    b.orderIds.add(l.orderId);
+    b.sellTotal += l.sellTotal;
+    b.netTotal += l.netTotal;
+    b.profit += l.profit;
+    if (!l.hasCost) b.missingCost += l.quantity;
+  }
+  return [...map.values()];
+}
+
 export default function SoldItemsPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,7 +240,10 @@ export default function SoldItemsPage() {
   const [dateTo, setDateTo] = useState('');
   const [selected, setSelected] = useState<string[]>(STATUSES.map(s => s.key));
   const [search, setSearch] = useState('');
-  const [view, setView] = useState<'lines' | 'top'>('lines');
+  const [view, setView] = useState<'lines' | 'top' | 'stats'>('lines');
+  const [statKind, setStatKind] = useState<StatKind>('products');
+  const [statMetric, setStatMetric] = useState<'quantity' | 'netTotal' | 'profit'>('quantity');
+  const [statLimit, setStatLimit] = useState(12);
   const [sortKey, setSortKey] = useState<keyof Row>('quantity');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [exporting, setExporting] = useState(false);
@@ -256,6 +328,7 @@ export default function SoldItemsPage() {
         !q ||
         l.name.toLowerCase().includes(q) ||
         l.brand.toLowerCase().includes(q) ||
+        l.category.toLowerCase().includes(q) ||
         l.car_make.toLowerCase().includes(q) ||
         l.car_model.toLowerCase().includes(q) ||
         l.car_model_year.toLowerCase().includes(q)
@@ -303,6 +376,27 @@ export default function SoldItemsPage() {
     [top, safePage]
   );
 
+  // ── Statistics breakdowns ────────────────────────────────────────────────
+  const statsByKind = useMemo<Record<StatKind, StatOut[]>>(() => {
+    const build = (kind: StatKind) =>
+      groupStats(lines, kind).map(({ orderIds, ...b }) => ({ ...b, orders: orderIds.size }));
+    return {
+      products:   build('products'),
+      cars:       build('cars'),
+      brands:     build('brands'),
+      categories: build('categories'),
+    };
+  }, [lines]);
+
+  const statRows = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...statsByKind[statKind]].sort((a, b) => (a[statMetric] - b[statMetric]) * dir);
+  }, [statsByKind, statKind, statMetric, sortDir]);
+
+  const statMax = statRows.length ? Math.max(...statRows.map(r => r[statMetric])) : 0;
+  const statVisible = statRows.slice(0, statLimit);
+  const statTotalShare = statRows[0]?.[statMetric] || 0;
+
   const toggleSort = (k: keyof Row) => {
     if (k === sortKey) setSortDir(d => (d === 'desc' ? 'asc' : 'desc'));
     else { setSortKey(k); setSortDir('desc'); }
@@ -318,25 +412,39 @@ export default function SoldItemsPage() {
   );
 
   // ── CSV export (mirrors the products page pattern) ─────────────────────────
+  const STAT_TITLE: Record<StatKind, string> = {
+    products: 'الالمنتجات_الاكثر_مبيعا',
+    cars: 'السيارات_الاكثر_مبيعا',
+    brands: 'البراندات_الاكثر_مبيعا',
+    categories: 'الاقسام_الاكثر_مبيعا',
+  };
+  const statKindLabel: Record<StatKind, string> = {
+    products: 'المنتجات', cars: 'السيارات', brands: 'البراندات', categories: 'الأقسام',
+  };
+
   const exportCsv = () => {
-    if (view === 'lines' ? lines.length === 0 : top.length === 0) {
+    const count = view === 'lines' ? lines.length : view === 'top' ? top.length : statRows.length;
+    if (count === 0) {
       toast.error('لا توجد بيانات للتصدير');
       return;
     }
     setExporting(true);
     const safe = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     let content: string;
+    let filename: string;
+    const range = dateFrom || dateTo ? `_${dateFrom || 'بداية'}_${dateTo || 'النهاية'}` : '';
 
     if (view === 'lines') {
-      const headers = 'رقم الطلب,التاريخ,الحالة,اسم المنتج,البراند,ماركة السيارة,الموديل,سنة الموديل,الكمية,سعر التكلفة,سعر البيع,حصة الخصم,صافي السعر,إجمالي التكلفة,إجمالي البيع,صافي البيع,الربح\n';
+      const headers = 'رقم الطلب,التاريخ,الحالة,اسم المنتج,البراند,القسم,ماركة السيارة,الموديل,سنة الموديل,الكمية,سعر التكلفة,سعر البيع,حصة الخصم,صافي السعر,إجمالي التكلفة,إجمالي البيع,صافي البيع,الربح\n';
       const rows = lines.map(l =>
         [safe(l.orderNo), safe(fmtDate(l.date)), safe(labelOf(l.status)), safe(l.name),
-         safe(l.brand), safe(l.car_make), safe(l.car_model), safe(l.car_model_year), l.quantity,
+         safe(l.brand), safe(l.category), safe(l.car_make), safe(l.car_model), safe(l.car_model_year), l.quantity,
          l.hasCost ? l.cost_price : '', l.price, l.discountShare, l.netUnit,
          l.costTotal, l.sellTotal, l.netTotal, l.profit].join(',')
       ).join('\n');
       content = headers + rows;
-    } else {
+      filename = `المنتجات_المباعة${range}.csv`;
+    } else if (view === 'top') {
       const headers = 'اسم المنتج,البراند,ماركة السيارة,الموديل,سنة الموديل,الكمية المباعة,عدد الطلبات,إجمالي المبيعات,إجمالي الخصم,صافي المبيعات,إجمالي التكلفة,صافي الربح\n';
       const rows = top.map(b =>
         [safe(b.name), safe(b.brand), safe(b.car_make), safe(b.car_model), safe(b.car_model_year),
@@ -344,17 +452,25 @@ export default function SoldItemsPage() {
          b.costTotal, b.profit].join(',')
       ).join('\n');
       content = headers + rows;
+      filename = `المنتجات_المباعة${range}.csv`;
+    } else {
+      const headers = `${statKindLabel[statKind]},التفاصيل,عدد الطلبات,الكمية المباعة,إجمالي المبيعات,صافي المبيعات,صافي الربح,نسبة من المتصدر\n`;
+      const rows = statRows.map(r =>
+        [safe(r.label), safe(r.sub), r.orders, r.quantity, r.sellTotal, r.netTotal, r.profit,
+         statTotalShare > 0 ? `${((r[statMetric] / statTotalShare) * 100).toFixed(1)}%` : ''].join(',')
+      ).join('\n');
+      content = headers + rows;
+      filename = `${STAT_TITLE[statKind]}${range}.csv`;
     }
 
     const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    const range = dateFrom || dateTo ? `_${dateFrom || 'بداية'}_${dateTo || 'النهاية'}` : '';
-    link.download = `المنتجات_المباعة${range}.csv`;
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(link.href);
     setExporting(false);
-    toast.success(`تم تصدير ${view === 'lines' ? lines.length : top.length} صف`);
+    toast.success(`تم تصدير ${count} صف`);
   };
 
   const hasFilter = Boolean(dateFrom || dateTo || search.trim());
@@ -400,7 +516,7 @@ export default function SoldItemsPage() {
         </div>
         <button onClick={exportCsv} disabled={exporting} style={exportBtn}>
           {exporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-          تصدير CSV {view === 'lines' ? `(${lines.length})` : `(${top.length})`}
+          تصدير CSV {view === 'lines' ? `(${lines.length})` : view === 'top' ? `(${top.length})` : `(${statRows.length})`}
         </button>
       </div>
 
@@ -537,6 +653,9 @@ export default function SoldItemsPage() {
         <button onClick={() => setView('top')} style={viewBtn(view === 'top')}>
           <TrendingUp size={15} /> الأكثر مبيعاً ({top.length})
         </button>
+        <button onClick={() => setView('stats')} style={viewBtn(view === 'stats')}>
+          <BarChart3 size={15} /> إحصائيات
+        </button>
         <button onClick={exportCsv} disabled={exporting} style={{ ...exportBtn, marginInlineStart: 'auto' }}>
           {exporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
           تصدير CSV
@@ -637,7 +756,7 @@ export default function SoldItemsPage() {
             </table>
           </div>
         </div>
-      ) : (
+      ) : view === 'top' ? (
         /* ── Aggregated: most sold products ── */
         <div style={card}>
           <div className="si-cards">
@@ -720,10 +839,135 @@ export default function SoldItemsPage() {
             </table>
           </div>
         </div>
+      ) : (
+        /* ── Statistics: most-sold across four dimensions ── */
+        <div>
+          {/* Controls: which breakdown, and what the bars rank by */}
+          <div style={{ ...card, marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#6b7280' }}>عرض حسب:</span>
+              {([
+                { k: 'products'   as StatKind, label: 'المنتجات', icon: <Package size={14} /> },
+                { k: 'cars'       as StatKind, label: 'السيارات',  icon: <Car size={14} /> },
+                { k: 'brands'     as StatKind, label: 'البراندات', icon: <Tag size={14} /> },
+                { k: 'categories' as StatKind, label: 'الأقسام',   icon: <Layers size={14} /> },
+              ]).map(t => (
+                <button key={t.k} onClick={() => { setStatKind(t.k); setStatLimit(12); }} style={viewBtn(statKind === t.k)}>
+                  {t.icon} {t.label} ({statsByKind[t.k].length})
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#6b7280' }}>ترتيب الأعمدة:</span>
+              {([
+                { k: 'quantity' as const, label: 'الكمية المباعة' },
+                { k: 'netTotal' as const, label: 'صافي المبيعات' },
+                { k: 'profit'   as const, label: 'صافي الربح' },
+              ]).map(m => (
+                <button key={m.k} onClick={() => setStatMetric(m.k)} style={viewBtn(statMetric === m.k)}>{m.label}</button>
+              ))}
+              <button
+                onClick={() => setSortDir(d => (d === 'desc' ? 'asc' : 'desc'))}
+                style={viewBtn(false)}
+              >
+                {sortDir === 'desc' ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                {sortDir === 'desc' ? 'تنازلي' : 'تصاعدي'}
+              </button>
+            </div>
+          </div>
+
+          {statRows.length === 0 ? (
+            <div style={{ ...card, padding: '30px', textAlign: 'center', color: '#6b7280', fontWeight: '800' }}>
+              لا توجد بيانات مطابقة للفلاتر
+            </div>
+          ) : (
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {statKind === 'products' ? <Package size={17} color="#16a34a" /> : statKind === 'cars' ? <Car size={17} color="#16a34a" /> : statKind === 'brands' ? <Tag size={17} color="#16a34a" /> : <Layers size={17} color="#16a34a" />}
+                  <span style={{ fontWeight: '900', color: '#1a1a1a', fontSize: '0.95rem' }}>
+                    {statKindLabel[statKind]} الأكثر مبيعاً
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '800' }}>({statRows.length})</span>
+                </div>
+                {statRows[0] && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '800' }}>
+                    <Award size={15} color="#f59e0b" />
+                    المتصدر: {statRows[0].label} — {statMetric === 'quantity' ? `${statRows[0].quantity} قطعة` : egp(statRows[0][statMetric])}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {statVisible.map((r, i) => {
+                  const val = r[statMetric];
+                  const pct = statMax > 0 ? (val / statMax) * 100 : 0;
+                  const share = statTotalShare > 0 ? (val / statTotalShare) * 100 : 0;
+                  return (
+                    <div
+                      key={r.key}
+                      title={`${r.label}${r.sub ? ` — ${r.sub}` : ''}`}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '9px 12px', borderRadius: '10px',
+                        background: '#f8fafc', position: 'relative', overflow: 'hidden',
+                      }}
+                    >
+                      <div style={{
+                        position: 'absolute', left: 0, top: 0, bottom: 0,
+                        width: `${pct}%`, background: i === 0 ? '#bbf7d0' : '#dcfce7',
+                        borderRadius: 10, transition: 'width 0.3s ease',
+                      }} />
+                      <div style={{
+                        width: 24, height: 24, borderRadius: 6, flexShrink: 0, position: 'relative',
+                        background: i < 3 ? '#15803d' : '#e2e8f0',
+                        color: i < 3 ? '#fff' : '#6b7280',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 11, fontWeight: 800,
+                      }}>{i + 1}</div>
+                      <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                        <div style={{ fontSize: '0.84rem', fontWeight: '800', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {r.label}
+                        </div>
+                        {r.sub && (
+                          <div style={{ fontSize: '0.68rem', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {r.sub}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '800', minWidth: '38px', textAlign: 'left', direction: 'ltr' }}>
+                          {share.toFixed(1)}%
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '800' }}>
+                          {r.quantity} قطعة • {r.orders} طلب
+                        </span>
+                        <span style={{ fontSize: '0.84rem', color: '#15803d', fontWeight: '900', minWidth: '76px', textAlign: 'left', direction: 'ltr' }}>
+                          {statMetric === 'quantity' ? r.quantity : egp(val)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+                <span style={{ fontSize: '0.76rem', color: '#6b7280', fontWeight: '800' }}>
+                  عرض {Math.min(statLimit, statRows.length)} من {statRows.length.toLocaleString('ar-EG')}
+                </span>
+                {statLimit < statRows.length && (
+                  <button onClick={() => setStatLimit(l => l + 25)} style={viewBtn(false)}>
+                    عرض المزيد ({Math.min(25, statRows.length - statLimit)})
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── Pagination ── */}
-      {totalPages > 1 && (
+      {view !== 'stats' && totalPages > 1 && (
         <div style={{ ...card, marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: '800' }}>
             صفحة {safePage} من {totalPages} — عرض {((safePage - 1) * PAGE_SIZE) + 1} إلى {Math.min(safePage * PAGE_SIZE, view === 'lines' ? lines.length : top.length)} من {(view === 'lines' ? lines.length : top.length).toLocaleString('ar-EG')}

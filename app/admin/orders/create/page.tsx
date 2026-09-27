@@ -22,6 +22,7 @@ interface Product {
   car_model_year: string;
   category: string;
   subcategory: string;
+  cost_price: number;
 }
 
 interface OrderItem {
@@ -31,6 +32,11 @@ interface OrderItem {
   quantity: number;
   image_url: string;
   brand: string;
+  category: string;
+  car_make: string;
+  car_model: string;
+  car_model_year: string;
+  cost_price: number;
 }
 
 interface UserProfile {
@@ -256,7 +262,17 @@ export default function AdminCreateOrder() {
     if (exists) {
       setOrderItems(prev => prev.map(i => i.id === p.id ? { ...i, quantity: i.quantity + 1 } : i));
     } else {
-      setOrderItems(prev => [...prev, { id: p.id, name: p.name, price, quantity: 1, image_url: p.image_url, brand: p.brand }]);
+      // Persist the full product fields, not just id/name/price — the sold-items
+      // report groups by car, brand and category straight off `orders.items`,
+      // so anything dropped here shows up as "غير محدد" in those statistics.
+      setOrderItems(prev => [...prev, {
+        id: p.id, name: p.name, price, quantity: 1, image_url: p.image_url,
+        brand: p.brand || '', category: p.category || '',
+        car_make: p.car_make || '', car_model: p.car_model || '',
+        car_model_year: p.car_model_year || '',
+        // `cost_price` is typed number but Postgres numeric can arrive as a string.
+        cost_price: parseFloat(String(p.cost_price)) || 0,
+      }]);
     }
     setShowResults(false);
     setProductSearch('');
@@ -292,7 +308,11 @@ export default function AdminCreateOrder() {
         customer_phone: customerPhone,
         customer_address: manualAddress,
         city: manualCity,
-        items: orderItems.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image_url: i.image_url })),
+        items: orderItems.map(i => ({
+          id: i.id, name: i.name, price: i.price, quantity: i.quantity, image_url: i.image_url,
+          brand: i.brand, category: i.category, car_make: i.car_make,
+          car_model: i.car_model, car_model_year: i.car_model_year, cost_price: i.cost_price,
+        })),
         total_price: total,
         shipping_cost: shippingCost,
         discount_applied: discount,
