@@ -59,8 +59,23 @@ type Line = {
   profit: number;
 };
 
+// `orders.items` is a JSON column, but depending on how it was declared/inserted
+// PostgREST hands it back either as a parsed array or as a raw JSON string.
+// Treating a string as "no items" would silently drop whole orders, so parse it.
+function parseItems(o: any): any[] {
+  const raw = o?.items;
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  }
+  return [];
+}
+
 function flatten(o: any): Line[] {
-  const items = Array.isArray(o.items) ? o.items : [];
+  const items = parseItems(o);
   const discount = orderDiscount(o);
   // The order's discount is split evenly across its line items, so every row
   // carries `discount / lineCount` and the shares always sum back to the total.
@@ -160,21 +175,30 @@ export default function SoldItemsPage() {
   const [sortKey, setSortKey] = useState<keyof Row>('quantity');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [exporting, setExporting] = useState(false);
+  const [fetchError, setFetchError] = useState('');
+  const [diag, setDiag] = useState({ fetched: 0, withItems: 0, withoutItems: 0, batches: 0 });
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 50;
 
   // Re-fetch whenever the selected period changes.
   useEffect(() => { fetchOrders(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [dateFrom, dateTo]);
 
   async function fetchOrders() {
     setLoading(true);
+    setFetchError('');
     try {
       // Supabase caps a select at 1000 rows by default, so page through in batches.
+      // `select('*')` matches the proven pattern in /admin/reports — the orders schema
+      // is not in version control, so naming columns explicitly risks a 400 if any
+      // name is wrong (a 400 fails the whole query and yields zero rows).
       const all: any[] = [];
       const batchSize = 1000;
       let from = 0;
+      let batches = 0;
       while (true) {
         let q = supabase
           .from('orders')
-          .select('id, created_at, status, items, discount_applied, discount_amount, wallet_discount, promo_code')
+          .select('*')
           .order('created_at', { ascending: false })
           .range(from, from + batchSize - 1);
         if (dateFrom) q = q.gte('created_at', new Date(dateFrom).toISOString());
@@ -183,13 +207,24 @@ export default function SoldItemsPage() {
         if (error) throw error;
         if (!data || data.length === 0) break;
         all.push(...data);
+        batches++;
         if (data.length < batchSize) break;
         from += batchSize;
       }
+      setDiag({
+        fetched: all.length,
+        withItems: all.filter(o => parseItems(o).length > 0).length,
+        withoutItems: all.filter(o => parseItems(o).length === 0).length,
+        batches,
+      });
       setOrders(all);
     } catch (err: any) {
       console.error(err);
-      toast.error('فشل تحميل الطلبات: ' + (err?.message || 'خطأ غير معروف'));
+      const msg = err?.message || err?.details || 'خطأ غير معروف';
+      setFetchError(msg);
+      setOrders([]);
+      setDiag({ fetched: 0, withItems: 0, withoutItems: 0, batches: 0 });
+      toast.error('فشل تحميل الطلبات: ' + msg);
     } finally {
       setLoading(false);
     }
@@ -228,6 +263,16 @@ export default function SoldItemsPage() {
       .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   }, [orders, selected, search]);
 
+  // Any change to the period, status set or search invalidates the current page.
+  useEffect(() => { setPage(1); }, [orders, selected, search, view]);
+
+  const totalPages = Math.max(1, Math.ceil(lines.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageLines = useMemo(
+    () => lines.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [lines, safePage]
+  );
+
   const totals = useMemo(() => {
     const quantity = lines.reduce((s, l) => s + l.quantity, 0);
     const cost = lines.reduce((s, l) => s + l.costTotal, 0);
@@ -252,6 +297,11 @@ export default function SoldItemsPage() {
       .map(({ orderIds, ...b }) => ({ ...b, orders: orderIds.size }))
       .sort((a, b) => (Number(a[sortKey]) - Number(b[sortKey])) * dir);
   }, [lines, sortKey, sortDir]);
+
+  const pageTop = useMemo(
+    () => top.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [top, safePage]
+  );
 
   const toggleSort = (k: keyof Row) => {
     if (k === sortKey) setSortDir(d => (d === 'desc' ? 'asc' : 'desc'));
@@ -350,9 +400,34 @@ export default function SoldItemsPage() {
         </div>
         <button onClick={exportCsv} disabled={exporting} style={exportBtn}>
           {exporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-          تصدير CSV
+          تصدير CSV {view === 'lines' ? `(${lines.length})` : `(${top.length})`}
         </button>
       </div>
+
+      {fetchError && (
+        <div style={{ marginBottom: '14px', background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: '12px', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+          <AlertTriangle size={18} color="#b91c1c" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ fontSize: '0.82rem', color: '#991b1b', fontWeight: '600', lineHeight: 1.6 }}>
+            <strong>تعذّر تحميل الطلبات.</strong> {fetchError}
+            <div style={{ fontSize: '0.76rem', marginTop: '4px', color: '#b91c1c' }}>
+              تأكد من صلاحيات حسابك على جدول <code>orders</code> ثم أعد تحميل الصفحة.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!fetchError && diag.fetched > 0 && (
+        <div style={{ marginBottom: '14px', background: '#f9fafb', border: '1px solid #eee', borderRadius: '10px', padding: '8px 12px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '700' }}>
+          تم جلب <strong style={{ color: '#1a1a1a' }}>{diag.fetched.toLocaleString('ar-EG')}</strong> طلب
+          {diag.batches > 1 && <> على <strong style={{ color: '#1a1a1a' }}>{diag.batches}</strong> دفعات</>}
+          {' — '}الأصناف المعروضة <strong style={{ color: '#16a34a' }}>{lines.length.toLocaleString('ar-EG')}</strong>
+          {diag.withoutItems > 0 && (
+            <span style={{ color: '#d97706' }}>
+              {' — '}<strong>{diag.withoutItems}</strong> طلب بدون بيانات أصناف (لا يظهر منها صفوف)
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ── Filters ── */}
       <div style={card}>
@@ -462,13 +537,17 @@ export default function SoldItemsPage() {
         <button onClick={() => setView('top')} style={viewBtn(view === 'top')}>
           <TrendingUp size={15} /> الأكثر مبيعاً ({top.length})
         </button>
+        <button onClick={exportCsv} disabled={exporting} style={{ ...exportBtn, marginInlineStart: 'auto' }}>
+          {exporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+          تصدير CSV
+        </button>
       </div>
 
       {/* ── Detail: one row per item ── */}
       {view === 'lines' ? (
         <div style={card}>
           <div className="si-cards">
-            {lines.map(l => {
+            {pageLines.map(l => {
               const st = STATUSES.find(s => s.key === l.status);
               return (
                 <div key={l.key} style={mCard}>
@@ -501,9 +580,9 @@ export default function SoldItemsPage() {
             {lines.length === 0 && <div style={{ ...mCard, textAlign: 'center', color: '#9ca3af' }}>لا توجد أصناف مطابقة للفلاتر</div>}
           </div>
 
-          <div className="si-table" style={{ overflowX: 'auto', maxHeight: '620px', overflowY: 'auto' }}>
+          <div className="si-table" style={{ overflowX: 'auto' }}>
             <table style={{ ...table, minWidth: '1340px' }}>
-              <thead><tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+              <thead><tr style={{ background: '#f9fafb' }}>
                 <th style={th}>رقم الطلب</th><th style={th}>التاريخ</th><th style={th}>الحالة</th>
                 <th style={th}>اسم المنتج</th><th style={th}>البراند</th><th style={th}>ماركة السيارة</th><th style={th}>الموديل</th><th style={th}>سنة الموديل</th>
                 <th style={th}>الكمية</th><th style={th}>سعر التكلفة</th><th style={th}>سعر البيع</th>
@@ -511,7 +590,7 @@ export default function SoldItemsPage() {
                 <th style={th}>إجمالي التكلفة</th><th style={th}>إجمالي البيع</th><th style={th}>صافي البيع</th><th style={th}>الربح</th>
               </tr></thead>
               <tbody>
-                {lines.map(l => {
+                {pageLines.map(l => {
                   const st = STATUSES.find(s => s.key === l.status);
                   return (
                     <tr key={l.key} style={{ borderBottom: '1px solid #f3f4f6' }}>
@@ -542,7 +621,7 @@ export default function SoldItemsPage() {
               {lines.length > 0 && (
                 <tfoot>
                   <tr style={{ background: '#f0fdf4', borderTop: '2px solid #16a34a' }}>
-                    <td style={{ ...td, fontWeight: '900' }} colSpan={8}>الإجمالي ({lines.length} صنف)</td>
+                    <td style={{ ...td, fontWeight: '900' }} colSpan={8}>الإجمالي لكل النتائج ({lines.length} صنف)</td>
                     <td style={{ ...td, fontWeight: '900' }}>{totals.quantity}</td>
                     <td style={td}>—</td>
                     <td style={td}>—</td>
@@ -562,7 +641,7 @@ export default function SoldItemsPage() {
         /* ── Aggregated: most sold products ── */
         <div style={card}>
           <div className="si-cards">
-            {top.map((b, i) => (
+            {pageTop.map((b, i) => (
               <div key={b.key} style={mCard}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontSize: '0.72rem', fontWeight: '900', color: '#16a34a' }}>#{i + 1}</span>
@@ -589,9 +668,9 @@ export default function SoldItemsPage() {
             {top.length === 0 && <div style={{ ...mCard, textAlign: 'center', color: '#9ca3af' }}>لا توجد أصناف مطابقة للفلاتر</div>}
           </div>
 
-          <div className="si-table" style={{ overflowX: 'auto', maxHeight: '620px', overflowY: 'auto' }}>
+          <div className="si-table" style={{ overflowX: 'auto' }}>
             <table style={{ ...table, minWidth: '1000px' }}>
-              <thead><tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+              <thead><tr style={{ background: '#f9fafb' }}>
                 <th style={{ ...th, width: '46px' }}>#</th>
                 <th style={th}>اسم المنتج</th><th style={th}>البراند</th><th style={th}>ماركة السيارة</th><th style={th}>الموديل</th><th style={th}>سنة الموديل</th>
                 {sortTh('quantity', 'الكمية المباعة')}
@@ -603,9 +682,9 @@ export default function SoldItemsPage() {
                 {sortTh('profit', 'صافي الربح')}
               </tr></thead>
               <tbody>
-                {top.map((b, i) => (
+                {pageTop.map((b, i) => (
                   <tr key={b.key} style={{ borderBottom: '1px solid #f3f4f6', background: i === 0 ? '#f0fdf4' : undefined }}>
-                    <td style={{ ...td, fontWeight: '900', color: i === 0 ? '#16a34a' : '#9ca3af' }}>{i + 1}</td>
+                    <td style={{ ...td, fontWeight: '900', color: i === 0 ? '#16a34a' : '#9ca3af' }}>{(safePage - 1) * PAGE_SIZE + i + 1}</td>
                     <td style={{ ...td, fontWeight: '800', color: '#1a1a1a', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={b.name}>{b.name}</td>
                     <td style={{ ...td, fontWeight: '800', color: '#1f2937' }}>{b.brand || '—'}</td>
                     <td style={td}>{b.car_make || '—'}</td>
@@ -627,7 +706,7 @@ export default function SoldItemsPage() {
               {top.length > 0 && (
                 <tfoot>
                   <tr style={{ background: '#f0fdf4', borderTop: '2px solid #16a34a' }}>
-                    <td style={td} colSpan={6}>الإجمالي ({top.length} منتج)</td>
+                    <td style={td} colSpan={6}>الإجمالي لكل النتائج ({top.length} منتج)</td>
                     <td style={{ ...td, fontWeight: '900' }}>{totals.quantity}</td>
                     <td style={{ ...td, fontWeight: '900' }}>{totals.orderCount}</td>
                     <td style={{ ...td, fontWeight: '900' }}>{egp(totals.sell)}</td>
@@ -642,6 +721,22 @@ export default function SoldItemsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <div style={{ ...card, marginTop: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.78rem', color: '#6b7280', fontWeight: '800' }}>
+            صفحة {safePage} من {totalPages} — عرض {((safePage - 1) * PAGE_SIZE) + 1} إلى {Math.min(safePage * PAGE_SIZE, view === 'lines' ? lines.length : top.length)} من {(view === 'lines' ? lines.length : top.length).toLocaleString('ar-EG')}
+          </span>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => setPage(1)} disabled={safePage === 1} style={pageBtn(safePage === 1)}>الأولى</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={pageBtn(safePage === 1)}>السابقة</button>
+            <span style={{ padding: '8px 12px', fontWeight: '900', fontSize: '0.82rem', color: '#15803d', background: '#f0fdf4', borderRadius: '8px' }}>{safePage} / {totalPages}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} style={pageBtn(safePage === totalPages)}>التالية</button>
+            <button onClick={() => setPage(totalPages)} disabled={safePage === totalPages} style={pageBtn(safePage === totalPages)}>الأخيرة</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -652,7 +747,11 @@ const lab: any = { display: 'block', fontSize: '0.75rem', fontWeight: '800', col
 const inp: any = { padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e5e7eb', fontSize: '0.88rem', outline: 'none', fontFamily: 'inherit' };
 const presetBtn: any = { display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '9px 14px', borderRadius: '10px', border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontWeight: '800', fontSize: '0.8rem', cursor: 'pointer' };
 const linkBtn: any = { background: 'none', border: 'none', color: '#16a34a', fontWeight: '800', fontSize: '0.78rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' };
-const exportBtn: any = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '10px', border: '1.5px solid #16a34a', background: '#f0fdf4', color: '#15803d', fontWeight: '900', fontSize: '0.84rem', cursor: 'pointer' };
+const exportBtn: any = {
+  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '12px 20px', borderRadius: '12px',
+  border: 'none', background: '#16a34a', color: '#fff', fontWeight: '900', fontSize: '0.88rem',
+  cursor: 'pointer', boxShadow: '0 2px 6px rgba(22,163,74,0.35)',
+};
 const table: any = { width: '100%', borderCollapse: 'collapse', textAlign: 'right' };
 const th: any = { padding: '10px 12px', fontSize: '0.75rem', color: '#6b7280', fontWeight: '900', whiteSpace: 'nowrap', borderBottom: '2px solid #f0f0f0' };
 const td: any = { padding: '10px 12px', fontSize: '0.82rem', color: '#374151', whiteSpace: 'nowrap' };
@@ -660,6 +759,13 @@ const mCard: any = { background: '#f9fafb', border: '1px solid #eee', borderRadi
 const mRow: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#374151', fontWeight: '600', padding: '3px 0' };
 const mTotal: any = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.92rem', fontWeight: '900', borderTop: '1px dashed #d1d5db', paddingTop: '8px', marginTop: '6px' };
 const vStrong: any = { fontWeight: '900', color: '#1a1a1a' };
+const pageBtn = (disabled: boolean): any => ({
+  display: 'inline-flex', alignItems: 'center', padding: '8px 12px', borderRadius: '8px',
+  cursor: disabled ? 'not-allowed' : 'pointer', fontWeight: '800', fontSize: '0.78rem',
+  background: disabled ? '#f9fafb' : '#fff',
+  color: disabled ? '#d1d5db' : '#374151',
+  border: disabled ? '1.5px solid #f3f4f6' : '1.5px solid #e5e7eb',
+});
 const viewBtn = (active: boolean): any => ({
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 18px',
   borderRadius: '10px', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem',
